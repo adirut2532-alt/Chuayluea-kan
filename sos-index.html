@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1f9e6e">
+<title>ช่วยเหลือกาญ — SOS</title>
+<style>
+:root{
+  --green:#1f9e6e;--green-d:#157a54;--green-l:#e8f7f0;
+  --red:#e8412c;--red-d:#c32e1c;--red-l:#fff0ed;
+  --blue:#2540c8;--blue-l:#eaf0ff;
+  --ink:#1a2233;--muted:#6b7384;--line:#e8eaf0;--bg:#f4f5f8;
+  --shadow:0 2px 12px rgba(20,30,60,.06);--r:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"Helvetica Neue","Sukhumvit Set",sans-serif;background:var(--bg);color:var(--ink);max-width:480px;margin:0 auto;min-height:100dvh;overflow-x:hidden}
+.hidden{display:none!important}
+button,input{font-family:inherit}
+
+/* ===== LOGIN ===== */
+.login-wrap{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#e8f7f0,#eaf0ff)}
+.login-card{background:#fff;border-radius:20px;padding:30px 24px;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(20,30,60,.08);text-align:center}
+.login-card .logo{font-size:48px;margin-bottom:8px}
+.login-card h1{font-size:22px;font-weight:800;margin-bottom:4px}
+.login-card .sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+.login-card label{display:block;text-align:left;font-size:13px;font-weight:700;color:var(--muted);margin:14px 0 6px}
+.login-card input{width:100%;border:1px solid var(--line);border-radius:12px;padding:14px;font-size:18px;text-align:center;letter-spacing:2px;outline:none}
+.login-card input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(31,158,110,.1)}
+.btn{width:100%;padding:15px;border:none;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer;margin-top:14px}
+.btn-g{background:var(--green);color:#fff}
+.btn-fb{background:#1877f2;color:#fff}
+.btn-o{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.45}
+.divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:var(--muted);font-size:13px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--line)}
+.err-box{background:var(--red-l);color:var(--red-d);border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:10px;text-align:left}
+.notice-box{background:var(--green-l);color:var(--green-d);border-radius:12px;padding:14px;font-size:14px;margin-bottom:14px;line-height:1.6;text-align:left}
+.link-btn{background:none;border:none;color:var(--muted);font-size:14px;margin-top:10px;cursor:pointer;text-decoration:underline}
+
+/* ===== HOME ===== */
+.home{display:flex;flex-direction:column;min-height:100dvh}
+.hdr{background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between}
+.hdr-l{display:flex;align-items:center;gap:8px}
+.hdr-l .ttl{font-weight:800;font-size:17px}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.hdr-r .usr{font-size:12px;opacity:.9}
+.hdr-r .out{background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer}
+.loc-bar{background:var(--green-l);color:var(--green-d);padding:10px 16px;font-size:13px;font-weight:600}
+.quick{display:flex;gap:8px;padding:14px 16px;overflow-x:auto}
+.quick::-webkit-scrollbar{display:none}
+.quick a{flex:none;display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:14px;font-weight:700;color:var(--ink);text-decoration:none;white-space:nowrap;box-shadow:var(--shadow)}
+.phone-info{text-align:center;color:var(--muted);font-size:13px;padding:10px}
+
+/* ===== SOS BUTTON ===== */
+.sos-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:14px}
+.sos-hint{color:var(--muted);font-size:13px}
+.sos-ring-wrap{position:relative;width:180px;height:180px}
+.sos-ring-svg{position:absolute;inset:0;width:100%;height:100%}
+.sos-main-btn{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:130px;height:130px;border-radius:50%;border:none;
+  background:linear-gradient(135deg,#e8412c,#ff5a3c);
+  color:#fff;font-size:30px;font-weight:900;letter-spacing:2px;cursor:pointer;
+  box-shadow:0 6px 28px rgba(232,65,44,.4);
+  transition:transform .1s,box-shadow .1s;user-select:none;-webkit-user-select:none;
+}
+.sos-main-btn.holding{transform:translate(-50%,-50%) scale(.92);box-shadow:0 2px 12px rgba(232,65,44,.6)}
+.sos-main-btn:disabled{opacity:.4}
+.hold-text{color:var(--red);font-weight:700;font-size:14px;animation:blink .6s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ===== COUNTDOWN ===== */
+.cd-overlay{position:fixed;inset:0;max-width:480px;margin:0 auto;z-index:60;background:linear-gradient(180deg,#0a0f26,#141a38);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 20px;color:#fff}
+.cd-overlay h2{color:var(--red);font-size:22px;font-weight:800;margin-bottom:8px}
+.cd-overlay .cd-sub{color:#9aa2bd;font-size:14px;margin-bottom:28px;line-height:1.5}
+.cd-ring{position:relative;width:160px;height:160px;margin-bottom:28px}
+.cd-ring svg{width:100%;height:100%}
+.cd-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:56px;font-weight:900;color:#fff}
+.cd-warn{color:#9aa2bd;font-size:13px;margin-bottom:20px}
+.cd-cancel{background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:14px;padding:16px 40px;font-size:16px;font-weight:700;cursor:pointer}
+
+/* ===== CONFIRMED ===== */
+.conf-overlay{position:fixed;inset:0;max-width:480px;margin:0 auto;z-index:60;background:linear-gradient(180deg,#0a0f26,#141a38);overflow-y:auto;color:#fff;padding:30px 20px;text-align:center}
+.conf-overlay h2{color:var(--green);font-size:22px;font-weight:800;margin-bottom:4px}
+.conf-overlay .code{color:#9aa2bd;font-size:14px;margin-bottom:20px}
+.st-box{border:1px solid rgba(31,158,110,.3);border-radius:var(--r);padding:18px;background:rgba(31,158,110,.06);text-align:left;margin-bottom:20px}
+.st-box .st{color:var(--green);font-size:17px;font-weight:800;margin-bottom:8px}
+.st-box .info{color:#c9cee0;font-size:14px;line-height:1.5;margin-bottom:6px}
+.st-box .coord{color:#9aa2bd;font-size:13px}
+.cbtn{display:block;width:100%;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:800;text-align:center;text-decoration:none;margin-bottom:10px;cursor:pointer}
+.cbtn.red{background:var(--red);color:#fff}
+.cbtn.dark{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15)}
+.cbtn.grn{background:var(--green);color:#fff;margin-top:16px}
+.tworow{display:flex;gap:10px}
+.tworow .cbtn{flex:1}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="loginScreen" class="login-wrap">
+  <div class="login-card">
+    <div class="logo">🛟</div>
+    <h1>ช่วยเหลือกาญ</h1>
+    <p class="sub">ช่วยเร็ว · เข้าถึงง่าย · อุ่นใจทุกเวลา</p>
+    <div id="loginErr" class="err-box hidden"></div>
+
+    <!-- Step: Phone -->
+    <div id="stepPhone">
+      <label>เบอร์โทรศัพท์</label>
+      <input id="phoneInput" type="tel" inputmode="numeric" placeholder="08X-XXX-XXXX" maxlength="10">
+      <button class="btn btn-g" id="sendOtpBtn" onclick="handleSendOTP()">📱 ส่งรหัส OTP</button>
+      <div class="divider"><span>หรือ</span></div>
+      <button class="btn btn-fb" onclick="handleFacebookLogin()">📘 เข้าสู่ระบบด้วย Facebook</button>
+    </div>
+
+    <!-- Step: OTP -->
+    <div id="stepOtp" class="hidden">
+      <p style="color:var(--muted);font-size:14px;margin-bottom:6px">ส่งรหัส OTP ไปที่ <span id="otpPhoneLabel"></span></p>
+      <label>รหัส OTP (6 หลัก)</label>
+      <input id="otpInput" type="text" inputmode="numeric" placeholder="123456" maxlength="6">
+      <button class="btn btn-g" onclick="handleVerifyOTP()">✅ ยืนยัน OTP</button>
+      <button class="link-btn" onclick="showStep('stepPhone')">← กลับ</button>
+    </div>
+
+    <!-- Step: บังคับผูกเบอร์ (หลัง Facebook) -->
+    <div id="stepLinkPhone" class="hidden">
+      <div class="notice-box">
+        📱 กรุณาผูกเบอร์โทรศัพท์เพื่อใช้แอปต่อ<br>
+        <small>เบอร์ใช้ติดต่อเมื่อเกิดเหตุและป้องกันการปลอมแปลง</small>
+      </div>
+      <label>เบอร์โทรศัพท์</label>
+      <input id="linkPhoneInput" type="tel" inputmode="numeric" placeholder="08X-XXX-XXXX" maxlength="10">
+      <button class="btn btn-g" onclick="handleLinkSendOTP()">📱 ส่งรหัส OTP</button>
+    </div>
+
+    <!-- Step: OTP ผูกเบอร์ -->
+    <div id="stepLinkOtp" class="hidden">
+      <p style="color:var(--muted);font-size:14px;margin-bottom:6px">ส่ง OTP ไปที่ <span id="linkOtpLabel"></span></p>
+      <label>รหัส OTP (6 หลัก)</label>
+      <input id="linkOtpInput" type="text" inputmode="numeric" placeholder="123456" maxlength="6">
+      <button class="btn btn-g" onclick="handleLinkVerifyOTP()">✅ ยืนยัน & ผูกเบอร์</button>
+    </div>
+  </div>
+  <div id="recaptcha-container"></div>
+</div>
+
+<!-- ===== HOME SCREEN ===== -->
+<div id="homeScreen" class="home hidden">
+  <div class="hdr">
+    <div class="hdr-l"><span>🛟</span><span class="ttl">ช่วยเหลือกาญ</span></div>
+    <div class="hdr-r"><span class="usr" id="userName">ผู้ใช้</span><button class="out" onclick="handleLogout()">ออก</button></div>
+  </div>
+  <div class="loc-bar">📍 <span id="locLabel">กำลังค้นหาตำแหน่ง…</span></div>
+  <div class="quick">
+    <a href="tel:1669">🚑 1669 กู้ชีพ</a>
+    <a href="tel:191">👮 191 ตำรวจ</a>
+    <a href="tel:199">🔥 199 ดับเพลิง</a>
+  </div>
+
+  <!-- SOS Button Area -->
+  <div class="sos-area">
+    <p class="sos-hint">กดค้างปุ่ม SOS 3 วินาทีเพื่อแจ้งเหตุฉุกเฉิน</p>
+    <div class="sos-ring-wrap">
+      <svg class="sos-ring-svg" viewBox="0 0 180 180">
+        <circle cx="90" cy="90" r="76" fill="none" stroke="rgba(232,65,44,0.12)" stroke-width="8"/>
+        <circle id="holdRing" cx="90" cy="90" r="76" fill="none" stroke="#e8412c" stroke-width="8"
+          stroke-dasharray="477.52" stroke-dashoffset="477.52" stroke-linecap="round" transform="rotate(-90 90 90)"/>
+      </svg>
+      <button class="sos-main-btn" id="sosBtn"
+        onmousedown="startHold()" onmouseup="cancelHold()" onmouseleave="cancelHold()"
+        ontouchstart="startHold()" ontouchend="cancelHold()">SOS</button>
+    </div>
+    <p id="holdText" class="hold-text hidden">กำลังกดค้าง… อย่าปล่อย</p>
+  </div>
+  <div class="phone-info">📱 เบอร์ในระบบ: <span id="userPhone">-</span></div>
+</div>
+
+<!-- ===== COUNTDOWN OVERLAY ===== -->
+<div id="cdOverlay" class="cd-overlay hidden">
+  <h2>🚨 ตรวจจับเหตุฉุกเฉิน</h2>
+  <p class="cd-sub">กำลังประมวลสัญญาณส่งศูนย์ช่วยเหลือภัยกู้ชีพกาญจน์</p>
+  <div class="cd-ring">
+    <svg viewBox="0 0 160 160">
+      <circle cx="80" cy="80" r="68" fill="none" stroke="rgba(232,65,44,0.2)" stroke-width="8"/>
+      <circle id="cdArc" cx="80" cy="80" r="68" fill="none" stroke="#e8412c" stroke-width="8"
+        stroke-dasharray="427.26" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 80 80)"
+        style="transition:stroke-dashoffset 1s linear"/>
+    </svg>
+    <span class="cd-num" id="cdNum">5</span>
+  </div>
+  <p class="cd-warn">ระบบจะส่งสัญญาณอัตโนมัติหากไม่กดยกเลิก</p>
+  <button class="cd-cancel" onclick="cancelCountdown()">✕ ยกเลิกเหตุ</button>
+</div>
+
+<!-- ===== CONFIRMED OVERLAY ===== -->
+<div id="confOverlay" class="conf-overlay hidden">
+  <h2>🚑 ศูนย์รับเรื่องแจ้งแล้ว</h2>
+  <p class="code">รหัส: <span id="confCode">-</span></p>
+  <div class="st-box">
+    <div class="st" id="confStatus">⏳ กำลังรอเจ้าหน้าที่รับเรื่อง</div>
+    <div class="info" id="confInfo">ระบบบันทึกพิกัดแล้ว เจ้าหน้าที่จะติดต่อกลับโดยเร็ว</div>
+    <div class="coord" id="confCoord">📍 พิกัด: -</div>
+  </div>
+  <a class="cbtn red" href="tel:1669">📞 โทร 1669 กู้ชีพ</a>
+  <div class="tworow">
+    <a class="cbtn dark" href="tel:191">📞 ตำรวจ 191</a>
+    <a class="cbtn dark" href="tel:199">📞 ดับเพลิง 199</a>
+  </div>
+  <button class="cbtn grn" onclick="closeConfirmed()">เสร็จสิ้น / ปิดหน้าต่าง</button>
+</div>
+
+<!-- ===== FIREBASE + ALL LOGIC ===== -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, FacebookAuthProvider, signInWithPopup, linkWithPhoneNumber, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, doc, setDoc, getDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+/* ============================================================
+   🔧 CONFIG — กรอกค่าตรงนี้
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyCnnoEDRV4QCE70zHJJrPr3X5IFOP6SFXU",
+  authDomain: "chuaylueakan.firebaseapp.com",
+  databaseURL: "https://chuaylueakan-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "chuaylueakan",
+  storageBucket: "chuaylueakan.firebasestorage.app",
+  messagingSenderId: "106101907072",
+  appId: "1:106101907072:web:722845144aeb3660879065",
+  measurementId: "G-VN0TZVB89H"
+};
+
+// LINE Notify — ยังไม่ต้องกรอก ถ้ายังไม่มี
+const LINE_NOTIFY_TOKEN = "";  // LINE Notify Token
+const LINE_NOTIFY_URL = "";    // Cloud Function URL (proxy)
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+auth.languageCode = 'th';
+
+/* ============================================================
+   AUTH SERVICE
+   ============================================================ */
+let confirmationResult = null;
+let linkConfirmationResult = null;
+let currentUser = null;
+let userProfile = null;
+
+function showStep(id){
+  ['stepPhone','stepOtp','stepLinkPhone','stepLinkOtp'].forEach(s=>{
+    document.getElementById(s).classList.add('hidden');
+  });
+  document.getElementById(id).classList.remove('hidden');
+  document.getElementById('loginErr').classList.add('hidden');
+}
+function showErr(msg){
+  const el=document.getElementById('loginErr');
+  el.textContent=msg; el.classList.remove('hidden');
+}
+
+function setupRecaptcha(){
+  if(!window._recaptchaVerifier){
+    window._recaptchaVerifier = new RecaptchaVerifier(auth,'recaptcha-container',{size:'invisible'});
+  }
+  return window._recaptchaVerifier;
+}
+
+function formatPhone(p){
+  if(p.startsWith('0')) return '+66'+p.slice(1);
+  if(p.startsWith('+')) return p;
+  return '+66'+p;
+}
+
+// ===== Phone Login =====
+async function handleSendOTP(){
+  const phone = document.getElementById('phoneInput').value.replace(/\D/g,'');
+  if(!phone||phone.length<9){ showErr('กรอกเบอร์โทรให้ถูกต้อง'); return; }
+  document.getElementById('sendOtpBtn').disabled=true;
+  try{
+    const verifier = setupRecaptcha();
+    confirmationResult = await signInWithPhoneNumber(auth, formatPhone(phone), verifier);
+    document.getElementById('otpPhoneLabel').textContent = phone;
+    showStep('stepOtp');
+  }catch(e){ showErr('ส่ง OTP ไม่สำเร็จ: '+e.message); }
+  document.getElementById('sendOtpBtn').disabled=false;
+}
+
+async function handleVerifyOTP(){
+  const code = document.getElementById('otpInput').value.replace(/\D/g,'');
+  if(!code||code.length<6){ showErr('กรอก OTP 6 หลัก'); return; }
+  try{
+    await confirmationResult.confirm(code);
+    // onAuthStateChanged จะจัดการต่อ
+  }catch(e){ showErr('รหัส OTP ไม่ถูกต้อง'); }
+}
+
+// ===== Facebook Login =====
+async function handleFacebookLogin(){
+  try{
+    const provider = new FacebookAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    // เช็กเบอร์ → ถ้าไม่มีให้ผูก
+    if(!result.user.phoneNumber){
+      showStep('stepLinkPhone');
+    }
+    // onAuthStateChanged จะจัดการต่อ
+  }catch(e){
+    if(e.code==='auth/popup-closed-by-user') showErr('ปิดหน้าต่างก่อนล็อกอินสำเร็จ');
+    else showErr('Facebook login ไม่สำเร็จ: '+e.message);
+  }
+}
+
+// ===== Link Phone (บังคับผูกเบอร์) =====
+async function handleLinkSendOTP(){
+  const phone = document.getElementById('linkPhoneInput').value.replace(/\D/g,'');
+  if(!phone||phone.length<9){ showErr('กรอกเบอร์โทรให้ถูกต้อง'); return; }
+  try{
+    const verifier = setupRecaptcha();
+    linkConfirmationResult = await linkWithPhoneNumber(auth.currentUser, formatPhone(phone), verifier);
+    document.getElementById('linkOtpLabel').textContent = phone;
+    showStep('stepLinkOtp');
+  }catch(e){ showErr('ส่ง OTP ไม่สำเร็จ: '+e.message); }
+}
+
+async function handleLinkVerifyOTP(){
+  const code = document.getElementById('linkOtpInput').value.replace(/\D/g,'');
+  if(!code||code.length<6){ showErr('กรอก OTP 6 หลัก'); return; }
+  try{
+    const result = await linkConfirmationResult.confirm(code);
+    await setDoc(doc(db,'users',result.user.uid),{phoneLinked:true, phone:result.user.phoneNumber, updatedAt:serverTimestamp()},{merge:true});
+    await loadProfile(result.user);
+    showHome();
+  }catch(e){ showErr('ยืนยัน OTP ไม่สำเร็จ: '+e.message); }
+}
+
+// ===== User Profile =====
+async function ensureProfile(user){
+  const ref = doc(db,'users',user.uid);
+  const snap = await getDoc(ref);
+  if(!snap.exists()){
+    await setDoc(ref,{
+      uid:user.uid, displayName:user.displayName||'', phone:user.phoneNumber||'',
+      phoneLinked:!!user.phoneNumber, photoURL:user.photoURL||'',
+      createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+    });
+  } else {
+    await setDoc(ref,{
+      displayName:user.displayName||snap.data().displayName||'',
+      phone:user.phoneNumber||snap.data().phone||'',
+      phoneLinked:!!user.phoneNumber||snap.data().phoneLinked||false,
+      updatedAt:serverTimestamp()
+    },{merge:true});
+  }
+}
+
+async function loadProfile(user){
+  const snap = await getDoc(doc(db,'users',user.uid));
+  userProfile = snap.exists() ? snap.data() : null;
+}
+
+// ===== Auth State =====
+onAuthStateChanged(auth, async(user)=>{
+  currentUser = user;
+  if(user){
+    await ensureProfile(user);
+    await loadProfile(user);
+    if(userProfile?.phoneLinked && userProfile?.phone){
+      showHome();
+    } else {
+      // ยังไม่ผูกเบอร์ — แสดงหน้าผูกเบอร์
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('homeScreen').classList.add('hidden');
+      showStep('stepLinkPhone');
+    }
+  } else {
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('homeScreen').classList.add('hidden');
+    showStep('stepPhone');
+  }
+});
+
+function showHome(){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('homeScreen').classList.remove('hidden');
+  document.getElementById('userName').textContent = userProfile?.displayName || currentUser?.displayName || 'ผู้ใช้';
+  document.getElementById('userPhone').textContent = userProfile?.phone || currentUser?.phoneNumber || '-';
+  fetchLocation();
+}
+
+async function handleLogout(){
+  await signOut(auth);
+  currentUser=null; userProfile=null;
+}
+
+/* ============================================================
+   GEOLOCATION
+   ============================================================ */
+let userCoord = {lat:14.0227, lng:99.5327, accurate:false, label:'อ.เมืองกาญจนบุรี'};
+
+function fetchLocation(){
+  if(!navigator.geolocation){ document.getElementById('locLabel').textContent='ตำแหน่ง: '+userCoord.label; return; }
+  navigator.geolocation.getCurrentPosition(
+    p=>{
+      userCoord.lat=+p.coords.latitude.toFixed(6);
+      userCoord.lng=+p.coords.longitude.toFixed(6);
+      userCoord.accurate=true;
+      document.getElementById('locLabel').textContent=userCoord.lat+', '+userCoord.lng+' (GPS แม่นยำ)';
+    },
+    ()=>{ document.getElementById('locLabel').textContent='ตำแหน่ง: '+userCoord.label+' (โดยประมาณ)'; },
+    {enableHighAccuracy:true, timeout:10000}
+  );
+}
+
+/* ============================================================
+   SOS — HOLD 3s + COUNTDOWN 5s + SOUND
+   ============================================================ */
+const HOLD_MS = 3000;
+const CD_SEC = 5;
+const CIRC = 2*Math.PI*76; // hold ring circumference
+const CD_CIRC = 2*Math.PI*68; // countdown ring circumference
+
+let holdStart = 0;
+let holdAnim = null;
+let cdInterval = null;
+let cdVal = CD_SEC;
+let currentSosId = null;
+let sosUnsub = null;
+
+function playBeep(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.frequency.value=880;g.gain.value=0.3;
+    o.start();o.stop(ctx.currentTime+0.15);
+  }catch(e){}
+}
+
+// Phase 1: Hold
+function startHold(){
+  holdStart=Date.now();
+  document.getElementById('sosBtn').classList.add('holding');
+  document.getElementById('holdText').classList.remove('hidden');
+  const ring=document.getElementById('holdRing');
+
+  function animate(){
+    const elapsed=Date.now()-holdStart;
+    const progress=Math.min(elapsed/HOLD_MS,1);
+    ring.setAttribute('stroke-dashoffset', CIRC*(1-progress));
+    if(progress>=1){
+      document.getElementById('sosBtn').classList.remove('holding');
+      document.getElementById('holdText').classList.add('hidden');
+      ring.setAttribute('stroke-dashoffset', CIRC);
+      startCountdown();
+      return;
+    }
+    holdAnim=requestAnimationFrame(animate);
+  }
+  holdAnim=requestAnimationFrame(animate);
+}
+
+function cancelHold(){
+  cancelAnimationFrame(holdAnim);
+  document.getElementById('sosBtn').classList.remove('holding');
+  document.getElementById('holdText').classList.add('hidden');
+  document.getElementById('holdRing').setAttribute('stroke-dashoffset', CIRC);
+}
+
+// Phase 2: Countdown
+function startCountdown(){
+  cdVal=CD_SEC;
+  document.getElementById('cdOverlay').classList.remove('hidden');
+  document.getElementById('cdNum').textContent=cdVal;
+  document.getElementById('cdArc').setAttribute('stroke-dashoffset','0');
+  playBeep();
+
+  cdInterval=setInterval(()=>{
+    cdVal--;
+    document.getElementById('cdNum').textContent=cdVal;
+    document.getElementById('cdArc').setAttribute('stroke-dashoffset', CD_CIRC*(1-cdVal/CD_SEC));
+    if(cdVal>0) playBeep();
+    if(cdVal<=0){
+      clearInterval(cdInterval);
+      document.getElementById('cdNum').textContent='⏳';
+      submitSOS();
+    }
+  },1000);
+}
+
+function cancelCountdown(){
+  clearInterval(cdInterval);
+  document.getElementById('cdOverlay').classList.add('hidden');
+}
+
+// Phase 3: Submit
+async function submitSOS(){
+  document.getElementById('cdOverlay').classList.add('hidden');
+  const code='SOS-'+Math.floor(10000+Math.random()*89999);
+
+  try{
+    const docRef = await addDoc(collection(db,'sos_requests'),{
+      code,
+      uid: currentUser?.uid||'anonymous',
+      displayName: userProfile?.displayName||currentUser?.displayName||'ไม่ระบุชื่อ',
+      phone: userProfile?.phone||currentUser?.phoneNumber||'-',
+      lat: userCoord.lat, lng: userCoord.lng,
+      accurate: userCoord.accurate,
+      status:'pending', statusText:'กำลังรอเจ้าหน้าที่รับเรื่อง',
+      helperInfo:'', createdAt:serverTimestamp()
+    });
+
+    currentSosId = docRef.id;
+    document.getElementById('confCode').textContent = code;
+    document.getElementById('confCoord').textContent = '📍 พิกัด: '+userCoord.lat+', '+userCoord.lng;
+    document.getElementById('confOverlay').classList.remove('hidden');
+
+    // Listen real-time status
+    sosUnsub = onSnapshot(doc(db,'sos_requests',docRef.id),(snap)=>{
+      if(!snap.exists()) return;
+      const d=snap.data();
+      const map={pending:'⏳ กำลังรอเจ้าหน้าที่รับเรื่อง',accepted:'📞 เจ้าหน้าที่รับเรื่องแล้ว',enroute:'🚑 กำลังเดินทาง',arrived:'📍 ถึงจุดเกิดเหตุ',done:'✅ เสร็จสิ้น'};
+      document.getElementById('confStatus').textContent = map[d.status]||d.statusText||'อัปเดตแล้ว';
+      if(d.helperInfo) document.getElementById('confInfo').textContent = d.helperInfo;
+    });
+
+    // Send LINE Notify (non-blocking)
+    sendLINENotify({code, displayName:userProfile?.displayName||'ไม่ระบุ', phone:userProfile?.phone||'-', lat:userCoord.lat, lng:userCoord.lng});
+  }catch(e){
+    console.error(e);
+    alert('บันทึกไม่สำเร็จ ลองโทร 1669 โดยตรง');
+  }
+}
+
+function closeConfirmed(){
+  if(sosUnsub){sosUnsub();sosUnsub=null;}
+  currentSosId=null;
+  document.getElementById('confOverlay').classList.add('hidden');
+}
+
+/* ============================================================
+   LINE NOTIFY (Notification Layer — แยกส่วน)
+   ============================================================
+   ปัจจุบัน: ส่ง LINE Notify ของแอดมินคนเดียว
+   อนาคต: เพิ่ม function ส่งเข้ากลุ่มอาสา/FCM ได้ที่นี่
+   ============================================================ */
+async function sendLINENotify(payload){
+  if(!LINE_NOTIFY_TOKEN||!LINE_NOTIFY_URL){
+    console.log('[LINE Notify] ยังไม่ได้ตั้งค่า — ข้ามการส่ง');
+    console.log('[LINE Notify] ข้อความที่จะส่ง:', buildNotifyMessage(payload));
+    return;
+  }
+  try{
+    await fetch(LINE_NOTIFY_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({token:LINE_NOTIFY_TOKEN, message:buildNotifyMessage(payload)})
+    });
+  }catch(e){ console.error('[LINE Notify] Error:',e); }
+}
+
+function buildNotifyMessage(p){
+  return [
+    '','🚨 แจ้งเหตุฉุกเฉิน SOS',
+    'รหัส: '+p.code, 'ชื่อ: '+p.displayName, 'เบอร์: '+p.phone,
+    'พิกัด: '+p.lat+', '+p.lng,
+    'แผนที่: https://maps.google.com/?q='+p.lat+','+p.lng,
+    'เวลา: '+new Date().toLocaleString('th-TH'),
+    '','⚡ กรุณาตอบรับเหตุโดยเร็ว'
+  ].join('\n');
+}
+
+// ===== FUTURE: เพิ่ม channel ที่นี่ =====
+// async function sendToVolunteerLINE(payload){ ... }
+// async function sendFCM(payload){ ... }
+
+/* ============================================================
+   EXPOSE TO WINDOW
+   ============================================================ */
+window.handleSendOTP=handleSendOTP;
+window.handleVerifyOTP=handleVerifyOTP;
+window.handleFacebookLogin=handleFacebookLogin;
+window.handleLinkSendOTP=handleLinkSendOTP;
+window.handleLinkVerifyOTP=handleLinkVerifyOTP;
+window.handleLogout=handleLogout;
+window.showStep=showStep;
+window.startHold=startHold;
+window.cancelHold=cancelHold;
+window.cancelCountdown=cancelCountdown;
+window.closeConfirmed=closeConfirmed;
+</script>
+</body>
+</html>
