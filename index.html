@@ -301,6 +301,33 @@ button,input{font-family:inherit}
   </div>
 </div>
 
+<!-- ===== AUTH GUARD MODAL ===== -->
+<div id="authGuardModal" class="modal-bg hidden" style="z-index: 70; align-items: center;">
+  <div class="modal-box" style="border-radius: 20px; width: calc(100% - 32px); max-width: 380px; padding: 24px; text-align: center; margin: 16px;">
+    <span style="font-size: 48px; display: block; margin-bottom: 12px">🔒</span>
+    <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px; color: var(--ink)">ต้องเข้าสู่ระบบก่อนใช้งาน</h3>
+    <p style="font-size: 13px; line-height: 1.5; color: var(--muted); margin-bottom: 20px;">กรุณาเข้าสู่ระบบด้วย Google เพื่อเริ่มใช้งานฟังก์ชันการขอความช่วยเหลือ, การพูดคุยแชทชุมชน หรือการเขียนรีวิวแสดงความคิดเห็น</p>
+    
+    <button class="btn btn-google" onclick="handleGoogleLoginFromGuard()" style="width: 100%; margin: 0 0 10px 0; font-size: 16px;">🔴 เข้าสู่ระบบด้วย Google</button>
+    <button class="btn" onclick="closeAuthGuard()" style="width: 100%; margin: 0; background: var(--line); color: var(--ink); border: none;">✕ ยกเลิก</button>
+  </div>
+</div>
+
+<!-- ===== ADMIN PIN MODAL ===== -->
+<div id="adminPinModal" class="modal-bg hidden" style="z-index: 80; align-items: center;">
+  <div class="modal-box" style="border-radius: 20px; width: calc(100% - 32px); max-width: 320px; padding: 24px; text-align: center; margin: 16px;">
+    <span style="font-size: 48px; display: block; margin-bottom: 12px">🔑</span>
+    <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px; color: var(--ink)">กรอกรหัสผ่านแอดมิน</h3>
+    <p style="font-size: 13px; line-height: 1.5; color: var(--muted); margin-bottom: 16px;">กรุณากรอกรหัสผ่านเพื่อเข้าสู่ระบบควบคุมแอดมิน</p>
+    <div id="adminPinErr" class="err-box hidden" style="margin-bottom: 12px;"></div>
+    
+    <input id="adminPinInput" type="password" inputmode="numeric" pattern="[0-9]*" placeholder="••••" style="width: 100%; border: 1px solid var(--line); border-radius: 12px; padding: 12px; font-size: 20px; text-align: center; letter-spacing: 6px; outline: none; margin-bottom: 16px; background: #fff; color: var(--ink);">
+    
+    <button class="btn btn-g" onclick="submitAdminPin()" style="width: 100%; margin: 0 0 10px 0; font-size: 16px;">ตกลง</button>
+    <button class="btn" onclick="closeAdminPinModal()" style="width: 100%; margin: 0; background: var(--line); color: var(--ink); border: none;">✕ ยกเลิก</button>
+  </div>
+</div>
+
 <!-- ===== URGENT BLOOD REQUEST FORM MODAL ===== -->
 <div id="bloodRequestModal" class="modal-bg hidden" style="z-index: 57;">
   <div class="modal-box">
@@ -501,6 +528,14 @@ button,input{font-family:inherit}
         </div>
       </div>
 
+      <!-- GUEST MODE PANEL -->
+      <div id="profileGuestMode" class="hidden" style="width:100%; padding:20px; text-align:center;">
+        <span style="font-size:48px; display:block; margin-bottom:12px;">👤</span>
+        <h4 style="font-size:16px; font-weight:800; color:var(--ink); margin:0 0 8px 0;">คุณยังไม่ได้เข้าสู่ระบบ</h4>
+        <p style="font-size:13px; color:var(--muted); line-height:1.5; margin-bottom:20px;">เข้าสู่ระบบเพื่อยืนยันตัวตน และบันทึกข้อมูลติดต่อญาติฉุกเฉินสำหรับขอความช่วยเหลือ</p>
+        <button class="btn btn-google" onclick="handleGoogleLogin()" style="margin:0;">🔴 เข้าสู่ระบบด้วย Google</button>
+      </div>
+
       <!-- EDIT MODE PANEL -->
       <div id="profileEditMode" class="hidden" style="width: 100%; text-align: left; margin-top: 10px;">
         <div id="profileTabErr" class="err-box hidden"></div>
@@ -536,7 +571,7 @@ button,input{font-family:inherit}
       <span class="icon">🗺️</span><span>แผนที่</span>
     </button>
     <div class="nav-sos-wrap">
-      <button class="nav-sos-btn" onclick="openSosOverlay()">SOS</button>
+      <button class="nav-sos-btn" onclick="triggerSosGuard()">SOS</button>
     </div>
     <button class="nav-item" onclick="switchTab('Community')">
       <span class="icon">👥</span><span>ชุมชน</span>
@@ -1076,6 +1111,13 @@ async function saveProfile(){
     await loadProfile(currentUser);
     document.getElementById('profileModal').classList.add('hidden');
     showHome();
+    
+    // Execute pending callback if any
+    if (window.pendingAuthCallback) {
+      const cb = window.pendingAuthCallback;
+      window.pendingAuthCallback = null;
+      cb();
+    }
   }catch(e){
     showErr('profileErr','บันทึกไม่สำเร็จ: '+e.message);
   }
@@ -1089,6 +1131,13 @@ onAuthStateChanged(auth, async(user)=>{
       const profile = await loadProfile(user);
       if(isProfileComplete(profile)){
         showHome();
+        
+        // Execute pending callback if any
+        if (window.pendingAuthCallback) {
+          const cb = window.pendingAuthCallback;
+          window.pendingAuthCallback = null;
+          cb();
+        }
       } else {
         // ผู้ใช้ใหม่ หรือยังไม่กรอกเบอร์ → แสดง modal
         showProfileModal(user);
@@ -1100,9 +1149,9 @@ onAuthStateChanged(auth, async(user)=>{
     }
   } else {
     userProfile = null;
-    document.getElementById('loginScreen').classList.remove('hidden');
-    document.getElementById('homeScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('profileModal').classList.add('hidden');
+    showHome(); // Allow guest user to view app
   }
 });
 
@@ -1110,33 +1159,55 @@ function showHome(){
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('profileModal').classList.add('hidden');
   document.getElementById('homeScreen').classList.remove('hidden');
-  const name = userProfile?.nickname || userProfile?.displayName || currentUser?.displayName || 'ผู้ใช้';
-  const phone = userProfile?.phone || '-';
-  const nickname = userProfile?.nickname || '-';
-  const realName = userProfile?.realName || '-';
-  const emergencyName = userProfile?.emergencyName || '-';
-  const emergencyPhone = userProfile?.emergencyPhone || '-';
   
-  document.getElementById('userName').textContent = name;
-  document.getElementById('profileTabName').textContent = name;
-  document.getElementById('profileTabPhone').textContent = phone;
-  document.getElementById('profileTabNickname').textContent = nickname;
-  document.getElementById('profileTabRealName').textContent = realName;
-  document.getElementById('profileTabEmergencyName').textContent = emergencyName;
-  document.getElementById('profileTabEmergencyPhone').textContent = emergencyPhone;
+  const isGuest = !currentUser;
   
-  if (currentUser?.photoURL) {
-    document.getElementById('profileTabAvatar').src = currentUser.photoURL;
-  }
-  
-  // Show Admin menu option for Ployrut and testing
-  const ADMIN_EMAILS = ["ployrut@gmail.com", "admin@chuaylueakan.com"];
-  // Set to true by default for local testing, can be restricted by email in production
-  const isAdmin = true; 
-  if (isAdmin || (currentUser?.email && ADMIN_EMAILS.includes(currentUser.email))) {
-    document.getElementById('adminMenuBtn').classList.remove('hidden');
-  } else {
+  if (isGuest) {
+    document.getElementById('userName').textContent = 'ผู้เยี่ยมชม';
+    // Use default SVG avatar for guest
+    document.getElementById('profileTabAvatar').src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%239aa2bd"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>';
+    
+    // Toggle Profile tab view for guests
+    document.getElementById('profileViewMode').classList.add('hidden');
+    document.getElementById('profileEditMode').classList.add('hidden');
+    document.getElementById('profileGuestMode').classList.remove('hidden');
+    
     document.getElementById('adminMenuBtn').classList.add('hidden');
+  } else {
+    const name = userProfile?.nickname || userProfile?.displayName || currentUser?.displayName || 'ผู้ใช้';
+    const phone = userProfile?.phone || '-';
+    const nickname = userProfile?.nickname || '-';
+    const realName = userProfile?.realName || '-';
+    const emergencyName = userProfile?.emergencyName || '-';
+    const emergencyPhone = userProfile?.emergencyPhone || '-';
+    
+    document.getElementById('userName').textContent = name;
+    document.getElementById('profileTabName').textContent = name;
+    document.getElementById('profileTabPhone').textContent = phone;
+    document.getElementById('profileTabNickname').textContent = nickname;
+    document.getElementById('profileTabRealName').textContent = realName;
+    document.getElementById('profileTabEmergencyName').textContent = emergencyName;
+    document.getElementById('profileTabEmergencyPhone').textContent = emergencyPhone;
+    
+    if (currentUser?.photoURL) {
+      document.getElementById('profileTabAvatar').src = currentUser.photoURL;
+    } else {
+      document.getElementById('profileTabAvatar').src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231f9e6e"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>';
+    }
+    
+    document.getElementById('profileGuestMode').classList.add('hidden');
+    document.getElementById('profileEditMode').classList.add('hidden');
+    document.getElementById('profileViewMode').classList.remove('hidden');
+    
+    // Show Admin menu option for Ployrut and testing
+    const ADMIN_EMAILS = ["ployrut@gmail.com", "admin@chuaylueakan.com"];
+    // Set to true by default for local testing, can be restricted by email in production
+    const isAdmin = true; 
+    if (isAdmin || (currentUser?.email && ADMIN_EMAILS.includes(currentUser.email))) {
+      document.getElementById('adminMenuBtn').classList.remove('hidden');
+    } else {
+      document.getElementById('adminMenuBtn').classList.add('hidden');
+    }
   }
   
   fetchLocation();
@@ -1318,15 +1389,15 @@ function closeBottomSheet(){
 function handleSheetItemClick(item){
   closeBottomSheet();
   if(item.action === 'sos'){
-    openSosOverlay();
+    triggerSosGuard();
   } else if(item.action === 'switch_tab'){
     switchTab(item.tab);
   } else if(item.action === 'blood_requests'){
     openBloodRequests();
   } else if(item.action === 'vent_chat'){
-    openChatRoom('vent_messages', '💬 ห้องปรับทุกข์ชุมชน', 'พิมพ์ข้อความปรับทุกข์...');
+    ensureUserAuthenticated(() => openChatRoom('vent_messages', '💬 ห้องปรับทุกข์ชุมชน', 'พิมพ์ข้อความปรับทุกข์...'));
   } else if(item.action === 'lawyer_chat'){
-    openChatRoom('lawyer_messages', '⚖️ ปรึกษาทนายความอาสา', 'พิมพ์ข้อความปรึกษาทนาย...');
+    ensureUserAuthenticated(() => openChatRoom('lawyer_messages', '⚖️ ปรึกษาทนายความอาสา', 'พิมพ์ข้อความปรึกษาทนาย...'));
   } else if(activeCategoryKey === 'car' || activeCategoryKey === 'work') {
     openTechReviews(item);
   } else {
@@ -1538,7 +1609,7 @@ function switchAdminTab(tabName) {
   }
 }
 
-function openAdminPanel() {
+function showActualAdminPanel() {
   document.getElementById('adminOverlay').classList.remove('hidden');
   switchAdminTab('sos');
   
@@ -1868,38 +1939,43 @@ function setReviewRating(rating) {
 }
 
 async function submitTechReview() {
-  const comment = document.getElementById('reviewComment').value.trim();
-  const rating = selectedReviewRating;
-  
-  if (rating === 0) {
-    alert('กรุณาเลือกคะแนนดาว (1-5 ดาว) ก่อนส่งรีวิว');
-    return;
-  }
-  
-  if (!comment) {
-    alert('กรุณากรอกข้อความแสดงความคิดเห็น');
-    return;
-  }
-  
-  const displayName = userProfile?.nickname || userProfile?.displayName || currentUser?.displayName || 'ผู้ใช้ไม่ระบุตัวตน';
-  
-  try {
-    await addDoc(collection(db, 'reviews'), {
-      contactId: currentTechId,
-      authorUid: currentUser?.uid || 'anon',
-      displayName: displayName,
-      rating: rating,
-      comment: comment,
-      createdAt: serverTimestamp()
-    });
+  ensureUserAuthenticated(async () => {
+    const comment = document.getElementById('reviewComment').value.trim();
+    const rating = selectedReviewRating;
     
-    document.getElementById('reviewComment').value = '';
-    setReviewRating(0);
-    alert('ส่งข้อมูลรีวิวสำเร็จ ขอบคุณสำหรับคะแนนรีวิวครับ!');
-  } catch (e) {
-    console.error(e);
-    alert('ส่งรีวิวไม่สำเร็จ: ' + e.message);
-  }
+    if (rating === 0) {
+      alert('กรุณาเลือกคะแนนดาว (1-5 ดาว) ก่อนส่งรีวิว');
+      return;
+    }
+    
+    if (!comment) {
+      alert('กรุณากรอกข้อความแสดงความคิดเห็น');
+      return;
+    }
+    
+    const displayName = userProfile?.nickname || userProfile?.displayName || currentUser?.displayName || 'ผู้ใช้';
+    
+    try {
+      await addDoc(collection(db, 'reviews'), {
+        contactId: currentTechId,
+        authorUid: currentUser?.uid || 'anon',
+        displayName: displayName,
+        rating: rating,
+        comment: comment,
+        createdAt: serverTimestamp()
+      });
+      
+      document.getElementById('reviewComment').value = '';
+      setReviewRating(0);
+      alert('ส่งข้อมูลรีวิวสำเร็จ ขอบคุณสำหรับคะแนนรีวิวครับ!');
+      
+      // Reload reviews list
+      loadTechReviews(currentTechId);
+    } catch (e) {
+      console.error(e);
+      alert('ส่งรีวิวไม่สำเร็จ: ' + e.message);
+    }
+  });
 }
 
 async function updateSosStatus(docId, newStatus) {
@@ -2649,11 +2725,72 @@ function openAdminPhotoView(src) {
 }
 
 /* ============================================================
+   AUTHENTICATION GUARDS & HELPERS
+   ============================================================ */
+window.pendingAuthCallback = null;
+
+function ensureUserAuthenticated(actionCallback) {
+  if (!currentUser) {
+    window.pendingAuthCallback = actionCallback;
+    document.getElementById('authGuardModal').classList.remove('hidden');
+    return;
+  }
+  
+  if (!isProfileComplete(userProfile)) {
+    window.pendingAuthCallback = actionCallback;
+    showProfileModal(currentUser);
+    return;
+  }
+  
+  if (actionCallback) actionCallback();
+}
+
+function triggerSosGuard() {
+  ensureUserAuthenticated(() => openSosOverlay());
+}
+
+function closeAuthGuard() {
+  document.getElementById('authGuardModal').classList.add('hidden');
+  window.pendingAuthCallback = null;
+}
+
+function handleGoogleLoginFromGuard() {
+  closeAuthGuard();
+  handleGoogleLogin();
+}
+
+/* ============================================================
+   ADMIN PIN VERIFICATION & HELPERS
+   ============================================================ */
+const ADMIN_PIN = "2532"; // รหัสผ่านสำหรับเข้าหน้าแอดมิน (สามารถเปลี่ยนได้ที่นี่)
+
+function openAdminPanel() {
+  document.getElementById('adminPinInput').value = '';
+  document.getElementById('adminPinErr').classList.add('hidden');
+  document.getElementById('adminPinModal').classList.remove('hidden');
+}
+
+function closeAdminPinModal() {
+  document.getElementById('adminPinModal').classList.add('hidden');
+}
+
+function submitAdminPin() {
+  const pin = document.getElementById('adminPinInput').value.trim();
+  if (pin === ADMIN_PIN) {
+    closeAdminPinModal();
+    showActualAdminPanel();
+  } else {
+    showErr('adminPinErr', '❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง');
+  }
+}
+
+/* ============================================================
    PROFILE MODAL & TAB INLINE EDIT FUNCTIONS
    ============================================================ */
 function closeProfileModal() {
   document.getElementById('profileModal').classList.add('hidden');
   document.getElementById('homeScreen').classList.remove('hidden');
+  window.pendingAuthCallback = null;
 }
 
 function enableProfileEditMode() {
@@ -2835,20 +2972,17 @@ function closeBloodRequests() {
 }
 
 function openBloodRequestForm() {
-  if (!currentUser) {
-    alert('กรุณาเข้าสู่ระบบก่อนลงประกาศตามหาเลือดด่วน');
-    return;
-  }
-  
-  document.getElementById('bloodReqPatientName').value = '';
-  document.getElementById('bloodReqType').value = 'O';
-  document.getElementById('bloodReqRh').value = 'Rh+ (บวก)';
-  document.getElementById('bloodReqHospital').value = 'โรงพยาบาลพหลพลพยุหเสนา';
-  document.getElementById('bloodReqPhone').value = userProfile?.phone ? userProfile.phone.replace('+66','0') : '';
-  document.getElementById('bloodReqDetail').value = '';
-  
-  document.getElementById('bloodReqErr').classList.add('hidden');
-  document.getElementById('bloodRequestModal').classList.remove('hidden');
+  ensureUserAuthenticated(() => {
+    document.getElementById('bloodReqPatientName').value = '';
+    document.getElementById('bloodReqType').value = 'O';
+    document.getElementById('bloodReqRh').value = 'Rh+ (บวก)';
+    document.getElementById('bloodReqHospital').value = 'โรงพยาบาลพหลพลพยุหเสนา';
+    document.getElementById('bloodReqPhone').value = userProfile?.phone ? userProfile.phone.replace('+66','0') : '';
+    document.getElementById('bloodReqDetail').value = '';
+    
+    document.getElementById('bloodReqErr').classList.add('hidden');
+    document.getElementById('bloodRequestModal').classList.remove('hidden');
+  });
 }
 
 function closeBloodRequestForm() {
@@ -3000,6 +3134,14 @@ window.openBloodRequestForm=openBloodRequestForm;
 window.closeBloodRequestForm=closeBloodRequestForm;
 window.submitBloodRequest=submitBloodRequest;
 window.deleteBloodRequest=deleteBloodRequest;
+
+window.ensureUserAuthenticated=ensureUserAuthenticated;
+window.triggerSosGuard=triggerSosGuard;
+window.closeAuthGuard=closeAuthGuard;
+window.handleGoogleLoginFromGuard=handleGoogleLoginFromGuard;
+window.submitAdminPin=submitAdminPin;
+window.closeAdminPinModal=closeAdminPinModal;
+window.showActualAdminPanel=showActualAdminPanel;
 </script>
 </body>
 </html>
