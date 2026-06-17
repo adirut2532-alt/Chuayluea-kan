@@ -169,6 +169,67 @@ body{
 /* ===== CONFIG NOTICE ===== */
 .cfgnotice{background:#fff8e1;border:1px solid #ffe082;color:#8a6d00;border-radius:12px;padding:12px 14px;font-size:13px;margin-bottom:14px;line-height:1.5}
 
+/* ===== AI FAB ===== */
+.ai-fab{
+  position:fixed;bottom:96px;right:16px;z-index:45;
+  width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(135deg,#1f9e6e,#26c6da);
+  box-shadow:0 4px 18px rgba(31,158,110,.45);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .2s;
+}
+.ai-fab:active{transform:scale(.9)}
+.ai-fab .ai-icon{font-size:22px;color:#fff;font-weight:800;line-height:1}
+.ai-fab .ai-badge{position:absolute;top:-2px;right:-2px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #fff}
+
+/* ===== AI CHAT ===== */
+.ai-overlay{
+  position:fixed;inset:0;max-width:480px;margin:0 auto;z-index:55;
+  display:flex;flex-direction:column;
+  background:var(--bg);
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.ai-header{
+  background:linear-gradient(135deg,#1f9e6e,#0097a7);
+  color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;flex:none;
+}
+.ai-header .ai-back{font-size:24px;background:none;border:none;color:#fff;cursor:pointer;width:28px}
+.ai-header .ai-title{flex:1;font-weight:800;font-size:16px}
+.ai-header .ai-clear{background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer}
+.ai-messages{
+  flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;
+  -webkit-overflow-scrolling:touch;
+}
+.ai-msg{max-width:85%;padding:12px 16px;border-radius:16px;font-size:14px;line-height:1.6;word-wrap:break-word}
+.ai-msg.bot{background:#fff;color:var(--ink);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px}
+.ai-msg.user{background:var(--green);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.ai-msg.typing{color:var(--muted);font-style:italic}
+.ai-inputbar{
+  flex:none;display:flex;gap:8px;padding:10px 14px calc(env(safe-area-inset-bottom,8px) + 10px);
+  background:#fff;border-top:1px solid var(--line);
+}
+.ai-inputbar input{
+  flex:1;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15px;
+  font-family:inherit;outline:none;background:var(--bg);
+}
+.ai-inputbar input:focus{border-color:var(--green)}
+.ai-inputbar button{
+  flex:none;width:44px;height:44px;border-radius:50%;border:none;
+  background:var(--green);color:#fff;font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.ai-inputbar button:disabled{opacity:.4}
+.ai-welcome{text-align:center;padding:30px 20px;color:var(--muted)}
+.ai-welcome .big{font-size:40px;margin-bottom:12px}
+.ai-welcome h3{color:var(--ink);font-size:17px;margin-bottom:6px}
+.ai-welcome p{font-size:13px;line-height:1.5}
+.ai-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+.ai-chips button{background:#fff;border:1px solid var(--line);border-radius:20px;padding:8px 14px;font-size:13px;color:var(--ink);cursor:pointer;font-family:inherit}
+.ai-chips button:active{background:var(--green-l)}
+.ai-key-notice{background:#fff8e1;border:1px solid #ffe082;color:#8a6d00;border-radius:12px;padding:10px 14px;font-size:12px;margin:0 16px 10px;line-height:1.5;text-align:center}
+.ai-key-notice a{color:var(--blue);font-weight:700}
+
 /* ===== QUICK DIAL ===== */
 .quick{display:flex;gap:8px;margin-bottom:18px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
 .quick::-webkit-scrollbar{display:none}
@@ -246,6 +307,39 @@ body{
       <a class="bigbtn dark" href="tel:199">📞 ดับเพลิง 199</a>
     </div>
     <button class="bigbtn green" onclick="closeSOS()" style="margin-top:20px">เสร็จสิ้น / ปิดหน้าต่าง</button>
+  </div>
+</div>
+
+<!-- ===== AI FAB ===== -->
+<button class="ai-fab" onclick="openAI()" id="aiFab">
+  <span class="ai-icon">AI</span>
+  <span class="ai-badge">💬</span>
+</button>
+
+<!-- ===== AI CHAT ===== -->
+<div class="ai-overlay hidden" id="aiChat">
+  <div class="ai-header">
+    <button class="ai-back" onclick="closeAI()">‹</button>
+    <span class="ai-title">🤖 ถามปรึกษา AI</span>
+    <button class="ai-clear" onclick="clearAI()">ล้างแชท</button>
+  </div>
+  <div id="aiKeyNotice" class="ai-key-notice hidden"></div>
+  <div class="ai-messages" id="aiMessages">
+    <div class="ai-welcome">
+      <div class="big">🤖</div>
+      <h3>สวัสดีครับ ผมผู้ช่วย AI</h3>
+      <p>ถามอะไรก็ได้เกี่ยวกับกาญจนบุรี<br>ฉุกเฉิน บริการ ท่องเที่ยว หรือปรึกษาเรื่องทั่วไป</p>
+      <div class="ai-chips">
+        <button onclick="aiAsk('รถเสียกลางทางทำยังไง')">🚗 รถเสียทำยังไง</button>
+        <button onclick="aiAsk('โรงพยาบาลใกล้ฉัน')">🏥 รพ.ใกล้ฉัน</button>
+        <button onclick="aiAsk('ที่เที่ยวกาญจนบุรีแนะนำ')">🏞️ ที่เที่ยวแนะนำ</button>
+        <button onclick="aiAsk('เบอร์ฉุกเฉินกาญจนบุรี')">📞 เบอร์ฉุกเฉิน</button>
+      </div>
+    </div>
+  </div>
+  <div class="ai-inputbar">
+    <input id="aiInput" placeholder="พิมพ์คำถาม…" autocomplete="off" onkeydown="if(event.key==='Enter')sendAI()">
+    <button onclick="sendAI()" id="aiSendBtn">➤</button>
   </div>
 </div>
 
@@ -526,10 +620,129 @@ function toast(msg){
   toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
 }
 
+/* ========== AI Chat (Gemini) ========== */
+const GEMINI_KEY = ""; // กรอก Gemini API key ที่นี่ (สร้างฟรี: aistudio.google.com/apikey)
+const GEMINI_MODEL = "gemini-2.0-flash";
+let aiHistory = [];
+
+const AI_SYSTEM = `คุณเป็นผู้ช่วย AI ของแอป "ช่วยเหลือกาญ" แอปช่วยเหลือชุมชนจังหวัดกาญจนบุรี
+คุณช่วยตอบคำถามเกี่ยวกับ:
+- เหตุฉุกเฉิน (เบอร์กู้ชีพ 1669, ตำรวจ 191, ดับเพลิง 199)
+- บริการรถเสีย ปะยาง รถยก พ่วงแบต
+- หาช่างไฟ ช่างประปา ช่างแอร์
+- ท่องเที่ยวกาญจนบุรี (สะพานข้ามแม่น้ำแคว น้ำตกเอราวัณ ฯลฯ)
+- ข่าวสารชุมชน สาธารณูปโภค
+- คำปรึกษาทั่วไป
+ตอบสั้นกระชับ เป็นมิตร ใช้ภาษาไทยง่ายๆ ถ้าเป็นเหตุฉุกเฉินให้แนะนำโทรหมายเลขฉุกเฉินทันที`;
+
+function openAI(){
+  document.getElementById('aiChat').classList.remove('hidden');
+  document.getElementById('aiFab').classList.add('hidden');
+  if(!GEMINI_KEY){
+    const n=document.getElementById('aiKeyNotice');
+    n.classList.remove('hidden');
+    n.innerHTML='⚙️ ยังไม่ได้กรอก Gemini API key — สร้างฟรีที่ <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> แล้วกรอกในไฟล์ index.html<br>ตอนนี้ใช้ได้ในโหมด demo (ตอบสำเร็จรูป)';
+  }
+  document.getElementById('aiInput').focus();
+}
+function closeAI(){
+  document.getElementById('aiChat').classList.add('hidden');
+  document.getElementById('aiFab').classList.remove('hidden');
+}
+function clearAI(){
+  aiHistory=[];
+  const m=document.getElementById('aiMessages');
+  m.innerHTML=`<div class="ai-welcome">
+    <div class="big">🤖</div><h3>สวัสดีครับ ผมผู้ช่วย AI</h3>
+    <p>ถามอะไรก็ได้เกี่ยวกับกาญจนบุรี</p>
+    <div class="ai-chips">
+      <button onclick="aiAsk('รถเสียกลางทางทำยังไง')">🚗 รถเสียทำยังไง</button>
+      <button onclick="aiAsk('โรงพยาบาลใกล้ฉัน')">🏥 รพ.ใกล้ฉัน</button>
+      <button onclick="aiAsk('ที่เที่ยวกาญจนบุรีแนะนำ')">🏞️ ที่เที่ยวแนะนำ</button>
+      <button onclick="aiAsk('เบอร์ฉุกเฉินกาญจนบุรี')">📞 เบอร์ฉุกเฉิน</button>
+    </div></div>`;
+}
+
+function addMsg(role,text){
+  const m=document.getElementById('aiMessages');
+  // ลบ welcome ถ้ายังอยู่
+  const w=m.querySelector('.ai-welcome'); if(w) w.remove();
+  const d=document.createElement('div');
+  d.className="ai-msg "+(role==='user'?'user':'bot');
+  d.textContent=text;
+  m.appendChild(d);
+  m.scrollTop=m.scrollHeight;
+  return d;
+}
+
+function aiAsk(text){
+  document.getElementById('aiInput').value=text;
+  sendAI();
+}
+
+async function sendAI(){
+  const inp=document.getElementById('aiInput');
+  const text=inp.value.trim();
+  if(!text) return;
+  inp.value='';
+  addMsg('user',text);
+  const typing=addMsg('bot','กำลังพิมพ์…');
+  typing.classList.add('typing');
+
+  aiHistory.push({role:"user",parts:[{text}]});
+
+  if(!GEMINI_KEY){
+    // โหมด demo — ตอบสำเร็จรูป
+    await new Promise(r=>setTimeout(r,800));
+    typing.remove();
+    const reply=demoReply(text);
+    addMsg('bot',reply);
+    aiHistory.push({role:"model",parts:[{text:reply}]});
+    return;
+  }
+
+  try{
+    const url=`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`;
+    const body={
+      system_instruction:{parts:[{text:AI_SYSTEM}]},
+      contents:aiHistory
+    };
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await res.json();
+    typing.remove();
+    if(data.candidates&&data.candidates[0]?.content?.parts?.[0]?.text){
+      const reply=data.candidates[0].content.parts[0].text;
+      addMsg('bot',reply);
+      aiHistory.push({role:"model",parts:[{text:reply}]});
+    }else if(data.error){
+      addMsg('bot','❌ '+data.error.message);
+    }else{
+      addMsg('bot','ขอโทษครับ ไม่สามารถตอบได้ในตอนนี้');
+    }
+  }catch(e){
+    typing.remove();
+    addMsg('bot','❌ เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง');
+    console.error(e);
+  }
+}
+
+function demoReply(q){
+  const ql=q.toLowerCase();
+  if(ql.includes('ฉุกเฉิน')||ql.includes('เบอร์')) return '📞 เบอร์ฉุกเฉินกาญจนบุรี:\n• กู้ชีพ: 1669\n• ตำรวจ: 191\n• ดับเพลิง: 199\n• รพ.พหลฯ: 034-587-800\nถ้าเป็นเหตุฉุกเฉิน ให้กดปุ่ม SOS ในแอปได้เลยครับ';
+  if(ql.includes('รถเสีย')||ql.includes('ปะยาง')||ql.includes('รถยก')) return '🚗 รถเสียกลางทาง:\n1. จอดรถให้พ้นทาง เปิดไฟฉุกเฉิน\n2. ตั้งสามเหลี่ยม\n3. กดเมนู "รถเสีย & เดินทาง" ในแอปเพื่อเรียกช่างหรือรถยก\n4. ถ้าอยู่ในที่อันตราย โทร 1669 ได้เลยครับ';
+  if(ql.includes('โรงพยาบาล')||ql.includes('รพ')) return '🏥 โรงพยาบาลในกาญจนบุรี:\n• รพ.พหลพลพยุหเสนา (รพ.จังหวัด): 034-587-800\n• รพ.มะการักษ์\n• รพ.ท่ามะกา\nถ้าฉุกเฉิน โทร 1669 รถพยาบาลจะมารับครับ';
+  if(ql.includes('ท่องเที่ยว')||ql.includes('เที่ยว')||ql.includes('ที่เที่ยว')) return '🏞️ ที่เที่ยวแนะนำกาญจนบุรี:\n• สะพานข้ามแม่น้ำแคว\n• น้ำตกเอราวัณ (7 ชั้น)\n• อุทยานเขื่อนศรีนครินทร์\n• ถ้ำกระแซ / ทางรถไฟสายมรณะ\n• น้ำพุร้อนหินดาด\n• เมืองมัลลิกา ร.ศ.124\nเที่ยวอย่างปลอดภัย ถ้าเจอปัญหา กดปุ่ม SOS ได้ตลอดครับ';
+  if(ql.includes('น้ำท่วม')||ql.includes('ไฟดับ')||ql.includes('น้ำไม่ไหล')) return '📢 แจ้งเหตุสาธารณูปโภค:\nไปที่เมนู "ข่าวสารชุมชน" ในแอป แล้วเลือก "แจ้งไฟดับ" หรือ "แจ้งน้ำไม่ไหล" ได้เลยครับ ข้อมูลจะถูกส่งให้แอดมินดำเนินการ';
+  if(ql.includes('สัตว์')||ql.includes('หมา')||ql.includes('แมว')) return '🐶 เรื่องสัตว์เลี้ยง:\nไปที่เมนู "สัตว์เลี้ยง" ในแอป สามารถ:\n• แจ้งสัตว์หาย\n• แจ้งพบสัตว์พลัดหลง\n• ค้นหาโรงพยาบาลสัตว์\n• รับเลี้ยงสัตว์ได้ครับ';
+  return '🤖 ขอบคุณที่ถามครับ ผมเป็น AI ผู้ช่วยของแอปช่วยเหลือกาญ\n\nถ้าเป็นเหตุฉุกเฉิน กดปุ่ม SOS สีแดงได้เลย หรือจะถามเรื่องบริการ ท่องเที่ยว เบอร์ฉุกเฉิน หรือปัญหาทั่วไปก็ได้ครับ\n\n(โหมด demo — เมื่อใส่ Gemini API key จะตอบได้ทุกคำถาม)';
+}
+
 /* ========== expose ========== */
 window.openCat=openCat;window.goHome=goHome;
 window.startSOS=startSOS;window.cancelSOS=cancelSOS;window.closeSOS=closeSOS;
 window.toast=toast;
+window.openAI=openAI;window.closeAI=closeAI;window.clearAI=clearAI;
+window.sendAI=sendAI;window.aiAsk=aiAsk;
 
 /* ========== init ========== */
 renderHome();
