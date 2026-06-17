@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ช่วยเหลือกาญ</title>
+<style>
+  :root{
+    --green:#1f9e6e; --green-d:#157a54; --blue:#2540c8; --blue-d:#1b2e8f;
+    --red:#e8412c; --red-d:#c32e1c; --ink:#1a2233; --muted:#6b7384;
+    --line:#eceef3; --bg:#f5f6f9; --card:#fff;
+    --shadow:0 2px 10px rgba(20,30,60,.06);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    font-family:-apple-system,"Helvetica Neue","Sukhumvit Set","Thonburi",sans-serif;
+    background:var(--bg);color:var(--ink);
+    max-width:480px;margin:0 auto;min-height:100vh;position:relative;
+    padding-bottom:84px;overflow-x:hidden;
+  }
+  .hidden{display:none!important}
+  /* top bar */
+  .topbar{
+    position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:10px;padding:14px 16px;
+  }
+  .topbar .back{font-size:22px;color:var(--ink);background:none;border:none;width:28px;text-align:left;cursor:pointer}
+  .topbar .title{font-weight:700;font-size:17px;flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px}
+  .topbar .seeker{color:var(--blue);font-weight:800;font-size:13px;letter-spacing:.5px}
+  /* screens */
+  .screen{padding:16px;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  /* home */
+  .loc{color:var(--blue);font-weight:600;font-size:14px;display:flex;align-items:center;gap:5px;margin-bottom:6px}
+  .greet{font-size:24px;font-weight:800;margin-bottom:16px;line-height:1.3}
+  .search{
+    display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);
+    border-radius:14px;padding:14px 16px;color:var(--muted);font-size:15px;box-shadow:var(--shadow);margin-bottom:22px;
+  }
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .cat{
+    background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px 14px;text-align:center;
+    box-shadow:var(--shadow);cursor:pointer;transition:transform .12s,box-shadow .12s;
+  }
+  .cat:active{transform:scale(.96)}
+  .cat .emoji{font-size:38px;line-height:1;margin-bottom:12px;display:block}
+  .cat .name{font-weight:800;font-size:16px;margin-bottom:4px}
+  .cat .sub{font-size:12px;color:var(--muted);line-height:1.4}
+  /* category header banner */
+  .banner{border-radius:18px;padding:20px;color:#fff;margin-bottom:18px}
+  .banner.em{background:var(--red)}
+  .banner.car{background:var(--blue)}
+  .banner.generic{background:var(--green)}
+  .banner h2{font-size:21px;font-weight:800;display:flex;align-items:center;gap:8px}
+  .banner p{font-size:13px;opacity:.92;margin-top:4px}
+  /* service list */
+  .item{
+    display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);
+    border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);
+  }
+  .item .ico{font-size:26px;width:34px;text-align:center;flex:none}
+  .item .body{flex:1;min-width:0}
+  .item .label{font-weight:700;font-size:15px}
+  .item .desc{font-size:12px;color:var(--muted);margin-top:2px}
+  .item .act{flex:none;border:none;border-radius:10px;padding:9px 14px;font-weight:700;font-size:13px;cursor:pointer}
+  .act.call{background:#eaf0ff;color:var(--blue)}
+  .act.pick{background:#fff5e6;color:#d98200}
+  .act.sos{background:var(--red);color:#fff}
+  .empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:14px}
+  /* SOS countdown */
+  #sosCountdown{background:#0e1430;min-height:100vh;color:#fff;text-align:center;padding:30px 20px;position:fixed;inset:0;max-width:480px;margin:0 auto;z-index:60;display:flex;flex-direction:column}
+  #sosCountdown h2{color:var(--red);font-size:26px;font-weight:800;margin-top:30px}
+  #sosCountdown .sub{color:#c9cee0;font-size:14px;margin-top:8px;padding:0 20px}
+  .coordbox{background:rgba(255,255,255,.07);border:1px solid rgba(120,140,255,.3);border-radius:16px;padding:18px;margin:34px 20px 0}
+  .coordbox .lbl{color:var(--green);font-size:13px;margin-bottom:6px}
+  .coordbox .val{font-size:22px;font-weight:800;letter-spacing:.5px}
+  .coordbox .acc{color:#9aa2bd;font-size:12px;margin-top:6px}
+  .ring{width:150px;height:150px;border-radius:50%;border:8px solid var(--red);margin:auto;display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:800;box-shadow:0 0 30px rgba(232,65,44,.6);animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 24px rgba(232,65,44,.5)}50%{box-shadow:0 0 44px rgba(232,65,44,.85)}}
+  .cancelbtn{background:transparent;border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:14px;padding:16px;font-size:16px;font-weight:700;margin:20px;cursor:pointer}
+  /* SOS confirmed */
+  #sosConfirmed{background:#0e1430;min-height:100vh;color:#fff;padding:30px 20px;position:fixed;inset:0;max-width:480px;margin:0 auto;z-index:60;text-align:center;overflow-y:auto}
+  #sosConfirmed h2{color:var(--green);font-size:24px;font-weight:800;margin-top:24px;display:flex;align-items:center;justify-content:center;gap:8px}
+  #sosConfirmed .code{color:#9aa2bd;font-size:14px;margin-top:6px}
+  .statusbox{border:1px solid var(--green);border-radius:16px;padding:20px;margin:26px 4px 0;background:rgba(31,158,110,.08)}
+  .statusbox .st{color:var(--green);font-size:18px;font-weight:800;margin-bottom:12px}
+  .statusbox .row{font-size:14px;color:#dfe3f0;margin:6px 0;line-height:1.5}
+  .bigbtn{display:block;width:100%;border:none;border-radius:14px;padding:17px;font-size:16px;font-weight:800;margin-top:14px;cursor:pointer;text-decoration:none;text-align:center}
+  .bigbtn.green{background:var(--green);color:#fff}
+  .bigbtn.dark{background:rgba(255,255,255,.1);color:#fff}
+  .bigbtn.red{background:var(--red);color:#fff}
+  .twocol{display:flex;gap:12px}
+  .twocol .bigbtn{flex:1}
+  /* bottom nav */
+  .nav{
+    position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:#fff;border-top:1px solid var(--line);
+    display:flex;justify-content:space-around;align-items:flex-end;padding:8px 4px 10px;z-index:40;
+  }
+  .nav button{background:none;border:none;font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;flex:1}
+  .nav button .ic{font-size:20px}
+  .nav button.active{color:var(--blue)}
+  .nav .sosbtn{position:relative;top:-14px}
+  .nav .sosbtn .circle{width:58px;height:58px;border-radius:50%;background:var(--red);color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(232,65,44,.5)}
+  /* toast */
+  .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a2233;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;z-index:100;opacity:0;transition:opacity .3s;max-width:90%;text-align:center}
+  .toast.show{opacity:1}
+  /* config notice */
+  .cfgnotice{background:#fff8e1;border:1px solid #ffe082;color:#8a6d00;border-radius:12px;padding:12px 14px;font-size:13px;margin-bottom:16px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<div class="topbar">
+  <button class="back" id="backBtn" onclick="goHome()" style="visibility:hidden">‹</button>
+  <div class="title" id="topTitle">หน้าแรก</div>
+  <span class="seeker">SEEKER</span>
+</div>
+
+<!-- ===== HOME ===== -->
+<div class="screen" id="homeScreen">
+  <div id="cfgNotice" class="cfgnotice hidden"></div>
+  <div class="loc">📍 ตำแหน่งปัจจุบัน: <span id="locName">กำลังค้นหา…</span></div>
+  <div class="greet">วันนี้มีอะไรให้เราช่วยไหม?</div>
+  <div class="search" onclick="toast('ค้นหา — เร็วๆ นี้')">🔍 ค้นหาบริการ หรือขอความช่วยเหลือ…</div>
+  <div class="grid" id="catGrid"></div>
+</div>
+
+<!-- ===== CATEGORY ===== -->
+<div class="screen hidden" id="catScreen">
+  <div class="banner" id="catBanner"></div>
+  <div id="serviceList"></div>
+</div>
+
+<!-- ===== SOS COUNTDOWN ===== -->
+<div id="sosCountdown" class="hidden">
+  <h2>🟥 ตรวจจับเหตุฉุกเฉิน</h2>
+  <p class="sub">กำลังประมวลสัญญาณส่งศูนย์ช่วยเหลือภัยกู้ชีพกาญจน์</p>
+  <div class="coordbox">
+    <div class="lbl">📍 ตำแหน่งดาวเทียมของท่าน</div>
+    <div class="val" id="cdCoord">— , —</div>
+    <div class="acc" id="cdAcc">ความแม่นยำสูง</div>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center">
+    <div class="ring" id="cdRing">5</div>
+  </div>
+  <p class="sub">ระบบจะส่งสัญญาณอัตโนมัติหากไม่กดยกเลิก</p>
+  <button class="cancelbtn" onclick="cancelSOS()">✕ กดยกเลิกสัญญาณ</button>
+</div>
+
+<!-- ===== SOS CONFIRMED ===== -->
+<div id="sosConfirmed" class="hidden">
+  <h2>🚑 ศูนย์รับเรื่องแจ้งแล้ว</h2>
+  <div class="code">รหัสพิกัดสัญญาณ: <span id="sosCode">—</span></div>
+  <div class="statusbox">
+    <div class="st" id="liveStatus">⏳ กำลังรอเจ้าหน้าที่รับเรื่อง</div>
+    <div class="row" id="liveDetail">ระบบได้บันทึกพิกัดของท่านแล้ว เจ้าหน้าที่จะติดต่อกลับโดยเร็วที่สุด</div>
+    <div class="row">พิกัด: <span id="sosCoord">—</span></div>
+  </div>
+  <a class="bigbtn red" href="tel:1669">📞 โทรสายด่วนกู้ชีพ 1669</a>
+  <div class="twocol">
+    <a class="bigbtn dark" href="tel:191">📞 ตำรวจ 191</a>
+    <a class="bigbtn dark" href="tel:199">📞 ดับเพลิง 199</a>
+  </div>
+  <button class="bigbtn green" onclick="closeSOS()">เสร็จสิ้น / ปิดหน้าต่าง</button>
+</div>
+
+<!-- ===== BOTTOM NAV ===== -->
+<div class="nav">
+  <button class="active" onclick="goHome()"><span class="ic">🏠</span>หน้าแรก</button>
+  <button onclick="toast('แผนที่ — เร็วๆ นี้')"><span class="ic">🗺️</span>แผนที่</button>
+  <button class="sosbtn" onclick="startSOS()"><span class="circle">SOS</span></button>
+  <button onclick="openCat('community')"><span class="ic">👥</span>ชุมชน</button>
+  <button onclick="toast('แจ้งเตือน — เร็วๆ นี้')"><span class="ic">🔔</span>แจ้งเตือน</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ===== Firebase ===== -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, doc, onSnapshot, getDocs, query, where, orderBy, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+/* ============================================================
+   🔧 กรอก Firebase config ของคุณตรงนี้
+   หาได้จาก console.firebase.google.com > Project settings > Web app
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+
+let db = null;
+const CONFIGURED = !!firebaseConfig.projectId;
+if (CONFIGURED) {
+  const app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+} else {
+  const n = document.getElementById('cfgNotice');
+  n.classList.remove('hidden');
+  n.innerHTML = "⚙️ <b>โหมดทดลอง</b> — ยังไม่ได้กรอก Firebase config ในไฟล์ ตอนนี้ใช้ข้อมูลตัวอย่าง<br>เมื่อกรอกแล้ว ข้อมูลบริการและ SOS จะเชื่อมกับฐานข้อมูลจริง";
+}
+
+/* ---------- ข้อมูลหมวดหมู่ (โครงคงที่) ---------- */
+const CATEGORIES = {
+  emergency:{emoji:"🆘",name:"ฉุกเฉิน",sub:"SOS, กู้ภัย, รถพยาบาล",banner:"em",title:"ฉุกเฉิน",bsub:"หมวดหมู่: SOS, กู้ภัย, รถพยาบาล"},
+  car:{emoji:"🚗",name:"รถเสีย & เดินทาง",sub:"ปะยาง, พ่วงแบต, ช่างรถ",banner:"car",title:"รถเสีย & เดินทาง",bsub:"หมวดหมู่: ปะยาง, พ่วงแบต, ช่างรถ"},
+  worker:{emoji:"🔧",name:"หาคนช่วยงาน",sub:"ช่างไฟ, ล้างแอร์, ตัดหญ้า",banner:"generic",title:"หาคนช่วยงาน",bsub:"หมวดหมู่: ช่างไฟ, ล้างแอร์, ตัดหญ้า"},
+  community:{emoji:"❤️",name:"ชุมชนช่วยกัน",sub:"ห้องปรึกษา, ขอคำปรึกษา",banner:"generic",title:"ชุมชนช่วยกัน",bsub:"หมวดหมู่: ห้องปรึกษา, ขอคำปรึกษา"},
+  donate:{emoji:"🩸",name:"บริจาค & ทำดี",sub:"บริจาคเลือด, จิตอาสา",banner:"generic",title:"บริจาค & ทำดี",bsub:"หมวดหมู่: บริจาคเลือด, จิตอาสา"},
+  pet:{emoji:"🐶",name:"สัตว์เลี้ยง",sub:"สัตว์หาย, โรงพยาบาลสัตว์",banner:"generic",title:"สัตว์เลี้ยง",bsub:"หมวดหมู่: สัตว์หาย, โรงพยาบาลสัตว์"}
+};
+
+/* ---------- ข้อมูลบริการตัวอย่าง (ใช้เมื่อยังไม่ต่อ Firebase) ----------
+   เมื่อต่อ Firebase แล้ว แอดมินจะแก้ข้อมูลพวกนี้ผ่าน admin.html
+   โครงสร้างเอกสารใน collection "services":
+   { category, icon, label, desc, type:"call"|"pick", phone, order }      */
+const SAMPLE_SERVICES = [
+  {category:"emergency",icon:"🆘",label:"SOS ขอความช่วยเหลือ",desc:"ส่งพิกัดฉุกเฉินทันที",type:"sos",order:1},
+  {category:"emergency",icon:"🚑",label:"รถพยาบาลฉุกเฉิน (1669)",desc:"สายด่วนกู้ชีพ",type:"call",phone:"1669",order:2},
+  {category:"emergency",icon:"🚒",label:"มูลนิธิกู้ภัยในพื้นที่",desc:"กู้ภัยกาญจนบุรี",type:"call",phone:"034512000",order:3},
+  {category:"emergency",icon:"👮",label:"สถานีตำรวจภูธร (191)",desc:"แจ้งเหตุด่วนเหตุร้าย",type:"call",phone:"191",order:4},
+  {category:"emergency",icon:"🔥",label:"สถานีดับเพลิงกาญจนบุรี",desc:"แจ้งเหตุเพลิงไหม้",type:"call",phone:"199",order:5},
+  {category:"emergency",icon:"🏥",label:"โรงพยาบาลพหลพลพยุหเสนา",desc:"รพ.ประจำจังหวัด",type:"call",phone:"034587800",order:6},
+  {category:"car",icon:"🔧",label:"บริการปะยางด่วน 24 ชม.",desc:"ปะยางนอกสถานที่",type:"call",phone:"0812345678",order:1},
+  {category:"car",icon:"🚛",label:"รถยก / รถสไลด์",desc:"ยกรถเสียกลางทาง",type:"call",phone:"0812345679",order:2},
+  {category:"car",icon:"🔋",label:"พ่วงแบตเตอรี่ฉุกเฉิน",desc:"แบตหมดพ่วงให้ถึงที่",type:"call",phone:"0812345680",order:3},
+  {category:"car",icon:"⛽",label:"น้ำมันหมดกลางทาง",desc:"ส่งน้ำมันถึงจุดที่ติด",type:"call",phone:"0812345681",order:4},
+  {category:"car",icon:"🚗",label:"ช่างซ่อมเครื่องยนต์นอกสถานที่",desc:"ช่างไปหาถึงจุดเสีย",type:"call",phone:"0812345682",order:5},
+  {category:"car",icon:"🔑",label:"ช่างกุญแจสะเดาะกลอน",desc:"ลืมกุญแจ/กุญแจหาย",type:"call",phone:"0812345683",order:6},
+  {category:"worker",icon:"💡",label:"ช่างไฟฟ้า",desc:"ซ่อมไฟ เดินสายไฟ",type:"call",phone:"0812345684",order:1},
+  {category:"worker",icon:"❄️",label:"ล้างแอร์ / ซ่อมแอร์",desc:"บริการถึงบ้าน",type:"call",phone:"0812345685",order:2},
+  {category:"community",icon:"💬",label:"ห้องปรึกษาชุมชน",desc:"พูดคุย ขอคำปรึกษา",type:"call",phone:"",order:1},
+  {category:"donate",icon:"🩸",label:"บริจาคโลหิต",desc:"ศูนย์รับบริจาคเลือด",type:"call",phone:"034587800",order:1},
+  {category:"pet",icon:"🐾",label:"โรงพยาบาลสัตว์",desc:"รักษาสัตว์เลี้ยง",type:"call",phone:"034512345",order:1},
+];
+
+/* ---------- โหลดบริการ (จาก Firebase หรือตัวอย่าง) ---------- */
+async function loadServices(category){
+  if (!CONFIGURED) {
+    return SAMPLE_SERVICES.filter(s=>s.category===category).sort((a,b)=>a.order-b.order);
+  }
+  try{
+    const q = query(collection(db,"services"), where("category","==",category));
+    const snap = await getDocs(q);
+    const arr = [];
+    snap.forEach(d=>arr.push(d.data()));
+    arr.sort((a,b)=>(a.order||99)-(b.order||99));
+    if(!arr.length) return SAMPLE_SERVICES.filter(s=>s.category===category);
+    return arr;
+  }catch(e){
+    console.error(e);
+    return SAMPLE_SERVICES.filter(s=>s.category===category);
+  }
+}
+
+/* ---------- พิกัดผู้ใช้ ---------- */
+let userCoord = {lat:14.0227, lng:99.5327, label:"อ.เมืองกาญจนบุรี", accurate:false};
+function fetchLocation(){
+  if(!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(
+    p=>{
+      userCoord.lat = +p.coords.latitude.toFixed(4);
+      userCoord.lng = +p.coords.longitude.toFixed(4);
+      userCoord.accurate = true;
+      document.getElementById('locName').textContent = "พิกัด "+userCoord.lat+", "+userCoord.lng;
+    },
+    ()=>{ document.getElementById('locName').textContent = userCoord.label; },
+    {enableHighAccuracy:true, timeout:8000}
+  );
+}
+
+/* ---------- render หน้าแรก ---------- */
+function renderHome(){
+  const grid = document.getElementById('catGrid');
+  grid.innerHTML = "";
+  Object.entries(CATEGORIES).forEach(([key,c])=>{
+    const el = document.createElement('div');
+    el.className = "cat";
+    el.onclick = ()=>openCat(key);
+    el.innerHTML = `<span class="emoji">${c.emoji}</span><div class="name">${c.name}</div><div class="sub">${c.sub}</div>`;
+    grid.appendChild(el);
+  });
+}
+
+/* ---------- เปิดหมวด ---------- */
+async function openCat(key){
+  const c = CATEGORIES[key];
+  if(!c) return;
+  document.getElementById('homeScreen').classList.add('hidden');
+  document.getElementById('catScreen').classList.remove('hidden');
+  document.getElementById('backBtn').style.visibility = 'visible';
+  document.getElementById('topTitle').innerHTML = c.emoji+" "+c.title;
+  document.getElementById('catBanner').className = "banner "+c.banner;
+  document.getElementById('catBanner').innerHTML = `<h2>${c.emoji} ${c.title}</h2><p>${c.bsub}</p>`;
+  const list = document.getElementById('serviceList');
+  list.innerHTML = '<div class="empty">กำลังโหลด…</div>';
+  const services = await loadServices(key);
+  if(!services.length){ list.innerHTML = '<div class="empty">ยังไม่มีข้อมูลในหมวดนี้</div>'; return; }
+  list.innerHTML = "";
+  services.forEach(s=>{
+    const el = document.createElement('div');
+    el.className = "item";
+    let actHtml;
+    if(s.type==="sos") actHtml = `<button class="act sos" onclick="startSOS()">เลือก</button>`;
+    else if(s.type==="call" && s.phone) actHtml = `<a class="act call" href="tel:${s.phone}">📞 โทร</a>`;
+    else actHtml = `<button class="act pick" onclick="toast('เลือกบริการนี้ — เร็วๆ นี้')">เลือก</button>`;
+    el.innerHTML = `<div class="ico">${s.icon||"•"}</div><div class="body"><div class="label">${s.label}</div><div class="desc">${s.desc||""}</div></div>${actHtml}`;
+    list.appendChild(el);
+  });
+}
+
+function goHome(){
+  document.getElementById('catScreen').classList.add('hidden');
+  document.getElementById('homeScreen').classList.remove('hidden');
+  document.getElementById('backBtn').style.visibility = 'hidden';
+  document.getElementById('topTitle').textContent = "หน้าแรก";
+}
+
+/* ---------- SOS flow ---------- */
+let countdownTimer = null;
+let countdownVal = 5;
+let currentSosId = null;
+let sosUnsub = null;
+
+function startSOS(){
+  countdownVal = 5;
+  document.getElementById('sosCountdown').classList.remove('hidden');
+  document.getElementById('cdCoord').textContent = userCoord.lat+"° N, "+userCoord.lng+"° E";
+  document.getElementById('cdAcc').textContent = userCoord.accurate ? "ความแม่นยำสูง" : "ความแม่นยำสูง ("+userCoord.label+")";
+  document.getElementById('cdRing').textContent = countdownVal;
+  countdownTimer = setInterval(()=>{
+    countdownVal--;
+    document.getElementById('cdRing').textContent = countdownVal;
+    if(countdownVal<=0){ clearInterval(countdownTimer); confirmSOS(); }
+  },1000);
+}
+
+function cancelSOS(){
+  clearInterval(countdownTimer);
+  document.getElementById('sosCountdown').classList.add('hidden');
+  toast('ยกเลิกสัญญาณแล้ว');
+}
+
+async function confirmSOS(){
+  document.getElementById('sosCountdown').classList.add('hidden');
+  const code = "SOS-"+Math.floor(10000+Math.random()*89999);
+  document.getElementById('sosCode').textContent = code;
+  document.getElementById('sosCoord').textContent = userCoord.lat+"° N, "+userCoord.lng+"° E";
+  document.getElementById('sosConfirmed').classList.remove('hidden');
+
+  if(CONFIGURED){
+    try{
+      const ref = await addDoc(collection(db,"sos_requests"),{
+        code, lat:userCoord.lat, lng:userCoord.lng,
+        locationLabel:userCoord.label, accurate:userCoord.accurate,
+        status:"pending", statusText:"กำลังรอเจ้าหน้าที่รับเรื่อง",
+        helperInfo:"", createdAt:serverTimestamp()
+      });
+      currentSosId = ref.id;
+      // ฟังการอัปเดตสถานะจากแอดมินแบบ real-time
+      sosUnsub = onSnapshot(doc(db,"sos_requests",ref.id),(d)=>{
+        if(!d.exists()) return;
+        const data = d.data();
+        updateLiveStatus(data);
+      });
+    }catch(e){ console.error(e); toast('บันทึกไม่สำเร็จ ลองโทร 1669 โดยตรง'); }
+  } else {
+    document.getElementById('liveStatus').textContent = "✅ บันทึกแล้ว (โหมดทดลอง)";
+    document.getElementById('liveDetail').textContent = "ในโหมดจริง แอดมินจะเห็นเหตุนี้และอัปเดตสถานะให้ท่านเห็นทันที";
+  }
+}
+
+function updateLiveStatus(data){
+  const map = {
+    pending:"⏳ กำลังรอเจ้าหน้าที่รับเรื่อง",
+    accepted:"📞 เจ้าหน้าที่รับเรื่องแล้ว",
+    enroute:"🚑 เจ้าหน้าที่กำลังเดินทาง",
+    arrived:"📍 เจ้าหน้าที่ถึงจุดเกิดเหตุ",
+    done:"✅ เสร็จสิ้น"
+  };
+  document.getElementById('liveStatus').textContent = map[data.status] || data.statusText || "อัปเดตแล้ว";
+  if(data.helperInfo) document.getElementById('liveDetail').textContent = data.helperInfo;
+}
+
+function closeSOS(){
+  if(sosUnsub){ sosUnsub(); sosUnsub=null; }
+  currentSosId = null;
+  document.getElementById('sosConfirmed').classList.add('hidden');
+  goHome();
+}
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+/* ---------- expose to window ---------- */
+window.openCat=openCat; window.goHome=goHome;
+window.startSOS=startSOS; window.cancelSOS=cancelSOS; window.closeSOS=closeSOS;
+window.toast=toast;
+
+/* ---------- init ---------- */
+renderHome();
+fetchLocation();
+</script>
+</body>
+</html>
