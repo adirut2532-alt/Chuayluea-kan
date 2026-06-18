@@ -6,6 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1f9e6e">
 <title>ช่วยเหลือกาญ — SOS</title>
+<!-- Leaflet Map CSS & JS CDNs -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root{
   --green:#1f9e6e;--green-d:#157a54;--green-l:#e8f7f0;
@@ -473,11 +476,8 @@ button,input{font-family:inherit}
 
   <div id="tabMap" class="tab-content hidden">
     <div class="loc-bar">📍 <span id="mapLocLabel">กำลังค้นหาตำแหน่ง…</span></div>
-    <div class="mock-map">
-      <div class="mock-map-bg"></div>
-      <div class="map-marker">📍</div>
-      <div class="map-info-card">ศูนย์ช่วยเหลือภัยกู้ชีพกาญจน์</div>
-    </div>
+    <!-- Real Leaflet Interactive Map Container -->
+    <div id="map" style="flex: 1; margin: 16px; border-radius: 20px; border: 1px solid var(--line); overflow: hidden; min-height: 300px; z-index: 1;"></div>
   </div>
 
   <div id="tabCommunity" class="tab-content hidden">
@@ -1246,6 +1246,10 @@ function switchTab(tabName){
     if (mapLabel) {
       mapLabel.textContent = document.getElementById('locLabel').textContent;
     }
+    updateLeafletMap();
+    setTimeout(() => {
+      if (leafletMap) leafletMap.invalidateSize();
+    }, 100);
   }
 }
 
@@ -2164,6 +2168,10 @@ function fetchLocation(){
       if (mapLabel) {
         mapLabel.textContent = locText;
       }
+      
+      if (leafletMap) {
+        updateLeafletMap();
+      }
     },
     (err)=>{ 
       console.warn('Geolocation watch error:', err);
@@ -2178,6 +2186,65 @@ function fetchLocation(){
     },
     {enableHighAccuracy:true, timeout:15000, maximumAge:0}
   );
+}
+
+/* ============================================================
+   LEAFLET INTERACTIVE MAP
+   ============================================================ */
+let leafletMap = null;
+let leafletMarker = null;
+
+function initLeafletMap() {
+  if (leafletMap) return;
+  
+  const mapContainer = document.getElementById('map');
+  if (!mapContainer) return;
+  
+  leafletMap = L.map('map', {
+    zoomControl: false
+  }).setView([userCoord.lat, userCoord.lng], 15);
+  
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(leafletMap);
+  
+  const customPinIcon = L.divIcon({
+    html: `<span style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); display: block; text-align: center; line-height: 1;">📍</span>`,
+    className: 'custom-pin-marker',
+    iconSize: [32, 32],
+    iconAnchor: [16, 30]
+  });
+  
+  leafletMarker = L.marker([userCoord.lat, userCoord.lng], { icon: customPinIcon }).addTo(leafletMap)
+    .bindPopup('📍 ตำแหน่งปัจจุบันของคุณ')
+    .openPopup();
+    
+  L.control.zoom({ position: 'bottomleft' }).addTo(leafletMap);
+}
+
+function updateLeafletMap() {
+  if (!leafletMap) {
+    initLeafletMap();
+    return;
+  }
+  
+  const pos = [userCoord.lat, userCoord.lng];
+  leafletMap.setView(pos, leafletMap.getZoom());
+  
+  const customPinIcon = L.divIcon({
+    html: `<span style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); display: block; text-align: center; line-height: 1;">📍</span>`,
+    className: 'custom-pin-marker',
+    iconSize: [32, 32],
+    iconAnchor: [16, 30]
+  });
+  
+  if (leafletMarker) {
+    leafletMarker.setLatLng(pos);
+  } else {
+    leafletMarker = L.marker(pos, { icon: customPinIcon }).addTo(leafletMap)
+      .bindPopup('📍 ตำแหน่งปัจจุบันของคุณ')
+      .openPopup();
+  }
 }
 
 /* ============================================================
@@ -3277,6 +3344,8 @@ window.submitAdminPin=submitAdminPin;
 window.closeAdminPinModal=closeAdminPinModal;
 window.showActualAdminPanel=showActualAdminPanel;
 window.loadAdminUsers=loadAdminUsers;
+window.initLeafletMap=initLeafletMap;
+window.updateLeafletMap=updateLeafletMap;
 </script>
 </body>
 </html>
