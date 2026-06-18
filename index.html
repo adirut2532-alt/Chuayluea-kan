@@ -472,7 +472,7 @@ button,input{font-family:inherit}
   </div>
 
   <div id="tabMap" class="tab-content hidden">
-    <div class="loc-bar">📍 ตำแหน่งปัจจุบัน</div>
+    <div class="loc-bar">📍 <span id="mapLocLabel">กำลังค้นหาตำแหน่ง…</span></div>
     <div class="mock-map">
       <div class="mock-map-bg"></div>
       <div class="map-marker">📍</div>
@@ -713,8 +713,9 @@ button,input{font-family:inherit}
   <!-- Tab Menu -->
   <div style="display:flex; background:#fff; border-bottom:1px solid var(--line)">
     <button id="adminTabSos" onclick="switchAdminTab('sos')" style="flex:1; border:none; background:none; padding:12px; font-weight:800; font-size:13px; color:var(--green); border-bottom:3px solid var(--green); cursor:pointer">🚨 จัดการเหตุ SOS</button>
-    <button id="adminTabContacts" onclick="switchAdminTab('contacts')" style="flex:1; border:none; background:none; padding:12px; font-weight:800; font-size:13px; color:var(--muted); border-bottom:3px solid transparent; cursor:pointer">🔧 จัดการช่าง/อู่</button>
+    <button id="adminTabContacts" onclick="switchAdminTab('contacts')" style="flex:1; border:none; background:none; padding:12px; font-weight:800; font-size:13px; color:var(--muted); border-bottom:3px solid transparent; cursor:pointer">🔧 ช่าง/อู่</button>
     <button id="adminTabAnnounce" onclick="switchAdminTab('announce')" style="flex:1; border:none; background:none; padding:12px; font-weight:800; font-size:13px; color:var(--muted); border-bottom:3px solid transparent; cursor:pointer">📢 ประกาศด่วน</button>
+    <button id="adminTabUsers" onclick="switchAdminTab('users')" style="flex:1; border:none; background:none; padding:12px; font-weight:800; font-size:13px; color:var(--muted); border-bottom:3px solid transparent; cursor:pointer">👥 สมาชิก</button>
   </div>
   
   <!-- Tab 1: SOS Incidents View -->
@@ -816,6 +817,17 @@ button,input{font-family:inherit}
       </div>
 
       <button onclick="saveAnnouncement()" style="background:var(--green); color:#fff; border:none; border-radius:10px; padding:12px; font-size:13px; font-weight:800; cursor:pointer; width:100%">✅ บันทึก & เผยแพร่</button>
+    </div>
+  </div>
+  
+  <!-- Tab 4: Users/Members List View -->
+  <div id="adminUsersView" class="hidden" style="flex:1; display:flex; flex-direction:column; min-height:0; background:#f4f5f8">
+    <div style="background:#fff; padding:12px 16px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center">
+      <span style="font-size:12px; color:var(--muted)">รายชื่อสมาชิกทั้งหมดที่ลงทะเบียนแล้ว</span>
+      <span style="background:var(--green-l); color:var(--green-d); padding:4px 8px; border-radius:12px; font-size:12px; font-weight:800" id="adminUsersCount">ทั้งหมด: 0 คน</span>
+    </div>
+    <div class="chat-msgs" id="adminUsersList" style="flex:1; padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:12px">
+      <div style="text-align:center; padding:40px; color:var(--muted); font-size:14px">กำลังโหลดรายชื่อสมาชิก…</div>
     </div>
   </div>
 </div>
@@ -1230,7 +1242,10 @@ function switchTab(tabName){
   if(navItems[idx]) navItems[idx].classList.add('active');
   
   if(tabName === 'Map') {
-    document.getElementById('mapLocLabel').textContent = document.getElementById('locLabel').textContent;
+    const mapLabel = document.getElementById('mapLocLabel');
+    if (mapLabel) {
+      mapLabel.textContent = document.getElementById('locLabel').textContent;
+    }
   }
 }
 
@@ -1574,14 +1589,17 @@ function updateBadgesUI() {
 
 let adminSosUnsub = null;
 let adminContactsUnsub = null;
+let adminUsersUnsub = null;
 
 function switchAdminTab(tabName) {
   const sosTab = document.getElementById('adminTabSos');
   const contactsTab = document.getElementById('adminTabContacts');
   const announceTab = document.getElementById('adminTabAnnounce');
+  const usersTab = document.getElementById('adminTabUsers');
   const sosView = document.getElementById('adminSosView');
   const contactsView = document.getElementById('adminContactsView');
   const announceView = document.getElementById('adminAnnounceView');
+  const usersView = document.getElementById('adminUsersView');
   
   sosTab.style.color = 'var(--muted)';
   sosTab.style.borderBottomColor = 'transparent';
@@ -1589,10 +1607,20 @@ function switchAdminTab(tabName) {
   contactsTab.style.borderBottomColor = 'transparent';
   announceTab.style.color = 'var(--muted)';
   announceTab.style.borderBottomColor = 'transparent';
+  if (usersTab) {
+    usersTab.style.color = 'var(--muted)';
+    usersTab.style.borderBottomColor = 'transparent';
+  }
   
   sosView.classList.add('hidden');
   contactsView.classList.add('hidden');
   announceView.classList.add('hidden');
+  if (usersView) usersView.classList.add('hidden');
+  
+  if (adminUsersUnsub) {
+    adminUsersUnsub();
+    adminUsersUnsub = null;
+  }
   
   if (tabName === 'sos') {
     sosTab.style.color = 'var(--green)';
@@ -1606,7 +1634,81 @@ function switchAdminTab(tabName) {
     announceTab.style.color = 'var(--green)';
     announceTab.style.borderBottomColor = 'var(--green)';
     announceView.classList.remove('hidden');
+  } else if (tabName === 'users') {
+    if (usersTab && usersView) {
+      usersTab.style.color = 'var(--green)';
+      usersTab.style.borderBottomColor = 'var(--green)';
+      usersView.classList.remove('hidden');
+      loadAdminUsers();
+    }
   }
+}
+
+function loadAdminUsers() {
+  if (adminUsersUnsub) {
+    adminUsersUnsub();
+    adminUsersUnsub = null;
+  }
+  
+  const qUsers = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+  adminUsersUnsub = onSnapshot(qUsers, (snapshot) => {
+    const listEl = document.getElementById('adminUsersList');
+    const countEl = document.getElementById('adminUsersCount');
+    if (!listEl || !countEl) return;
+    
+    listEl.innerHTML = '';
+    
+    if (snapshot.empty) {
+      listEl.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted); font-size:14px">📭 ไม่พบรายชื่อสมาชิกในระบบ</div>';
+      countEl.textContent = 'ทั้งหมด: 0 คน';
+      return;
+    }
+    
+    countEl.textContent = `ทั้งหมด: ${snapshot.size} คน`;
+    
+    snapshot.forEach((docSnap) => {
+      const d = docSnap.data();
+      const card = document.createElement('div');
+      card.style.background = '#fff';
+      card.style.borderRadius = '14px';
+      card.style.padding = '16px';
+      card.style.boxShadow = 'var(--shadow)';
+      card.style.display = 'flex';
+      card.style.flexDirection = 'column';
+      card.style.gap = '8px';
+      
+      const regDate = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleString('th-TH') : 'ไม่ระบุ';
+      const avatarUrl = d.photoURL || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%239aa2bd"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>';
+      
+      card.innerHTML = `
+        <div style="display:flex; align-items:center; gap:12px">
+          <img src="${avatarUrl}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;%239aa2bd&quot;><path d=&quot;M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z&quot;/></svg>'">
+          <div>
+            <div style="font-size:14px; font-weight:800; color:var(--ink)">
+              ${d.realName || d.displayName || 'ไม่ระบุชื่อ'} 
+              ${d.nickname ? `<span style="font-weight:600; color:var(--muted)">(${d.nickname})</span>` : ''}
+            </div>
+            <div style="font-size:11px; color:var(--muted)">ID: ${d.uid}</div>
+          </div>
+        </div>
+        
+        <div style="height:1px; background:var(--line); margin:4px 0"></div>
+        
+        <div style="font-size:12px; display:flex; flex-direction:column; gap:4px">
+          <div>📱 <b>เบอร์ติดต่อ:</b> <a href="tel:${d.phone}" style="color:var(--green-d); font-weight:700; text-decoration:none">${d.phone || '-'}</a></div>
+          <div>🚨 <b>ญาติฉุกเฉิน:</b> ${d.emergencyName || '-'} (โทร: <a href="tel:${d.emergencyPhone}" style="color:var(--green-d); font-weight:700; text-decoration:none">${d.emergencyPhone || '-'}</a>)</div>
+          <div>📅 <b>สมัครสมาชิกเมื่อ:</b> <span style="color:var(--muted); font-weight:600">${regDate}</span></div>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+  }, (e) => {
+    console.error('Error loading admin users:', e);
+    const listEl = document.getElementById('adminUsersList');
+    if (listEl) {
+      listEl.innerHTML = '<div style="text-align:center; padding:20px; color:var(--red); font-weight:700;">⚠️ โหลดข้อมูลล้มเหลว กรุณาลองใหม่อีกครั้ง</div>';
+    }
+  });
 }
 
 function showActualAdminPanel() {
@@ -1777,6 +1879,10 @@ function closeAdminPanel() {
   if (adminContactsUnsub) {
     adminContactsUnsub();
     adminContactsUnsub = null;
+  }
+  if (adminUsersUnsub) {
+    adminUsersUnsub();
+    adminUsersUnsub = null;
   }
 }
 
@@ -2032,17 +2138,45 @@ async function handleLogout(){
    GEOLOCATION
    ============================================================ */
 let userCoord = {lat:14.0227, lng:99.5327, accurate:false, label:'อ.เมืองกาญจนบุรี'};
+let geoWatcher = null;
+
 function fetchLocation(){
-  if(!navigator.geolocation){ document.getElementById('locLabel').textContent='ตำแหน่ง: '+userCoord.label; return; }
-  navigator.geolocation.getCurrentPosition(
+  if(!navigator.geolocation){ 
+    document.getElementById('locLabel').textContent='ตำแหน่ง: '+userCoord.label; 
+    return; 
+  }
+  
+  if (geoWatcher) {
+    navigator.geolocation.clearWatch(geoWatcher);
+    geoWatcher = null;
+  }
+  
+  geoWatcher = navigator.geolocation.watchPosition(
     p=>{
       userCoord.lat=+p.coords.latitude.toFixed(6);
       userCoord.lng=+p.coords.longitude.toFixed(6);
       userCoord.accurate=true;
-      document.getElementById('locLabel').textContent=userCoord.lat+', '+userCoord.lng+' (GPS)';
+      
+      const locText = userCoord.lat+', '+userCoord.lng+' (GPS)';
+      document.getElementById('locLabel').textContent = locText;
+      
+      const mapLabel = document.getElementById('mapLocLabel');
+      if (mapLabel) {
+        mapLabel.textContent = locText;
+      }
     },
-    ()=>{ document.getElementById('locLabel').textContent=userCoord.label+' (โดยประมาณ)'; },
-    {enableHighAccuracy:true, timeout:10000}
+    (err)=>{ 
+      console.warn('Geolocation watch error:', err);
+      if (!userCoord.accurate) {
+        const fallbackText = userCoord.label+' (โดยประมาณ)';
+        document.getElementById('locLabel').textContent = fallbackText;
+        const mapLabel = document.getElementById('mapLocLabel');
+        if (mapLabel) {
+          mapLabel.textContent = fallbackText;
+        }
+      }
+    },
+    {enableHighAccuracy:true, timeout:15000, maximumAge:0}
   );
 }
 
@@ -3142,6 +3276,7 @@ window.handleGoogleLoginFromGuard=handleGoogleLoginFromGuard;
 window.submitAdminPin=submitAdminPin;
 window.closeAdminPinModal=closeAdminPinModal;
 window.showActualAdminPanel=showActualAdminPanel;
+window.loadAdminUsers=loadAdminUsers;
 </script>
 </body>
 </html>
