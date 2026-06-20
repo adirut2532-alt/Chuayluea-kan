@@ -1,17 +1,3351 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="th">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/jpeg" href="/logo.jpg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ช่วยเหลือกาญ (ChuayLueaKan) - Super App</title>
-    <!-- Google Fonts: Inter & Prompt -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1f9e6e">
+<title>ช่วยเหลือกาญ — SOS</title>
+<!-- Leaflet Map CSS & JS CDNs -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --green:#1f9e6e;--green-d:#157a54;--green-l:#e8f7f0;
+  --red:#e8412c;--red-d:#c32e1c;--red-l:#fff0ed;
+  --blue:#2540c8;--blue-l:#eaf0ff;
+  --ink:#1a2233;--muted:#6b7384;--line:#e8eaf0;--bg:#f4f5f8;
+  --shadow:0 2px 12px rgba(20,30,60,.06);--r:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"Helvetica Neue","Sukhumvit Set",sans-serif;background:var(--bg);color:var(--ink);max-width:480px;margin:0 auto;min-height:100dvh;overflow-x:hidden}
+.hidden{display:none!important}
+button,input{font-family:inherit}
+
+/* ===== LOGIN ===== */
+.login-wrap{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#e8f7f0,#eaf0ff)}
+.login-card{background:#fff;border-radius:20px;padding:30px 24px;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(20,30,60,.08);text-align:center}
+.login-card .logo-img{width:120px;height:auto;margin-bottom:12px;border-radius:16px}
+.login-card h1{font-size:22px;font-weight:800;margin-bottom:4px}
+.login-card .sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+.login-card label{display:block;text-align:left;font-size:13px;font-weight:700;color:var(--muted);margin:14px 0 6px}
+.login-card input{width:100%;border:1px solid var(--line);border-radius:12px;padding:14px;font-size:18px;text-align:center;letter-spacing:2px;outline:none}
+.login-card input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(31,158,110,.1)}
+.btn{width:100%;padding:15px;border:none;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer;margin-top:14px}
+.btn-g{background:var(--green);color:#fff}
+.btn-google{background:#ea4335;color:#fff;font-size:17px}
+.btn:disabled{opacity:.45}
+.err-box{background:var(--red-l);color:var(--red-d);border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:10px;text-align:left}
+.notice-box{background:var(--green-l);color:var(--green-d);border-radius:12px;padding:14px;font-size:14px;margin-bottom:14px;line-height:1.6;text-align:left}
+.login-feat{text-align:left;margin:18px 0 6px;color:var(--muted);font-size:13px;line-height:1.8}
+
+/* ===== PROFILE SETUP MODAL ===== */
+.modal-bg{position:fixed;inset:0;background:rgba(15,20,40,.5);display:flex;align-items:flex-end;justify-content:center;z-index:55;max-width:480px;margin:0 auto}
+.modal-box{background:#fff;border-radius:20px 20px 0 0;width:100%;padding:28px 22px calc(env(safe-area-inset-bottom,10px) + 28px);max-height:90dvh;overflow-y:auto;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.modal-box h2{font-size:20px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.modal-box .modal-sub{color:var(--muted);font-size:13px;margin-bottom:16px;line-height:1.5}
+.modal-box label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin:12px 0 6px}
+.modal-box input{width:100%;border:1px solid var(--line);border-radius:12px;padding:14px;font-size:16px;outline:none}
+.modal-box input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(31,158,110,.1)}
+.modal-box .name-display{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:16px;color:var(--ink);display:flex;align-items:center;gap:10px}
+.modal-box .name-display img{width:36px;height:36px;border-radius:50%}
+
+/* ===== HOME ===== */
+.home{display:flex;flex-direction:column;min-height:100dvh}
+.hdr{background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between}
+.hdr-l{display:flex;align-items:center;gap:8px}
+.hdr-l .ttl{font-weight:800;font-size:17px}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.hdr-r .usr{font-size:12px;opacity:.9}
+.hdr-r .out{background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer}
+.loc-bar{background:var(--green-l);color:var(--green-d);padding:10px 16px;font-size:13px;font-weight:600}
+.quick{display:flex;gap:8px;padding:14px 16px;overflow-x:auto}
+.quick::-webkit-scrollbar{display:none}
+.quick a{flex:none;display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:14px;font-weight:700;color:var(--ink);text-decoration:none;white-space:nowrap;box-shadow:var(--shadow)}
+.phone-info{text-align:center;color:var(--muted);font-size:13px;padding:10px}
+
+/* ===== SOS BUTTON ===== */
+.sos-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:14px}
+.sos-hint{color:var(--muted);font-size:13px}
+.sos-ring-wrap{position:relative;width:180px;height:180px}
+.sos-ring-svg{position:absolute;inset:0;width:100%;height:100%}
+.sos-main-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:130px;height:130px;border-radius:50%;border:none;background:linear-gradient(135deg,#e8412c,#ff5a3c);color:#fff;font-size:30px;font-weight:900;letter-spacing:2px;cursor:pointer;box-shadow:0 6px 28px rgba(232,65,44,.4);transition:transform .1s,box-shadow .1s;user-select:none;-webkit-user-select:none}
+.sos-main-btn.holding{transform:translate(-50%,-50%) scale(.92);box-shadow:0 2px 12px rgba(232,65,44,.6)}
+.sos-main-btn:disabled{opacity:.4}
+.hold-text{color:var(--red);font-weight:700;font-size:14px;animation:blink .6s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ===== COUNTDOWN ===== */
+.cd-overlay{position:fixed;inset:0;max-width:480px;margin:0 auto;z-index:60;background:linear-gradient(180deg,#0a0f26,#141a38);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 20px;color:#fff}
+.cd-overlay h2{color:var(--red);font-size:22px;font-weight:800;margin-bottom:8px}
+.cd-overlay .cd-sub{color:#9aa2bd;font-size:14px;margin-bottom:28px;line-height:1.5}
+.cd-ring{position:relative;width:160px;height:160px;margin-bottom:28px}
+.cd-ring svg{width:100%;height:100%}
+.cd-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:56px;font-weight:900;color:#fff}
+.cd-warn{color:#9aa2bd;font-size:13px;margin-bottom:20px}
+.cd-cancel{background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:14px;padding:16px 40px;font-size:16px;font-weight:700;cursor:pointer}
+
+/* ===== CONFIRMED ===== */
+.conf-overlay{position:fixed;inset:0;max-width:480px;margin:0 auto;z-index:60;background:linear-gradient(180deg,#0a0f26,#141a38);overflow-y:auto;color:#fff;padding:30px 20px;text-align:center}
+.conf-overlay h2{color:var(--green);font-size:22px;font-weight:800;margin-bottom:4px}
+.conf-overlay .code{color:#9aa2bd;font-size:14px;margin-bottom:20px}
+.st-box{border:1px solid rgba(31,158,110,.3);border-radius:var(--r);padding:18px;background:rgba(31,158,110,.06);text-align:left;margin-bottom:20px}
+.st-box .st{color:var(--green);font-size:17px;font-weight:800;margin-bottom:8px}
+.st-box .info{color:#c9cee0;font-size:14px;line-height:1.5;margin-bottom:6px}
+.st-box .coord{color:#9aa2bd;font-size:13px}
+.cbtn{display:block;width:100%;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:800;text-align:center;text-decoration:none;margin-bottom:10px;cursor:pointer}
+.cbtn.red{background:var(--red);color:#fff}
+.cbtn.dark{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15)}
+.cbtn.grn{background:var(--green);color:#fff;margin-top:16px}
+.tworow{display:flex;gap:10px}
+.tworow .cbtn{flex:1}
+
+/* ===== BOTTOM NAVIGATION ===== */
+.nav-bar{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;height:calc(64px + env(safe-area-inset-bottom, 0px));background:#fff;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;padding-bottom:env(safe-area-inset-bottom, 0px);z-index:50;box-shadow:0 -2px 10px rgba(0,0,0,0.03)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:11px;font-weight:700;text-decoration:none;cursor:pointer;background:transparent;border:none;gap:4px;outline:none}
+.nav-item.active{color:var(--green)}
+.nav-item span.icon{font-size:22px;line-height:1}
+
+/* ===== FLOATING SOS IN NAV ===== */
+.nav-sos-wrap{position:relative;width:68px;height:100%;display:flex;align-items:center;justify-content:center}
+.nav-sos-btn{position:absolute;top:-20px;width:62px;height:62px;border-radius:50%;border:none;background:linear-gradient(135deg,#e8412c,#ff5a3c);color:#fff;font-size:16px;font-weight:900;letter-spacing:1px;cursor:pointer;box-shadow:0 4px 16px rgba(232,65,44,0.35);display:flex;align-items:center;justify-content:center;transition:transform 0.1s}
+.nav-sos-btn:active{transform:scale(0.92)}
+
+/* ===== DASHBOARD ===== */
+.dash-wrap{padding-bottom:100px}
+.hero-box{background:linear-gradient(180deg,#e8f7f0,#fff);padding:20px 16px 14px}
+.hero-box h2{font-size:26px;font-weight:800;line-height:1.2;margin-top:12px;color:var(--ink)}
+.section-title{font-size:15px;font-weight:800;color:var(--muted);margin:16px 16px 0;padding-left:4px;border-left:4px solid var(--green)}
+
+/* ===== GRID CARDS ===== */
+.srv-grid{display:grid;grid-template-columns:repeat(2, 1fr);gap:12px;padding:12px 16px}
+.srv-card{position:relative;background:#fff;border-radius:16px;padding:18px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;box-shadow:var(--shadow);border-top:4px solid var(--line);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;text-decoration:none;color:inherit}
+.srv-card:active{transform:scale(0.97)}
+.card-badge{position:absolute;top:8px;right:12px;background:var(--red);color:#fff;border-radius:12px;padding:3px 8px;font-size:11px;font-weight:800;line-height:1;box-shadow:0 2px 8px rgba(232,65,44,0.3)}
+.srv-card .icon{font-size:32px;margin-bottom:8px}
+.srv-card h3{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:2px}
+.srv-card p{font-size:12px;color:#3c4554;line-height:1.4;font-weight:700}
+
+/* Category card border accents */
+.srv-card.accent-red{border-top-color:#e8412c}
+.srv-card.accent-blue{border-top-color:#2540c8}
+.srv-card.accent-orange{border-top-color:#f2994a}
+.srv-card.accent-green{border-top-color:#1f9e6e}
+.srv-card.accent-cyan{border-top-color:#56ccf2}
+.srv-card.accent-purple{border-top-color:#9b51e0}
+
+/* ===== TAB PAGES ===== */
+.tab-content{display:flex;flex-direction:column;min-height:calc(100vh - 64px - env(safe-area-inset-bottom, 0px));background:var(--bg)}
+
+/* Mock Map styling */
+.mock-map{flex:1;margin:16px;background:#e3eaef;border-radius:20px;border:1px solid var(--line);overflow:hidden;position:relative;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.mock-map-bg{position:absolute;inset:0;background-image:radial-gradient(var(--green) 1px, transparent 1px), radial-gradient(var(--green) 1px, #e3eaef 1px);background-size:20px 20px;background-position:0 0, 10px 10px;opacity:0.15}
+.map-marker{position:relative;z-index:2;font-size:36px;animation:bounce 1.5s infinite alternate}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-15px)}}
+.map-info-card{position:absolute;bottom:16px;left:16px;right:16px;background:#fff;border-radius:12px;padding:12px;box-shadow:var(--shadow);z-index:2;font-size:13px}
+
+/* Feed list styling for Community */
+.feed-list{padding:16px;display:flex;flex-direction:column;gap:12px;padding-bottom:100px}
+.feed-item{background:#fff;border-radius:14px;padding:16px;box-shadow:var(--shadow);border-left:4px solid var(--green)}
+.feed-item h4{font-size:14px;font-weight:800;margin-bottom:4px;color:var(--ink)}
+.feed-item p{font-size:12px;color:var(--muted);line-height:1.5}
+.feed-item .time{font-size:10px;color:var(--muted);display:block;margin-top:6px;text-align:right}
+
+/* Profile tab styling */
+.profile-wrap{padding:24px 16px 100px;text-align:center}
+.profile-avatar-wrap{position:relative;width:96px;height:96px;margin:0 auto 16px}
+.profile-avatar{width:100%;height:100%;border-radius:50%;border:4px solid #fff;box-shadow:var(--shadow);object-fit:cover}
+.profile-name{font-size:20px;font-weight:800;margin-bottom:4px}
+.profile-phone{font-size:13px;color:var(--muted);margin-bottom:24px}
+.profile-menu{background:#fff;border-radius:16px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:24px;text-align:left}
+.profile-menu-item{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--line);font-size:14px;color:var(--ink);cursor:pointer;text-decoration:none}
+.profile-menu-item:last-child{border-bottom:none}
+.profile-menu-item:active{background:var(--bg)}
+.profile-menu-item .label{font-weight:700}
+.profile-menu-item .val{color:var(--muted)}
+
+/* ===== BOTTOM SHEET ===== */
+.sheet-item{display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 16px;background:var(--green-l);border:1px solid rgba(31,158,110,0.15);border-radius:12px;font-weight:700;color:var(--green-d);text-decoration:none;cursor:pointer;font-size:14px;text-align:left;transition:background 0.2s,transform 0.1s;outline:none;border-top:none;border-left:none;border-right:none}
+.sheet-item:active{background:#d5f0e4;transform:scale(0.98)}
+.sheet-item .icon-right{margin-left:auto;font-size:12px;opacity:0.7}
+
+/* ===== AI CHAT WIDGET ===== */
+.ai-fab-wrap{position:fixed;bottom:94px;right:16px;display:flex;flex-direction:column;align-items:center;gap:6px;z-index:49;pointer-events:none}
+.ai-fab{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6,#ec4899);color:#fff;border:none;box-shadow:0 4px 16px rgba(139,92,246,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.2s;pointer-events:auto}
+.ai-fab:active{transform:scale(0.9)}
+.ai-fab-label{font-size:10px;font-weight:800;color:#3c4554;background:#fff;padding:3px 8px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.06);border:1px solid var(--line);pointer-events:auto;cursor:pointer;text-align:center;line-height:1}
+.chat-widget{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom, 0px));right:16px;width:calc(100% - 32px);max-width:380px;height:450px;background:#fff;border-radius:20px;box-shadow:0 8px 32px rgba(20,30,60,0.15);border:1px solid var(--line);display:flex;flex-direction:column;z-index:54;overflow:hidden;animation:slideUpChat 0.25s ease-out}
+@keyframes slideUpChat{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.chat-hdr{background:linear-gradient(135deg,#3b82f6,#8b5cf6,#ec4899);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between}
+.chat-hdr h3{font-size:15px;font-weight:800;margin:0}
+.chat-msgs{flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;background:#f8f9fa}
+.msg-bubble{max-width:80%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.5;word-break:break-word}
+.msg-bubble.ai{background:#fff;color:var(--ink);align-self:flex-start;border-bottom-left-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.msg-bubble.user{background:var(--blue);color:#fff;align-self:flex-end;border-bottom-right-radius:2px}
+.chat-input-area{padding:10px 12px;background:#fff;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center}
+.chat-input-area input{flex:1;border:1px solid var(--line);border-radius:20px;padding:8px 14px;font-size:13px;outline:none}
+.chat-input-area input:focus{border-color:var(--blue)}
+.chat-send-btn{background:var(--blue);color:#fff;border:none;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+/* ===== TOGGLE SWITCH FOR ANON MODE ===== */
+.switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; inset: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+.switch input:checked + .slider { background-color: var(--green); }
+.switch .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+.switch input:checked + .slider:before { transform: translateX(20px); }
+
+/* ===== ANNOUNCEMENT BANNER ===== */
+.announcement-banner {
+  padding: 16px 20px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  z-index: 5;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: bannerPulse 2.5s infinite alternate ease-in-out;
+  margin-top: 6px;
+  width: 100%;
+}
+.announcement-banner:active {
+  transform: scale(0.98);
+}
+.announcement-banner .announce-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+.announcement-banner .announce-text {
+  line-height: 1.45;
+  text-align: left;
+  word-break: break-word;
+}
+.announcement-banner.info {
+  background: #eafcf4;
+  color: #1a7a55;
+  border: 1.5px solid #a3e8cc;
+}
+.announcement-banner.warning {
+  background: #fff8eb;
+  color: #c97314;
+  border: 1.5px solid #ffd599;
+}
+.announcement-banner.danger {
+  background: #fff2f1;
+  color: #c93525;
+  border: 1.5px solid #ffcccc;
+}
+@keyframes bannerPulse {
+  from {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  to {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN (Facebook Only) ===== -->
+<div id="loginScreen" class="login-wrap">
+  <div class="login-card">
+    <img class="logo-img" src="data:image/webp;base64,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" alt="ช่วยเหลือกาญ">
+    <h1>ช่วยเหลือกาญ</h1>
+    <p class="sub">ช่วยเร็ว · เข้าถึงง่าย · อุ่นใจทุกเวลา</p>
+    <div id="loginErr" class="err-box hidden"></div>
+    <button class="btn btn-google" id="googleBtn" onclick="handleGoogleLogin()">🔴 เข้าสู่ระบบด้วย Google</button>
+    <div class="login-feat">
+      ✅ ไม่มีค่าใช้จ่าย<br>
+      ✅ แจ้งเหตุฉุกเฉินส่งพิกัดจริง<br>
+      ✅ เจ้าหน้าที่ตอบรับแบบ real-time
+    </div>
+  </div>
+</div>
+
+<!-- ===== PROFILE SETUP MODAL (New User) ===== -->
+<div id="profileModal" class="modal-bg hidden">
+  <div class="modal-box">
+    <h2>📱 ตั้งค่าโปรไฟล์</h2>
+    <p class="modal-sub">กรุณากรอกเบอร์โทรศัพท์ที่ติดต่อได้จริง<br>เบอร์นี้ใช้ให้เจ้าหน้าที่ติดต่อกลับเมื่อเกิดเหตุฉุกเฉิน</p>
+    <div id="profileErr" class="err-box hidden"></div>
+
+    <label>ชื่อ (จากบัญชี Google)</label>
+    <div class="name-display" id="profileName">
+      <span>กำลังโหลด…</span>
+    </div>
+
+    <label>ชื่อจริง - นามสกุล *</label>
+    <input id="profileRealName" type="text" placeholder="กรอกชื่อจริงและนามสกุลของคุณ" style="text-align:left;letter-spacing:normal;font-size:15px">
+
+    <label>เบอร์โทรศัพท์ที่ติดต่อได้จริง *</label>
+    <input id="profilePhoneInput" type="tel" inputmode="numeric" placeholder="08XXXXXXXX" maxlength="10">
+
+    <label>ชื่อเล่น (ไม่บังคับ)</label>
+    <input id="profileNickname" type="text" placeholder="ชื่อที่ต้องการให้เจ้าหน้าที่เรียก" style="text-align:left;letter-spacing:normal;font-size:15px">
+
+    <label>ชื่อญาติ / ผู้ติดต่อฉุกเฉิน *</label>
+    <input id="profileEmergencyName" type="text" placeholder="กรอกชื่อญาติ หรือผู้ติดต่อเร่งด่วน" style="text-align:left;letter-spacing:normal;font-size:15px">
+
+    <label>เบอร์โทรติดต่อญาติ / ฉุกเฉิน *</label>
+    <input id="profileEmergencyPhone" type="tel" inputmode="numeric" placeholder="08XXXXXXXX" maxlength="10">
+
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn btn-g" onclick="saveProfile()" style="flex:1; margin:0;">✅ บันทึกโปรไฟล์ & เริ่มใช้งาน</button>
+      <button id="profileModalCancelBtn" class="btn" onclick="closeProfileModal()" style="flex:1; margin:0; background:#9aa2bd; color:#fff; border:none; display:none;">✕ ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AUTH GUARD MODAL ===== -->
+<div id="authGuardModal" class="modal-bg hidden" style="z-index: 70; align-items: center;">
+  <div class="modal-box" style="border-radius: 20px; width: calc(100% - 32px); max-width: 380px; padding: 24px; text-align: center; margin: 16px;">
+    <span style="font-size: 48px; display: block; margin-bottom: 12px">🔒</span>
+    <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px; color: var(--ink)">ต้องเข้าสู่ระบบก่อนใช้งาน</h3>
+    <p style="font-size: 13px; line-height: 1.5; color: var(--muted); margin-bottom: 20px;">กรุณาเข้าสู่ระบบด้วย Google เพื่อเริ่มใช้งานฟังก์ชันการขอความช่วยเหลือ, การพูดคุยแชทชุมชน หรือการเขียนรีวิวแสดงความคิดเห็น</p>
+    
+    <button class="btn btn-google" onclick="handleGoogleLoginFromGuard()" style="width: 100%; margin: 0 0 10px 0; font-size: 16px;">🔴 เข้าสู่ระบบด้วย Google</button>
+    <button class="btn" onclick="closeAuthGuard()" style="width: 100%; margin: 0; background: var(--line); color: var(--ink); border: none;">✕ ยกเลิก</button>
+  </div>
+</div>
+
+<!-- ===== ADMIN PIN MODAL ===== -->
+<div id="adminPinModal" class="modal-bg hidden" style="z-index: 80; align-items: center;">
+  <div class="modal-box" style="border-radius: 20px; width: calc(100% - 32px); max-width: 320px; padding: 24px; text-align: center; margin: 16px;">
+    <span style="font-size: 48px; display: block; margin-bottom: 12px">🔑</span>
+    <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px; color: var(--ink)">กรอกรหัสผ่านแอดมิน</h3>
+    <p style="font-size: 13px; line-height: 1.5; color: var(--muted); margin-bottom: 16px;">กรุณากรอกรหัสผ่านเพื่อเข้าสู่ระบบควบคุมแอดมิน</p>
+    <div id="adminPinErr" class="err-box hidden" style="margin-bottom: 12px;"></div>
+    
+    <input id="adminPinInput" type="password" inputmode="numeric" pattern="[0-9]*" placeholder="••••" style="width: 100%; border: 1px solid var(--line); border-radius: 12px; padding: 12px; font-size: 20px; text-align: center; letter-spacing: 6px; outline: none; margin-bottom: 16px; background: #fff; color: var(--ink);">
+    
+    <button class="btn btn-g" onclick="submitAdminPin()" style="width: 100%; margin: 0 0 10px 0; font-size: 16px;">ตกลง</button>
+    <button class="btn" onclick="closeAdminPinModal()" style="width: 100%; margin: 0; background: var(--line); color: var(--ink); border: none;">✕ ยกเลิก</button>
+  </div>
+</div>
+
+<!-- ===== URGENT BLOOD REQUEST FORM MODAL ===== -->
+<div id="bloodRequestModal" class="modal-bg hidden" style="z-index: 57;">
+  <div class="modal-box">
+    <h2>🩸 ลงประกาศตามหาเลือดด่วน</h2>
+    <p class="modal-sub">กรุณากรอกข้อมูลผู้ต้องการรับบริจาคโลหิตตามความเป็นจริง<br>ประกาศจะแชร์เข้ากลุ่มอาสาเพื่อช่วยติดตามผู้ร่วมบริจาคให้คุณ</p>
+    <div id="bloodReqErr" class="err-box hidden"></div>
+
+    <label>ชื่อ-นามสกุล คนไข้ *</label>
+    <input id="bloodReqPatientName" type="text" placeholder="กรอกชื่อคนไข้ผู้ต้องการโลหิต" style="text-align:left;letter-spacing:normal;font-size:15px">
+
+    <div style="display:flex; gap:10px;">
+      <div style="flex:1;">
+        <label>กรุ๊ปโลหิต (ABO) *</label>
+        <select id="bloodReqType" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:15px; background:#fff; outline:none; height:46px;">
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="O">O</option>
+          <option value="AB">AB</option>
+        </select>
+      </div>
+      <div style="flex:1;">
+        <label>หมู่โลหิต (Rh Factor) *</label>
+        <select id="bloodReqRh" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:15px; background:#fff; outline:none; height:46px;">
+          <option value="Rh+ (บวก)">Rh+ (บวก)</option>
+          <option value="Rh- (ลบ)">Rh- (ลบ)</option>
+          <option value="ไม่ระบุ">ไม่ระบุ</option>
+        </select>
+      </div>
+    </div>
+
+    <label>โรงพยาบาลที่ต้องการรับบริจาค *</label>
+    <select id="bloodReqHospital" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:15px; background:#fff; outline:none; height:46px; margin-bottom: 8px;">
+      <option value="โรงพยาบาลพหลพลพยุหเสนา">โรงพยาบาลพหลพลพยุหเสนา</option>
+      <option value="โรงพยาบาลกาญจนบุรีเมโมเรียล">โรงพยาบาลกาญจนบุรีเมโมเรียล</option>
+      <option value="โรงพยาบาลมะการักษ์">โรงพยาบาลมะการักษ์</option>
+      <option value="โรงพยาบาลทองผาภูมิ">โรงพยาบาลทองผาภูมิ</option>
+      <option value="โรงพยาบาลไทรโยค">โรงพยาบาลไทรโยค</option>
+      <option value="โรงพยาบาลสมเด็จพระสังฆราชองค์ที่ 19">โรงพยาบาลสมเด็จพระสังฆราชองค์ที่ 19</option>
+      <option value="โรงพยาบาลด่านมะขามเตี้ย">โรงพยาบาลด่านมะขามเตี้ย</option>
+      <option value="โรงพยาบาลบ่อพลอย">โรงพยาบาลบ่อพลอย</option>
+      <option value="โรงพยาบาลหนองปรือ">โรงพยาบาลหนองปรือ</option>
+      <option value="โรงพยาบาลเลาขวัญ">โรงพยาบาลเลาขวัญ</option>
+      <option value="โรงพยาบาลห้วยกระเจา">โรงพยาบาลห้วยกระเจา</option>
+      <option value="โรงพยาบาลสังขละบุรี">โรงพยาบาลสังขละบุรี</option>
+      <option value="โรงพยาบาลพนมทวน">โรงพยาบาลพนมทวน</option>
+      <option value="โรงพยาบาลค่ายสุรสีห์">โรงพยาบาลค่ายสุรสีห์</option>
+      <option value="โรงพยาบาลสถานพระบารมี">โรงพยาบาลสถานพระบารมี</option>
+      <option value="โรงพยาบาลกู๊ดเชพเพิร์ด">โรงพยาบาลกู๊ดเชพเพิร์ด</option>
+      <option value="โรงพยาบาลกรุงเทพคริสเตียน นครปฐม (สาขาแก่งเสี้ยน)">โรงพยาบาลกรุงเทพคริสเตียน นครปฐม (สาขาแก่งเสี้ยน)</option>
+      <option value="อื่นๆ">อื่นๆ (กรอกในรายละเอียด)</option>
+    </select>
+
+    <label>เบอร์โทรติดต่อผู้ประสานงาน/ญาติ *</label>
+    <input id="bloodReqPhone" type="tel" inputmode="numeric" placeholder="08XXXXXXXX" maxlength="10">
+
+    <label>รายละเอียดเพิ่มเติม (เช่น ต้องการรับประเภทใดด่วน/จำนวนกี่ยูนิต) *</label>
+    <textarea id="bloodReqDetail" placeholder="ระบุเหตุผลในการรับบริจาค เช่น ผ่าตัดฉุกเฉิน หรือ ต้องการเกล็ดเลือดด่วน..." style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:15px; outline:none; height:80px; font-family:inherit; resize:none;"></textarea>
+
+    <div style="display:flex; gap:10px; margin-top:14px;">
+      <button class="btn btn-g" onclick="submitBloodRequest()" style="flex:1; margin:0; background:#e8412c; color:#fff;">✅ ลงประกาศด่วน</button>
+      <button class="btn" onclick="closeBloodRequestForm()" style="flex:1; margin:0; background:#9aa2bd; color:#fff; border:none;">✕ ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HOME SCREEN ===== -->
+<div id="homeScreen" class="home hidden">
+  <div class="hdr">
+    <div class="hdr-l">
+      <img src="data:image/webp;base64,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" alt="" style="width:32px;height:32px;border-radius:8px">
+      <span class="ttl">ช่วยเหลือกาญ</span>
+    </div>
+    <div class="hdr-r">
+      <span class="usr" id="userName">ผู้ใช้</span>
+      <button class="out" onclick="handleLogout()">ออก</button>
+    </div>
+  </div>
+
+  <!-- Tabs Container -->
+  <div id="tabHome" class="tab-content dash-wrap">
+    <div class="loc-bar">📍 <span id="locLabel">กำลังค้นหาตำแหน่ง…</span></div>
+    <div class="hero-box" style="position: relative;">
+      <!-- Announcement Banner -->
+      <div id="adminAnnouncement" class="announcement-banner hidden" onclick="showAnnouncementDetail()">
+        <span class="announce-icon">📢</span>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 4px; text-align: left;">
+          <span id="announcementTextDisplay" class="announce-text">...</span>
+          <span id="announcementTimeDisplay" style="font-size: 11px; opacity: 0.7; font-weight: 700;" class="hidden"></span>
+        </div>
+      </div>
+      <h2 id="heroGreeting">วันนี้มีอะไร<br>ให้เราช่วยไหม?</h2>
+    </div>
+    <div class="quick">
+      <a href="tel:1669">🚑 1669 กู้ชีพ</a>
+      <a href="tel:191">👮 191 ตำรวจ</a>
+      <a href="tel:199">🔥 199 ดับเพลิง</a>
+    </div>
+    <p class="section-title">หมวดบริการ</p>
+    <div class="srv-grid">
+      <div class="srv-card accent-red" onclick="openBottomSheet('sos')">
+        <span class="icon">🚨</span>
+        <h3>ฉุกเฉิน</h3>
+        <p>SOS, กู้ภัย, รถพยาบาล</p>
+      </div>
+      <div class="srv-card accent-blue" onclick="openBottomSheet('car')">
+        <span class="icon">🚗</span>
+        <h3>รถเสีย & เดินทาง</h3>
+        <p>ปะยาง, พ่วงแบต, ช่างรถ</p>
+      </div>
+      <div class="srv-card accent-orange" onclick="openBottomSheet('work')">
+        <span class="icon">🔧</span>
+        <h3>หาคนช่วยงาน</h3>
+        <p>ช่างไฟ, ช่างประปา, ล้างแอร์</p>
+      </div>
+      <div class="srv-card accent-red" onclick="openBottomSheet('community')">
+        <div id="communityCardBadge" class="card-badge hidden">0</div>
+        <span class="icon">❤️</span>
+        <h3>ชุมชนช่วยกัน</h3>
+        <p>ปรับทุกข์, ขอคำปรึกษา</p>
+      </div>
+      <div class="srv-card accent-red" onclick="openBottomSheet('donation')">
+        <span class="icon">🩸</span>
+        <h3>บริจาค & ทำดี</h3>
+        <p>บริจาคเลือด, จิตอาสา</p>
+      </div>
+      <div class="srv-card accent-cyan" onclick="openBottomSheet('pets')">
+        <span class="icon">🐶</span>
+        <h3>สัตว์เลี้ยง</h3>
+        <p>สัตว์หาย, โรงพยาบาลสัตว์</p>
+      </div>
+      <div class="srv-card accent-cyan" onclick="openBottomSheet('travel')">
+        <span class="icon">🏔️</span>
+        <h3>ท่องเที่ยวปลอดภัย</h3>
+        <p>SOS นักท่องเที่ยว, ทางน้ำ</p>
+      </div>
+      <div class="srv-card accent-purple" onclick="openBottomSheet('news')">
+        <span class="icon">📢</span>
+        <h3>ข่าวสารชุมชน</h3>
+        <p>แจ้งไฟดับ, น้ำไม่ไหล, ข่าว</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="tabMap" class="tab-content hidden">
+    <div class="loc-bar">📍 <span id="mapLocLabel">กำลังค้นหาตำแหน่ง…</span></div>
+    <!-- Real Leaflet Interactive Map Container -->
+    <div id="map" style="flex: 1; margin: 16px; border-radius: 20px; border: 1px solid var(--line); overflow: hidden; min-height: 300px; z-index: 1;"></div>
+  </div>
+
+  <div id="tabCommunity" class="tab-content hidden">
+    <div class="loc-bar">📢 ข่าวสารชุมชน</div>
+    <div class="feed-list">
+      <div class="feed-item">
+        <h4>⚠️ แจ้งปรับปรุงระบบประปา</h4>
+        <p>ปิดน้ำประปาเพื่อซ่อมแซมท่อส่งน้ำหลักในเขต อ.เมือง วันที่ 19 มิ.ย. นี้</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="tabProfile" class="tab-content hidden">
+    <div class="profile-wrap">
+      <div class="profile-avatar-wrap">
+        <img id="profileTabAvatar" class="profile-avatar" src="data:image/webp;base64,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" alt="">
+      </div>
+      <!-- VIEW MODE PANEL -->
+      <div id="profileViewMode" style="width: 100%;">
+        <h3 class="profile-name" id="profileTabName">กำลังโหลด...</h3>
+        <p class="profile-phone">📱 เบอร์โทรศัพท์: <span id="profileTabPhone">-</span></p>
+        <div class="profile-menu">
+          <div class="profile-menu-item">
+            <span class="label">ชื่อจริง-นามสกุล</span>
+            <span class="val" id="profileTabRealName">-</span>
+          </div>
+          <div class="profile-menu-item">
+            <span class="label">ชื่อเล่น</span>
+            <span class="val" id="profileTabNickname">-</span>
+          </div>
+          <div class="profile-menu-item">
+            <span class="label">ญาติ/ผู้ติดต่อฉุกเฉิน</span>
+            <span class="val" id="profileTabEmergencyName">-</span>
+          </div>
+          <div class="profile-menu-item">
+            <span class="label">เบอร์ติดต่อญาติ</span>
+            <span class="val" id="profileTabEmergencyPhone">-</span>
+          </div>
+          <div class="profile-menu-item hidden" id="adminMenuBtn" onclick="openAdminPanel()">
+            <span class="label" style="color: var(--red)">⚙️ แผงควบคุมแอดมิน (Admin Panel)</span>
+            <span class="val">➔</span>
+          </div>
+        </div>
+        
+        <div style="display:flex; gap:8px; margin-top:16px;">
+          <button class="cbtn grn" onclick="enableProfileEditMode()" style="flex:1; margin:0; border:none; cursor:pointer;">📝 แก้ไขโปรไฟล์</button>
+          <button class="cbtn red" onclick="handleLogout()" style="flex:1; margin:0; border:none; cursor:pointer;">🚪 ออกจากระบบ</button>
+        </div>
+      </div>
+
+      <!-- GUEST MODE PANEL -->
+      <div id="profileGuestMode" class="hidden" style="width:100%; padding:20px; text-align:center;">
+        <span style="font-size:48px; display:block; margin-bottom:12px;">👤</span>
+        <h4 style="font-size:16px; font-weight:800; color:var(--ink); margin:0 0 8px 0;">คุณยังไม่ได้เข้าสู่ระบบ</h4>
+        <p style="font-size:13px; color:var(--muted); line-height:1.5; margin-bottom:20px;">เข้าสู่ระบบเพื่อยืนยันตัวตน และบันทึกข้อมูลติดต่อญาติฉุกเฉินสำหรับขอความช่วยเหลือ</p>
+        <button class="btn btn-google" onclick="handleGoogleLogin()" style="margin:0;">🔴 เข้าสู่ระบบด้วย Google</button>
+      </div>
+
+      <!-- EDIT MODE PANEL -->
+      <div id="profileEditMode" class="hidden" style="width: 100%; text-align: left; margin-top: 10px;">
+        <div id="profileTabErr" class="err-box hidden"></div>
+        
+        <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:10px 0 4px;">ชื่อจริง - นามสกุล *</label>
+        <input id="profileTabRealNameInput" type="text" placeholder="กรอกชื่อจริงและนามสกุลของคุณ" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:15px; outline:none; background:#fff; color:var(--ink);">
+
+        <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:10px 0 4px;">เบอร์โทรศัพท์ที่ติดต่อได้จริง *</label>
+        <input id="profileTabPhoneInput" type="tel" inputmode="numeric" placeholder="08XXXXXXXX" maxlength="10" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:15px; outline:none; background:#fff; color:var(--ink);">
+
+        <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:10px 0 4px;">ชื่อเล่น (ไม่บังคับ)</label>
+        <input id="profileTabNicknameInput" type="text" placeholder="ชื่อที่ต้องการให้เจ้าหน้าที่เรียก" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:15px; outline:none; background:#fff; color:var(--ink);">
+
+        <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:10px 0 4px;">ชื่อญาติ / ผู้ติดต่อฉุกเฉิน *</label>
+        <input id="profileTabEmergencyNameInput" type="text" placeholder="กรอกชื่อญาติ หรือผู้ติดต่อเร่งด่วน" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:15px; outline:none; background:#fff; color:var(--ink);">
+
+        <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:10px 0 4px;">เบอร์โทรติดต่อญาติ / ฉุกเฉิน *</label>
+        <input id="profileTabEmergencyPhoneInput" type="tel" inputmode="numeric" placeholder="08XXXXXXXX" maxlength="10" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:15px; outline:none; background:#fff; color:var(--ink);">
+
+        <div style="display:flex; gap:8px; margin-top:20px;">
+          <button class="cbtn grn" onclick="saveProfileFromTab()" style="flex:1; margin:0; border:none; cursor:pointer;">💾 บันทึกข้อมูล</button>
+          <button class="cbtn" onclick="disableProfileEditMode()" style="flex:1; margin:0; border:none; cursor:pointer; background:#9aa2bd; color:#fff;">✕ ยกเลิก</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-bar">
+    <button class="nav-item active" onclick="switchTab('Home')">
+      <span class="icon">🏠</span><span>หน้าแรก</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('Map')">
+      <span class="icon">🗺️</span><span>แผนที่</span>
+    </button>
+    <div class="nav-sos-wrap">
+      <button class="nav-sos-btn" onclick="triggerSosGuard()">SOS</button>
+    </div>
+    <button class="nav-item" onclick="switchTab('Community')">
+      <span class="icon">👥</span><span>ชุมชน</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('Profile')">
+      <span class="icon">👤</span><span>โปรไฟล์</span>
+    </button>
+  </div>
+
+  <!-- Floating AI Chat Button -->
+  <div class="ai-fab-wrap">
+    <button class="ai-fab" onclick="toggleAIChat()">
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" style="display:block;">
+        <path d="M12 3 Q12 12 21 12 Q12 12 12 21 Q12 12 3 12 Q12 12 12 3 Z" fill="currentColor" />
+        <path d="M18.5 2.5 Q18.5 6 22 6 Q18.5 6 18.5 9.5 Q18.5 6 15 6 Q18.5 6 18.5 2.5 Z" fill="currentColor" opacity="0.85" />
+      </svg>
+    </button>
+    <div class="ai-fab-label" onclick="toggleAIChat()">ปรึกษา AI</div>
+  </div>
+
+  <!-- AI Chat Widget Window -->
+  <div id="aiChatWidget" class="chat-widget hidden">
+    <div class="chat-hdr">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="display:flex;align-items:center;color:#fff;">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+            <path d="M12 3 Q12 12 21 12 Q12 12 12 21 Q12 12 3 12 Q12 12 12 3 Z" fill="currentColor" />
+            <path d="M18.5 2.5 Q18.5 6 22 6 Q18.5 6 18.5 9.5 Q18.5 6 15 6 Q18.5 6 18.5 2.5 Z" fill="currentColor" opacity="0.85" />
+          </svg>
+        </span>
+        <div style="text-align:left">
+          <h3 style="font-size:14px;margin:0">ผู้ช่วย AI กู้ชีพกาญจน์</h3>
+          <span style="font-size:10px;opacity:0.8;display:block">ให้คำปรึกษาฉุกเฉินเบื้องต้น 24 ชม.</span>
+        </div>
+      </div>
+      <button onclick="toggleAIChat()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer">✕</button>
+    </div>
+    <div class="chat-msgs" id="chatMsgs">
+      <div class="msg-bubble ai">
+        สวัสดีครับผมเป็นผู้ช่วย AI กู้ชีพกาญจน์ ยินดีให้คำแนะนำปฐมพยาบาลและข้อมูลบริการกู้ชีพฉุกเฉินเบื้องต้นครับ วันนี้มีอะไรให้ผมช่วยดูแลไหมครับ? (เช่น เป็นลมแดด, วิธีทำ CPR, รถเสียสตาร์ทไม่ติด, ติดต่อดับเพลิง)
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <input type="text" id="chatInput" placeholder="พิมพ์ข้อความคุยกับ AI..." onkeypress="handleChatKeyPress(event)">
+      <button class="chat-send-btn" onclick="sendChatMessage()">➔</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SOS OVERLAY ===== -->
+<div id="sosOverlay" class="cd-overlay hidden" style="z-index: 56; background: rgba(10, 15, 38, 0.95); display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 50px 20px 30px;">
+  <button onclick="closeSosOverlay()" style="position:absolute;top:20px;right:20px;background:none;border:none;color:#fff;font-size:24px;cursor:pointer">✕</button>
+  
+  <!-- Warning Box at the Top -->
+  <div style="color:#ff6b6b; font-size:13px; font-weight:bold; background:rgba(255,107,107,0.12); padding:12px 18px; border-radius:14px; border:1px solid rgba(255,107,107,0.3); max-width:320px; text-align:center; line-height:1.45; margin-top: 20px;">
+    ⚠️ สำหรับเหตุฉุกเฉินเท่านั้น!<br>หากกดเล่น/แจ้งเท็จ มีโอกาสถูกแบนระบบ
+  </div>
+
+  <!-- Interactive Area in the Middle -->
+  <div class="sos-area" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; width: 100%;">
+    <p class="sos-hint" style="color:#9aa2bd">กดค้างปุ่ม SOS 3 วินาที</p>
+    <div class="sos-ring-wrap">
+      <svg class="sos-ring-svg" viewBox="0 0 180 180">
+        <circle cx="90" cy="90" r="76" fill="none" stroke="rgba(232,65,44,0.12)" stroke-width="8"/>
+        <circle id="holdRing" cx="90" cy="90" r="76" fill="none" stroke="#e8412c" stroke-width="8" stroke-dasharray="477.52" stroke-dashoffset="477.52" stroke-linecap="round" transform="rotate(-90 90 90)"/>
+      </svg>
+      <button class="sos-main-btn" id="sosBtn" onmousedown="startHold(event)" onmouseup="cancelHold(event)" onmouseleave="cancelHold(event)" ontouchstart="startHold(event)" ontouchend="cancelHold(event)" ontouchcancel="cancelHold(event)">SOS</button>
+    </div>
+    <p id="holdText" class="hold-text hidden" style="margin-top: 8px;">กำลังกดค้าง… อย่าปล่อย</p>
+  </div>
+  
+  <div class="phone-info" style="margin-bottom: 10px;">📱 เบอร์ในระบบ: <span id="userPhone">-</span></div>
+</div>
+
+<!-- ===== CHAT ROOM OVERLAY (Venting Room) ===== -->
+<div id="chatRoomOverlay" class="cd-overlay hidden" style="z-index: 56; background: var(--bg); color: var(--ink); display: flex; flex-direction: column; padding: 0; align-items: stretch; justify-content: flex-start; text-align: left">
+  <div class="hdr" style="background: linear-gradient(135deg, var(--green), var(--green-d))">
+    <div style="display:flex; align-items:center; gap:8px">
+      <button onclick="closeChatRoom()" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer">←</button>
+      <span style="font-weight:800; font-size:16px" id="chatRoomTitle">💬 ห้องปรับทุกข์ชุมชน</span>
+    </div>
+    <button onclick="closeChatRoom()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer">ปิด</button>
+  </div>
+  
+  <!-- Anonymous Mode Toggle -->
+  <div style="background:#fff; padding:10px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between">
+    <div style="display:flex; align-items:center; gap:6px">
+      <span style="font-size:16px">🔒</span>
+      <span style="font-size:13px; font-weight:700; color:var(--muted)">โหมดไม่ระบุตัวตน (Incognito)</span>
+    </div>
+    <label class="switch">
+      <input type="checkbox" id="anonToggle" checked onchange="toggleAnonMode()">
+      <span class="slider"></span>
+    </label>
+  </div>
+  
+  <div class="chat-msgs" id="roomMsgs" style="flex:1; background:#f4f5f8; padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:12px">
+    <!-- Real-time Firestore messages will go here -->
+  </div>
+  
+  <div class="chat-input-area" style="padding:12px; background:#fff; border-top:1px solid var(--line); display:flex; gap:8px; align-items:center">
+    <input type="text" id="roomInput" placeholder="พิมพ์ข้อความปรับทุกข์..." onkeypress="handleRoomKeyPress(event)" style="flex:1; border:1px solid var(--line); border-radius:20px; padding:10px 16px; font-size:14px; outline:none">
+    <button onclick="sendRoomMessage()" style="background:var(--green); color:#fff; border:none; border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px">➔</button>
+  </div>
+</div>
+
+<!-- ===== BLOOD REQUESTS OVERLAY ===== -->
+<div id="bloodRequestsOverlay" class="cd-overlay hidden" style="z-index: 56; background: var(--bg); color: var(--ink); display: flex; flex-direction: column; padding: 0; align-items: stretch; justify-content: flex-start; text-align: left">
+  <div class="hdr" style="background: linear-gradient(135deg, #c62828, #e8412c)">
+    <div style="display:flex; align-items:center; gap:8px">
+      <button onclick="closeBloodRequests()" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer">←</button>
+      <span style="font-weight:800; font-size:16px">🩸 ศูนย์ประสานงานตามหาเลือดด่วน</span>
+    </div>
+    <button onclick="closeBloodRequests()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer">ปิด</button>
+  </div>
+
+  <div style="background:#fff; padding:12px 16px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center">
+    <span style="font-size:13px; font-weight:700; color:var(--muted)">ประกาศขอรับบริจาคโลหิตเร่งด่วน</span>
+    <button onclick="openBloodRequestForm()" style="background:#e8412c; color:#fff; border:none; border-radius:8px; padding:8px 12px; font-size:12px; font-weight:800; cursor:pointer; display:flex; align-items:center; gap:4px">
+      ➕ ลงประกาศด่วน
+    </button>
+  </div>
+
+  <div id="bloodRequestsList" style="flex:1; background:#f4f5f8; padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:12px">
+    <!-- Real-time active requests from Firestore will be rendered here -->
+  </div>
+</div>
+
+<!-- ===== ADMIN DASHBOARD OVERLAY ===== -->
+<div id="adminOverlay" class="cd-overlay hidden" style="z-index: 56; background: var(--bg); color: var(--ink); display: flex; flex-direction: column; padding: 0; align-items: stretch; justify-content: flex-start; text-align: left">
+  <div class="hdr" style="background: linear-gradient(135deg, var(--ink), #2c3e50)">
+    <div style="display:flex; align-items:center; gap:8px">
+      <button onclick="closeAdminPanel()" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer">←</button>
+      <span style="font-weight:800; font-size:16px">⚙️ แผงควบคุมแอดมิน</span>
+    </div>
+    <button onclick="closeAdminPanel()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer">ปิด</button>
+  </div>
+  
+  <!-- Tab Menu -->
+  <div style="display:flex; background:#fff; border-bottom:1px solid var(--line)">
+    <button id="adminTabSos" onclick="switchAdminTab('sos')" style="flex:1; border:none; background:none; padding:12px; font-weight:800; font-size:13px; color:var(--green); border-bottom:3px solid var(--green); cursor:pointer">🚨 จัดการเหตุ SOS</button>
+    <button id="adminTabContacts" onclick="switchAdminTab('contacts')" style="flex:1; border:none; background:none; padding:12px; font-weight:800; font-size:13px; color:var(--muted); border-bottom:3px solid transparent; cursor:pointer">🔧 ช่าง/อู่</button>
+    <button id="adminTabAnnounce" onclick="switchAdminTab('announce')" style="flex:1; border:none; background:none; padding:12px; font-weight:800; font-size:13px; color:var(--muted); border-bottom:3px solid transparent; cursor:pointer">📢 ประกาศด่วน</button>
+    <button id="adminTabUsers" onclick="switchAdminTab('users')" style="flex:1; border:none; background:none; padding:12px; font-weight:800; font-size:13px; color:var(--muted); border-bottom:3px solid transparent; cursor:pointer">👥 สมาชิก</button>
+  </div>
+  
+  <!-- Tab 1: SOS Incidents View -->
+  <div id="adminSosView" style="flex:1; display:flex; flex-direction:column; min-height:0">
+    <div style="background:#fff; padding:10px 16px; border-bottom:1px solid var(--line); font-size:12px; color:var(--muted)">
+      ระบบจัดการภัยเหตุฉุกเฉินและตรวจสอบพิกัดผู้ขอความช่วยเหลือแบบ Real-time
+    </div>
+    <div class="chat-msgs" id="adminSosList" style="flex:1; background:#f4f5f8; padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:16px">
+      <div style="text-align:center; padding:40px; color:var(--muted); font-size:14px">กำลังโหลดข้อมูลเหตุฉุกเฉิน…</div>
+    </div>
+  </div>
+  
+  <!-- Tab 2: Contacts Management View -->
+  <div id="adminContactsView" class="hidden" style="flex:1; display:flex; flex-direction:column; min-height:0; background:#f4f5f8">
+    <!-- Add Contact Form -->
+    <div style="background:#fff; padding:16px; border-bottom:1px solid var(--line); display:flex; flex-direction:column; gap:10px">
+      <h3 style="font-size:14px; font-weight:800; color:var(--ink)">➕ เพิ่มข้อมูลติดต่อช่าง/อู่ใหม่</h3>
+      
+      <div style="display:flex; gap:8px">
+        <div style="flex:1">
+          <label style="font-size:11px; font-weight:700; color:var(--muted); display:block; margin-bottom:4px">หมวดหมู่บริการ</label>
+          <select id="addContactCat" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-size:13px; outline:none">
+            <option value="car">🚗 รถเสีย & เดินทาง</option>
+            <option value="work">🔧 หาคนช่วยงาน</option>
+            <option value="sos">🚨 ฉุกเฉิน</option>
+            <option value="community">❤️ ชุมชนช่วยกัน</option>
+            <option value="donation">🩸 บริจาค & ทำดี</option>
+            <option value="pets">🐶 สัตว์เลี้ยง</option>
+            <option value="travel">🏞️ ท่องเที่ยวปลอดภัย</option>
+            <option value="news">📢 ข่าวสารชุมชน</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label style="font-size:11px; font-weight:700; color:var(--muted); display:block; margin-bottom:4px">เบอร์โทรศัพท์ (มีปุ่มโทรออก)</label>
+          <input type="tel" id="addContactPhone" placeholder="เช่น 0812345678" style="width:100%; padding:9px; border:1px solid var(--line); border-radius:8px; font-size:13px; outline:none">
+        </div>
+      </div>
+      
+      <div>
+        <label style="font-size:11px; font-weight:700; color:var(--muted); display:block; margin-bottom:4px">ชื่อเรียก/หัวข้อแอปแสดง *</label>
+        <input type="text" id="addContactText" placeholder="เช่น ช่างปะยางนอกสถานที่ (ช่างสมศักดิ์)" style="width:100%; padding:9px; border:1px solid var(--line); border-radius:8px; font-size:13px; outline:none">
+      </div>
+      
+      <div>
+        <label style="font-size:11px; font-weight:700; color:var(--muted); display:block; margin-bottom:4px">ข้อมูลป๊อปอัปคำแนะนำการติดต่อ (ไม่บังคับ)</label>
+        <input type="text" id="addContactMsg" placeholder="เช่น เปิดให้บริการปะยางด่วน 24 ชั่วโมง..." style="width:100%; padding:9px; border:1px solid var(--line); border-radius:8px; font-size:13px; outline:none">
+      </div>
+      
+      <button onclick="addCustomContact()" style="background:var(--green); color:#fff; border:none; border-radius:10px; padding:12px; font-size:13px; font-weight:800; cursor:pointer">✅ บันทึกรายชื่อใหม่เข้าแอป</button>
+    </div>
+    
+    <!-- Custom Contacts List -->
+    <div style="padding:12px 16px; font-size:12px; font-weight:800; color:var(--muted)">📋 รายชื่อช่าง/อู่ที่เพิ่มเข้ามาในระบบ</div>
+    <div class="chat-msgs" id="adminContactsList" style="flex:1; padding:0 16px 16px; overflow-y:auto; display:flex; flex-direction:column; gap:10px">
+      <!-- Custom contacts loaded dynamically -->
+      <div style="text-align:center; padding:20px; color:var(--muted); font-size:13px">กำลังโหลดข้อมูลช่าง…</div>
+    </div>
+  </div>
+
+  <!-- Tab 3: Announcement View -->
+  <div id="adminAnnounceView" class="hidden" style="flex:1; display:flex; flex-direction:column; min-height:0; background:#f4f5f8; padding:16px; gap:16px; overflow-y:auto">
+    <div style="background:#fff; padding:16px; border-radius:16px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:12px">
+      <h3 style="font-size:14px; font-weight:800; color:var(--ink); margin:0">📢 จัดการแบนเนอร์ประกาศด่วน</h3>
+      
+      <div>
+        <label style="font-size:11px; font-weight:700; color:var(--muted); display:block; margin-bottom:4px">สถานะประกาศ</label>
+        <div style="display:flex; align-items:center; gap:8px">
+          <label class="switch" style="position:relative; display:inline-block; width:44px; height:24px">
+            <input type="checkbox" id="announceActive" onchange="toggleAnnounceLabel(this)" style="opacity:0; width:0; height:0">
+            <span class="slider" style="position:absolute; cursor:pointer; inset:0; background-color:#ccc; transition:.4s; border-radius:24px"></span>
+          </label>
+          <span id="announceActiveLabel" style="font-size:13px; font-weight:700; color:var(--muted)">ปิดใช้งาน</span>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:11px; font-weight:700; color:var(--muted); display:block; margin-bottom:4px">แสดงเวลาของเหตุการณ์/ประกาศ</label>
+        <div style="display:flex; align-items:center; gap:8px">
+          <label class="switch" style="position:relative; display:inline-block; width:44px; height:24px">
+            <input type="checkbox" id="announceShowTime" onchange="toggleShowTimeLabel(this)" style="opacity:0; width:0; height:0">
+            <span class="slider" style="position:absolute; cursor:pointer; inset:0; background-color:#ccc; transition:.4s; border-radius:24px"></span>
+          </label>
+          <span id="announceShowTimeLabel" style="font-size:13px; font-weight:700; color:var(--muted)">ไม่แสดง</span>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:11px; font-weight:700; color:var(--muted); display:block; margin-bottom:4px">รูปแบบแถบสีประกาศ</label>
+        <select id="announceType" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font-size:13px; outline:none">
+          <option value="info">🟢 ข้อมูลทั่วไป / ชื่นชมสมาชิก (เขียว)</option>
+          <option value="warning">🟡 แจ้งเตือนเฝ้าระวัง / ประชาสัมพันธ์ (ส้ม)</option>
+          <option value="danger">🔴 ด่วนที่สุด / ประกาศรับบริจาคเลือดด่วน (แดง)</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="font-size:11px; font-weight:700; color:var(--muted); display:block; margin-bottom:4px">ข้อความประกาศด่วน *</label>
+        <textarea id="announceText" placeholder="เช่น ขอรับบริจาคเลือดกรุ๊ป O ด่วนให้ผู้ป่วยโรงพยาบาลพหลฯ หรือ ชื่นชมคุณวีระ สมาชิกดีเด่นสัปดาห์นี้!" style="width:100%; height:80px; padding:10px; border:1px solid var(--line); border-radius:8px; font-size:13px; outline:none; resize:none; font-family:inherit"></textarea>
+      </div>
+
+      <button onclick="saveAnnouncement()" style="background:var(--green); color:#fff; border:none; border-radius:10px; padding:12px; font-size:13px; font-weight:800; cursor:pointer; width:100%">✅ บันทึก & เผยแพร่</button>
+    </div>
+  </div>
+  
+  <!-- Tab 4: Users/Members List View -->
+  <div id="adminUsersView" class="hidden" style="flex:1; display:flex; flex-direction:column; min-height:0; background:#f4f5f8">
+    <div style="background:#fff; padding:12px 16px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center">
+      <span style="font-size:12px; color:var(--muted)">รายชื่อสมาชิกทั้งหมดที่ลงทะเบียนแล้ว</span>
+      <span style="background:var(--green-l); color:var(--green-d); padding:4px 8px; border-radius:12px; font-size:12px; font-weight:800" id="adminUsersCount">ทั้งหมด: 0 คน</span>
+    </div>
+    <div class="chat-msgs" id="adminUsersList" style="flex:1; padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:12px">
+      <div style="text-align:center; padding:40px; color:var(--muted); font-size:14px">กำลังโหลดรายชื่อสมาชิก…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TECHNICIAN PROFILE & REVIEWS OVERLAY ===== -->
+<div id="techReviewOverlay" class="cd-overlay hidden" style="z-index: 58; background: var(--bg); color: var(--ink); display: flex; flex-direction: column; padding: 0; align-items: stretch; justify-content: flex-start; text-align: left">
+  <div class="hdr" style="background: linear-gradient(135deg, var(--green), var(--green-d))">
+    <div style="display:flex; align-items:center; gap:8px">
+      <button onclick="closeTechReviews()" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer">←</button>
+      <span style="font-weight:800; font-size:16px">👨‍🔧 ข้อมูล & รีวิวช่าง</span>
+    </div>
+    <button onclick="closeTechReviews()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer">ปิด</button>
+  </div>
+  
+  <div style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:16px">
+    <!-- Tech Profile Details Card -->
+    <div style="background:#fff; border-radius:16px; padding:18px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:8px; text-align:center">
+      <span style="font-size:48px" id="techIcon">👨‍🔧</span>
+      <h2 id="techName" style="font-size:18px; font-weight:800; color:var(--ink)">ชื่อช่าง</h2>
+      <p id="techDesc" style="font-size:13px; color:var(--muted); line-height:1.4">รายละเอียดการให้บริการ</p>
+      
+      <!-- Live Average Rating display -->
+      <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin:4px 0">
+        <span style="font-size:24px; font-weight:900; color:var(--ink)" id="techAvgRating">0.0</span>
+        <span style="color:#f2c94c; font-size:20px" id="techAvgStars">☆☆☆☆☆</span>
+        <span style="font-size:12px; color:var(--muted)" id="techReviewCount">(0 รีวิว)</span>
+      </div>
+      
+      <a id="techCallBtn" href="tel:" class="cbtn grn" style="margin-top:8px; margin-bottom:0">📞 โทรติดต่อช่าง</a>
+    </div>
+    
+    <!-- Write a Review Form Card -->
+    <div style="background:#fff; border-radius:16px; padding:16px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:10px">
+      <h3 style="font-size:14px; font-weight:800; color:var(--ink)">⭐ เขียนรีวิว & ให้คะแนนช่าง</h3>
+      
+      <!-- Interactive Stars -->
+      <div style="display:flex; gap:8px; font-size:28px; cursor:pointer; justify-content:center" id="interactiveStars">
+        <span onclick="setReviewRating(1)">☆</span>
+        <span onclick="setReviewRating(2)">☆</span>
+        <span onclick="setReviewRating(3)">☆</span>
+        <span onclick="setReviewRating(4)">☆</span>
+        <span onclick="setReviewRating(5)">☆</span>
+      </div>
+      
+      <div style="display:flex; gap:8px">
+        <input type="text" id="reviewComment" placeholder="แสดงความคิดเห็นเกี่ยวกับงานบริการ..." style="flex:1; border:1px solid var(--line); border-radius:20px; padding:10px 16px; font-size:13px; outline:none">
+        <button onclick="submitTechReview()" style="background:var(--green); color:#fff; border:none; border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px">➔</button>
+      </div>
+    </div>
+    
+    <!-- Reviews List -->
+    <div style="font-size:14px; font-weight:800; color:var(--muted)">💬 รีวิวจากผู้ใช้บริการ</div>
+    <div style="display:flex; flex-direction:column; gap:10px" id="techReviewsList">
+      <div style="text-align:center; padding:20px; color:var(--muted); font-size:13px">ยังไม่มีรีวิวสำหรับช่างคนนี้</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BOTTOM SHEET ===== -->
+<div id="bottomSheet" class="modal-bg hidden" style="align-items: flex-end; z-index: 57">
+  <div class="modal-box" style="border-radius: 24px 24px 0 0; padding: 20px 16px calc(env(safe-area-inset-bottom, 10px) + 20px); max-height: 80dvh; overflow-y: auto">
+    <div style="width: 40px; height: 5px; background: var(--line); border-radius: 3px; margin: 0 auto 16px; cursor: pointer" onclick="closeBottomSheet()"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px">
+      <h2 id="sheetTitle" style="font-size:20px; font-weight:800; margin:0">หมวดหมู่</h2>
+      <button onclick="closeBottomSheet()" style="background:none; border:none; color:var(--muted); font-size:15px; font-weight:700; cursor:pointer">✕ ปิด</button>
+    </div>
+    <div id="sheetList" style="display:flex; flex-direction:column; gap:10px">
+      <!-- Dynamic list items will go here -->
+    </div>
+  </div>
+</div>
+
+<!-- ===== ANNOUNCEMENT DETAIL DIALOG ===== -->
+<div id="announcementModal" class="modal-bg hidden" style="align-items: center; z-index: 61;">
+  <div class="modal-box" style="border-radius: 20px; width: calc(100% - 32px); max-width: 380px; padding: 24px; text-align: center; margin: 16px;">
+    <span id="announcementModalIcon" style="font-size: 40px; display: block; margin-bottom: 12px">📢</span>
+    <h3 id="announcementModalTitle" style="font-size: 18px; font-weight: 800; margin-bottom: 12px; color: var(--ink)">ประกาศด่วนจากระบบ</h3>
+    <p id="announcementModalText" style="font-size: 14px; line-height: 1.6; color: var(--ink); white-space: pre-wrap; word-break: break-word; text-align: left; margin-bottom: 20px; background: #f8f9fa; padding: 14px; border-radius: 12px; border: 1px solid var(--line)"></p>
+    <button class="btn btn-g" onclick="closeAnnouncementModal()" style="width: 100%; margin: 0">ตกลง</button>
+  </div>
+</div>
+
+<!-- ===== COUNTDOWN OVERLAY ===== -->
+<div id="cdOverlay" class="cd-overlay hidden">
+  <h2>🚨 ตรวจจับเหตุฉุกเฉิน</h2>
+  <p class="cd-sub">กำลังประมวลสัญญาณส่งศูนย์ช่วยเหลือภัยกู้ชีพกาญจน์</p>
+  <div class="cd-ring">
+    <svg viewBox="0 0 160 160">
+      <circle cx="80" cy="80" r="68" fill="none" stroke="rgba(232,65,44,0.2)" stroke-width="8"/>
+      <circle id="cdArc" cx="80" cy="80" r="68" fill="none" stroke="#e8412c" stroke-width="8" stroke-dasharray="427.26" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 80 80)" style="transition:stroke-dashoffset 1s linear"/>
+    </svg>
+    <span class="cd-num" id="cdNum">5</span>
+  </div>
+  <p class="cd-warn">ระบบจะส่งสัญญาณอัตโนมัติหากไม่กดยกเลิก</p>
+  <button class="cd-cancel" onclick="cancelCountdown()">✕ ยกเลิกเหตุ</button>
+</div>
+
+<!-- ===== CONFIRMED OVERLAY ===== -->
+<div id="confOverlay" class="conf-overlay hidden">
+  <h2>🚑 ศูนย์รับเรื่องแจ้งแล้ว</h2>
+  <p class="code">รหัส: <span id="confCode">-</span></p>
+  <div class="st-box">
+    <div class="st" id="confStatus">⏳ กำลังรอเจ้าหน้าที่รับเรื่อง</div>
+    <div class="info" id="confInfo">ระบบบันทึกพิกัดแล้ว เจ้าหน้าที่จะติดต่อกลับโดยเร็ว</div>
+    <div class="coord" id="confCoord">📍 พิกัด: -</div>
+  </div>
+  <a class="cbtn red" href="tel:1669">📞 โทร 1669 กู้ชีพ</a>
+  <div class="tworow">
+    <a class="cbtn dark" href="tel:191">📞 ตำรวจ 191</a>
+    <a class="cbtn dark" href="tel:199">📞 ดับเพลิง 199</a>
+  </div>
+
+  <button class="cbtn" onclick="markAsSafe()" style="width:100%; margin:10px 0 0 0; background:#1f9e6e; color:#fff; font-weight:800; border-radius:12px; padding:12px; border:none; cursor:pointer; font-size:14px; display:block; text-align:center;">💚 ฉันปลอดภัยแล้ว (แจ้งยกเลิกเหตุ)</button>
+  
+  <!-- Additional Evidence Section -->
+  <div style="background:#fff; border-radius:16px; padding:16px; margin:14px 0; display:flex; flex-direction:column; gap:10px; box-shadow:0 4px 16px rgba(0,0,0,0.08); text-align:center; color: var(--ink);">
+    <h4 style="font-size:12px; font-weight:800; color:var(--muted); margin:0;">📸 ส่งรูปภาพ/เสียงพูดรายงาน เพิ่มเติม</h4>
+    
+    <div style="display:flex; gap:8px;">
+      <!-- Photo capture button -->
+      <button class="cbtn" onclick="captureSosPhoto()" style="flex:1; background:var(--blue); color:#fff; font-size:12px; font-weight:800; padding:10px; border-radius:10px; margin:0; display:flex; align-items:center; justify-content:center; gap:6px; border:none; cursor:pointer;">
+        📸 ถ่ายภาพเหตุการณ์
+      </button>
+      <input type="file" id="sosPhotoInput" accept="image/*" capture="environment" style="display:none;" onchange="handleSosPhoto(this)">
+
+      <!-- Audio record button -->
+      <button id="sosAudioBtn" class="cbtn" onclick="toggleSosAudioRecording()" style="flex:1; background:#e8412c; color:#fff; font-size:12px; font-weight:800; padding:10px; border-radius:10px; margin:0; display:flex; align-items:center; justify-content:center; gap:6px; border:none; cursor:pointer;">
+        🎤 อัดเสียงเหตุการณ์
+      </button>
+    </div>
+    
+    <div id="sosUploadStatus" style="font-size:11px; font-weight:700; color:var(--muted); margin-top:2px;"></div>
+    <div id="sosAttachmentsPreview" style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:4px;"></div>
+  </div>
+  
+  <button class="cbtn grn" onclick="closeConfirmed()">เสร็จสิ้น / ปิดหน้าต่าง</button>
+</div>
+
+<!-- ===== FIREBASE + ALL LOGIC ===== -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, doc, setDoc, getDoc, onSnapshot, serverTimestamp, query, orderBy, limit, where, getDocs, deleteDoc, arrayUnion, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCnnoEDRV4QCE70zHJJrPr3X5IFOP6SFXU",
+  authDomain: "chuaylueakan.firebaseapp.com",
+  databaseURL: "https://chuaylueakan-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "chuaylueakan",
+  storageBucket: "chuaylueakan.firebasestorage.app",
+  messagingSenderId: "106101907072",
+  appId: "1:106101907072:web:722845144aeb3660879065",
+  measurementId: "G-VN0TZVB89H"
+};
+
+const TELEGRAM_BOT_TOKEN = "8840020497:AAEzTP3Qh6XzplLzF0LHjLHXGjXzlbKXne8";
+const TELEGRAM_CHAT_ID = "-1004428607725";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+auth.languageCode = 'th';
+
+// Badges and unread message tracking state
+let unreadCounts = {
+  vent_messages: 0,
+  lawyer_messages: 0
+};
+let lastReadTimestamps = {
+  vent_messages: localStorage.getItem('lastRead_vent_messages') ? parseInt(localStorage.getItem('lastRead_vent_messages')) : Date.now(),
+  lawyer_messages: localStorage.getItem('lastRead_lawyer_messages') ? parseInt(localStorage.getItem('lastRead_lawyer_messages')) : Date.now()
+};
+let activeCategoryKey = null;
+
+// Start unread messages background listener
+listenUnreadCounts();
+
+// Start announcement listener
+listenAnnouncement();
+
+// Auto-strip non-digits from phone input to prevent formatting bugs
+document.getElementById('profilePhoneInput').addEventListener('input', (e) => {
+  e.target.value = e.target.value.replace(/\D/g, '');
+});
+
+/* ============================================================
+   AUTH — Facebook Only + Profile Setup
+   ============================================================ */
+let currentUser = null;
+let userProfile = null;
+
+function showErr(id, msg){
+  const el = document.getElementById(id);
+  el.textContent = msg; el.classList.remove('hidden');
+}
+function hideErr(id){ document.getElementById(id).classList.add('hidden'); }
+
+// ===== Google Login =====
+async function handleGoogleLogin(){
+  hideErr('loginErr');
+  document.getElementById('googleBtn').disabled = true;
+  try{
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+    // onAuthStateChanged จะจัดการต่อ
+  }catch(e){
+    if(e.code==='auth/popup-closed-by-user') showErr('loginErr','ปิดหน้าต่างก่อนล็อกอินสำเร็จ');
+    else showErr('loginErr','เข้าสู่ระบบไม่สำเร็จ: '+e.message);
+  }
+  document.getElementById('googleBtn').disabled = false;
+}
+
+// ===== Profile =====
+async function loadProfile(user){
+  const snap = await getDoc(doc(db,'users',user.uid));
+  userProfile = snap.exists() ? snap.data() : null;
+  return userProfile;
+}
+
+function isProfileComplete(profile){
+  return profile && profile.phone && profile.phone.length >= 9 && profile.realName && profile.emergencyName && profile.emergencyPhone && profile.profileSetup === true;
+}
+
+// ===== Show Profile Setup Modal (New User) =====
+function showProfileModal(user){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('homeScreen').classList.add('hidden');
+  document.getElementById('profileModal').classList.remove('hidden');
+
+  const nameEl = document.getElementById('profileName');
+  const photoUrl = user.photoURL || '';
+  const name = user.displayName || 'ผู้ใช้';
+  nameEl.innerHTML = (photoUrl ? '<img src="'+photoUrl+'" alt="">' : '') + '<span>'+name+'</span>';
+
+  // Pre-fill inputs with existing details
+  document.getElementById('profileRealName').value = userProfile?.realName || '';
+  document.getElementById('profilePhoneInput').value = userProfile?.phone ? userProfile.phone.replace('+66','0') : '';
+  document.getElementById('profileNickname').value = userProfile?.nickname || '';
+  document.getElementById('profileEmergencyName').value = userProfile?.emergencyName || '';
+  document.getElementById('profileEmergencyPhone').value = userProfile?.emergencyPhone ? userProfile.emergencyPhone.replace('+66','0') : '';
+
+  // Show/Hide Cancel button based on profile completeness
+  const cancelBtn = document.getElementById('profileModalCancelBtn');
+  if (cancelBtn) {
+    if (isProfileComplete(userProfile)) {
+      cancelBtn.style.display = 'block';
+    } else {
+      cancelBtn.style.display = 'none';
+    }
+  }
+}
+
+async function saveProfile(){
+  hideErr('profileErr');
+  const realName = document.getElementById('profileRealName').value.trim();
+  const phone = document.getElementById('profilePhoneInput').value.replace(/\D/g,'');
+  const nickname = document.getElementById('profileNickname').value.trim();
+  const emergencyName = document.getElementById('profileEmergencyName').value.trim();
+  const emergencyPhone = document.getElementById('profileEmergencyPhone').value.replace(/\D/g,'');
+
+  if(!realName){
+    showErr('profileErr','กรุณากรอกชื่อจริง-นามสกุล');
+    return;
+  }
+  if(!phone || phone.length < 9 || phone.length > 10){
+    showErr('profileErr','กรุณากรอกเบอร์โทรศัพท์ผู้แจ้งให้ถูกต้อง (9-10 หลัก)');
+    return;
+  }
+  if(!emergencyName){
+    showErr('profileErr','กรุณากรอกชื่อญาติ/ผู้ติดต่อฉุกเฉิน');
+    return;
+  }
+  if(!emergencyPhone || emergencyPhone.length < 9 || emergencyPhone.length > 10){
+    showErr('profileErr','กรุณากรอกเบอร์โทรญาติให้ถูกต้อง (9-10 หลัก)');
+    return;
+  }
+
+  try{
+    await setDoc(doc(db,'users',currentUser.uid),{
+      uid: currentUser.uid,
+      displayName: currentUser.displayName || '',
+      photoURL: currentUser.photoURL || '',
+      realName: realName,
+      phone: phone,
+      nickname: nickname || '',
+      emergencyName: emergencyName,
+      emergencyPhone: emergencyPhone,
+      profileSetup: true,
+      createdAt: userProfile?.createdAt || serverTimestamp(),
+      updatedAt: serverTimestamp()
+    },{merge:true});
+
+    await loadProfile(currentUser);
+    document.getElementById('profileModal').classList.add('hidden');
+    showHome();
+    
+    // Execute pending callback if any
+    if (window.pendingAuthCallback) {
+      const cb = window.pendingAuthCallback;
+      window.pendingAuthCallback = null;
+      cb();
+    }
+  }catch(e){
+    showErr('profileErr','บันทึกไม่สำเร็จ: '+e.message);
+  }
+}
+
+// ===== Auth State =====
+onAuthStateChanged(auth, async(user)=>{
+  currentUser = user;
+  if(user){
+    try{
+      const profile = await loadProfile(user);
+      if(isProfileComplete(profile)){
+        showHome();
+        
+        // Execute pending callback if any
+        if (window.pendingAuthCallback) {
+          const cb = window.pendingAuthCallback;
+          window.pendingAuthCallback = null;
+          cb();
+        }
+      } else {
+        // ผู้ใช้ใหม่ หรือยังไม่กรอกเบอร์ → แสดง modal
+        showProfileModal(user);
+      }
+    }catch(e){
+      console.error(e);
+      showErr('loginErr','โหลดโปรไฟล์ไม่สำเร็จ: '+e.message);
+      await signOut(auth);
+    }
+  } else {
+    userProfile = null;
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('profileModal').classList.add('hidden');
+    showHome(); // Allow guest user to view app
+  }
+});
+
+function showHome(){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('profileModal').classList.add('hidden');
+  document.getElementById('homeScreen').classList.remove('hidden');
+  
+  const isGuest = !currentUser;
+  
+  if (isGuest) {
+    document.getElementById('userName').textContent = 'ผู้เยี่ยมชม';
+    // Use default SVG avatar for guest
+    document.getElementById('profileTabAvatar').src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%239aa2bd"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>';
+    
+    // Toggle Profile tab view for guests
+    document.getElementById('profileViewMode').classList.add('hidden');
+    document.getElementById('profileEditMode').classList.add('hidden');
+    document.getElementById('profileGuestMode').classList.remove('hidden');
+    
+    document.getElementById('adminMenuBtn').classList.add('hidden');
+  } else {
+    const name = userProfile?.nickname || userProfile?.displayName || currentUser?.displayName || 'ผู้ใช้';
+    const phone = userProfile?.phone || '-';
+    const nickname = userProfile?.nickname || '-';
+    const realName = userProfile?.realName || '-';
+    const emergencyName = userProfile?.emergencyName || '-';
+    const emergencyPhone = userProfile?.emergencyPhone || '-';
+    
+    document.getElementById('userName').textContent = name;
+    document.getElementById('profileTabName').textContent = name;
+    document.getElementById('profileTabPhone').textContent = phone;
+    document.getElementById('profileTabNickname').textContent = nickname;
+    document.getElementById('profileTabRealName').textContent = realName;
+    document.getElementById('profileTabEmergencyName').textContent = emergencyName;
+    document.getElementById('profileTabEmergencyPhone').textContent = emergencyPhone;
+    
+    if (currentUser?.photoURL) {
+      document.getElementById('profileTabAvatar').src = currentUser.photoURL;
+    } else {
+      document.getElementById('profileTabAvatar').src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231f9e6e"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>';
+    }
+    
+    document.getElementById('profileGuestMode').classList.add('hidden');
+    document.getElementById('profileEditMode').classList.add('hidden');
+    document.getElementById('profileViewMode').classList.remove('hidden');
+    
+    // Show Admin menu option for Ployrut and testing
+    const ADMIN_EMAILS = ["ployrut@gmail.com", "admin@chuaylueakan.com"];
+    // Set to true by default for local testing, can be restricted by email in production
+    const isAdmin = true; 
+    if (isAdmin || (currentUser?.email && ADMIN_EMAILS.includes(currentUser.email))) {
+      document.getElementById('adminMenuBtn').classList.remove('hidden');
+    } else {
+      document.getElementById('adminMenuBtn').classList.add('hidden');
+    }
+  }
+  
+  fetchLocation();
+  switchTab('Home');
+}
+
+function switchTab(tabName){
+  document.getElementById('tabHome').classList.add('hidden');
+  document.getElementById('tabMap').classList.add('hidden');
+  document.getElementById('tabCommunity').classList.add('hidden');
+  document.getElementById('tabProfile').classList.add('hidden');
+  
+  const navItems = document.querySelectorAll('.nav-bar .nav-item');
+  navItems.forEach(item => item.classList.remove('active'));
+  
+  document.getElementById('tab' + tabName).classList.remove('hidden');
+  
+  const indexMap = { 'Home': 0, 'Map': 1, 'Community': 2, 'Profile': 3 };
+  const idx = indexMap[tabName];
+  if(navItems[idx]) navItems[idx].classList.add('active');
+  
+  if(tabName === 'Map') {
+    const mapLabel = document.getElementById('mapLocLabel');
+    if (mapLabel) {
+      mapLabel.textContent = document.getElementById('locLabel').textContent;
+    }
+    updateLeafletMap();
+    setTimeout(() => {
+      if (leafletMap) leafletMap.invalidateSize();
+    }, 100);
+  }
+}
+
+function openSosOverlay(){
+  document.getElementById('sosOverlay').classList.remove('hidden');
+}
+function closeSosOverlay(){
+  document.getElementById('sosOverlay').classList.add('hidden');
+  cancelHold();
+  cancelCountdown();
+}
+
+const serviceSubMenus = {
+  sos: {
+    title: "🚨 ฉุกเฉิน",
+    items: [
+      { text: "🔴 SOS ขอความช่วยเหลือ (ส่งพิกัด)", action: "sos" },
+      { text: "🚑 รถพยาบาลฉุกเฉิน (โทร 1669)", tel: "1669" },
+      { text: "🚒 กู้ชีพกู้ภัย (โทร 1669)", tel: "1669" },
+      { text: "👮 ตำรวจ (โทร 191)", tel: "191" },
+      { text: "🔥 ดับเพลิง (โทร 199)", tel: "199" },
+      { text: "🏥 โรงพยาบาลใกล้ฉัน", action: "info", msg: "ระบบกำลังตรวจสอบโรงพยาบาลที่อยู่ใกล้พิกัดของคุณ..." }
+    ]
+  },
+  car: {
+    title: "🚗 รถเสีย & เดินทาง",
+    items: [
+      { text: "🚲 ปะยางนอกสถานที่", action: "info", msg: "กำลังประสานงานช่างปะยางในพื้นที่..." },
+      { text: "🚛 บริการรถยก / รถสไลด์", action: "info", msg: "กำลังค้นหาและประสานงานบริการรถยกอาสา..." },
+      { text: "⚡ บริการพ่วงแบตเตอรี่ฉุกเฉิน", action: "info", msg: "กำลังติดต่อสายด่วนกู้ภัยพ่วงแบตเตอรี่..." },
+      { text: "⛽ บริการส่งน้ำมันหมดฉุกเฉิน", action: "info", msg: "กำลังจัดส่งอาสาสมัครส่งน้ำมันฉุกเฉินไปยังพิกัดของคุณ..." },
+      { text: "👨‍🔧 ช่างซ่อมรถยนต์อาสา", action: "info", msg: "กำลังส่งเรื่องให้ช่างซ่อมอาสาติดต่อกลับ..." },
+      { text: "🔑 ช่างสะเดาะกุญแจรถอาสา", action: "info", msg: "กำลังประสานช่างกุญแจในพื้นที่..." }
+    ]
+  },
+  work: {
+    title: "🔧 หาคนช่วยงาน",
+    items: [
+      { text: "⚡ ช่างไฟฟ้าฉุกเฉิน", action: "info", msg: "กำลังค้นหาช่างไฟอาสาในพื้นที่ของคุณ..." },
+      { text: "🚰 ช่างประปาอาสา", action: "info", msg: "กำลังค้นหาช่างประปาอาสา..." },
+      { text: "❄️ ช่างล้างเครื่องปรับอากาศ", action: "info", msg: "กำลังหาผู้ให้บริการช่างแอร์ในจังหวัด..." },
+      { text: "🌿 คนตัดหญ้า / ทำสวน", action: "info", msg: "ติดต่อหาคนรับงานตัดหญ้า..." },
+      { text: "📦 อาสาช่วยขนย้ายของ", action: "info", msg: "ส่งคำขอประสานงานรถขนย้ายของอาสาแล้ว..." },
+      { text: "⏱️ งานด่วนรายชั่วโมง", action: "info", msg: "ระบบกำลังจับคู่ผู้ช่วยด่วนรายชั่วโมง..." }
+    ]
+  },
+  community: {
+    title: "❤️ ชุมชนช่วยกัน",
+    items: [
+      { text: "🗣️ ห้องปรับทุกข์ (แชทรวมไม่ระบุตัวตน)", action: "vent_chat" },
+      { text: "⚖️ ปรึกษาทนายความอาสา (แชทไม่ระบุตัวตน)", action: "lawyer_chat" },
+      { text: "🤝 ขอคำปรึกษาทั่วไป", action: "info", msg: "กำลังประสานหัวหน้าชุมชน..." },
+      { text: "🆘 แจ้งขอความช่วยเหลือพิเศษ / สวัสดิการ", action: "info", msg: "ส่งเรื่องขอรับสวัสดิการชุมชนแล้ว..." },
+      { text: "👵 แจ้งผู้สูงอายุหลงลืม / พลัดหลง", action: "info", msg: "ส่งข้อมูลแจ้งเตือนผู้สูงอายุพลัดหลงเข้ากลุ่มอาสาแล้ว..." },
+      { text: "🔍 แจ้งคนสูญหายในพื้นที่", action: "info", msg: "บันทึกเรื่องแจ้งคนหายเรียบร้อยแล้ว เจ้าหน้าที่จะช่วยประสานงานติดตามให้ครับ" }
+    ]
+  },
+  donation: {
+    title: "🩸 บริจาค & ทำดี",
+    items: [
+      { text: "🚨 ประกาศตามหาเลือดด่วน / ขอรับบริจาค", action: "blood_requests" },
+      { text: "📦 จุดบริจาคสิ่งของ / เสื้อผ้า", action: "info", msg: "กำลังประสานจุดรับบริจาคกู้ภัย..." },
+      { text: "🙏 ฝากทำบุญ / กองทุนสะพานบุญ", action: "info", msg: "ขอขอบคุณสำหรับเจตนารมณ์ที่ดี ระบบร่วมระดมทุนสะพานบุญกู้ชีพกู้ภัยกำลังดำเนินการ..." },
+      { text: "🙋 กิจกรรมจิตอาสาชุมชน", action: "info", msg: "แสดงรายชื่อกิจกรรมจิตอาสาเร็ว ๆ นี้..." },
+      { text: "🎗️ ร่วมระดมความช่วยเหลือภัยพิบัติ", action: "info", msg: "ระบบประสานงานช่วยเหลือผู้ประสบภัยกำลังตรวจสอบจุดบริการ..." }
+    ]
+  },
+  pets: {
+    title: "🐶 สัตว์เลี้ยง",
+    items: [
+      { text: "🔍 แจ้งสัตว์เลี้ยงสูญหาย", action: "info", msg: "แจ้งสัตว์เลี้ยงหายในพื้นที่ ส่งข้อมูลเข้าไลน์กู้ชีพเรียบร้อย..." },
+      { text: "🐾 แจ้งพบสัตว์พลัดหลง", action: "info", msg: "แจ้งสัตว์พลัดหลง ข้อมูลถูกส่งเข้าเครือข่ายช่วยหาสัตว์เลี้ยงแล้ว..." },
+      { text: "🏥 โรงพยาบาลสัตว์ 24 ชม.", action: "info", msg: "กำลังจัดแสดงพิกัดโรงพยาบาลสัตว์กู้ชีพที่ใกล้ที่สุด..." },
+      { text: "🏠 รับเลี้ยงสัตว์ไร้บ้าน", action: "info", msg: "เปิดดูเพจโครงการหาบ้านใหม่ให้สัตว์จรจัด..." }
+    ]
+  },
+  travel: {
+    title: "🏞️ ท่องเที่ยวปลอดภัย",
+    items: [
+      { text: "👮 SOS ตำรวจท่องเที่ยว (โทร 1155)", tel: "1155" },
+      { text: "🚤 ขอความช่วยเหลือทางน้ำ (ตำรวจน้ำ 1196)", tel: "1196" },
+      { text: "🏕️ แจ้งเหตุฉุกเฉินในเขตอุทยานแห่งชาติ", action: "info", msg: "กำลังติดต่อหน่วยกู้ภัยป่าไม้ในกาญจนบุรี..." },
+      { text: "📍 จุดช่วยเหลือใกล้ตัวคุณ", action: "info", msg: "ระบบกำลังสแกนหาจุดบริการท่องเที่ยวและกองอำนวยการช่วยเหลือ..." }
+    ]
+  },
+  news: {
+    title: "📢 ข่าวสารชุมชน",
+    items: [
+      { text: "⚡ แจ้งไฟฟ้าขัดข้อง / ดับชั่วคราว (PEA 1129)", tel: "1129" },
+      { text: "🚰 แจ้งท่อน้ำประปาแตก / ไม่ไหล (PWA 1662)", tel: "1662" },
+      { text: "🚗 แจ้งอุบัติเหตุบนท้องถนน", action: "info", msg: "แจ้งเหตุอุบัติเหตุเรียบร้อย ทีมกู้ภัยกาญจนบุรีรับทราบเรื่องแล้ว..." },
+      { text: "🚧 แจ้งปิดเส้นทางการจราจร", action: "info", msg: "กำลังเปิดตรวจสอบแผนที่เส้นทางการปิดปรับปรุงในกาญจนบุรี..." },
+      { text: "📰 ข่าวสารเด่นประจำสัปดาห์", action: "switch_tab", tab: "Community" }
+    ]
+  }
+};
+
+function openBottomSheet(categoryKey){
+  activeCategoryKey = categoryKey;
+  const data = serviceSubMenus[categoryKey];
+  if(!data) return;
+  
+  document.getElementById('sheetTitle').textContent = data.title;
+  renderBottomSheetContent(categoryKey);
+  document.getElementById('bottomSheet').classList.remove('hidden');
+}
+
+function renderBottomSheetContent(categoryKey) {
+  const data = serviceSubMenus[categoryKey];
+  if(!data) return;
+  const listEl = document.getElementById('sheetList');
+  listEl.innerHTML = '';
+  
+  // Render static items
+  data.items.forEach(item => {
+    renderSingleSheetItem(listEl, item);
+  });
+  
+  // Load custom contacts from Firestore
+  const q = query(collection(db, 'contacts'), where('category', '==', categoryKey));
+  getDocs(q).then((snapshot) => {
+    snapshot.forEach(docSnap => {
+      const d = docSnap.data();
+      const item = {
+        text: d.text,
+        tel: d.phone || '',
+        action: d.phone ? 'tel' : 'info',
+        msg: d.msg || ''
+      };
+      renderSingleSheetItem(listEl, item);
+    });
+  }).catch(e => console.error('Error loading custom contacts:', e));
+}
+
+function renderSingleSheetItem(listEl, item) {
+  const btn = document.createElement('button');
+  btn.className = 'sheet-item';
+  
+  let badgeHtml = '';
+  if (item.action === 'vent_chat' && unreadCounts['vent_messages'] > 0) {
+    badgeHtml = `<span style="background:var(--red); color:#fff; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:8px; font-weight:800">${unreadCounts['vent_messages']}</span>`;
+  } else if (item.action === 'lawyer_chat' && unreadCounts['lawyer_messages'] > 0) {
+    badgeHtml = `<span style="background:var(--red); color:#fff; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:8px; font-weight:800">${unreadCounts['lawyer_messages']}</span>`;
+  }
+  
+  btn.innerHTML = `<span style="display:flex; align-items:center">${item.text} ${badgeHtml}</span><span class="icon-right">➔</span>`;
+  btn.onclick = () => handleSheetItemClick(item);
+  listEl.appendChild(btn);
+}
+
+function closeBottomSheet(){
+  document.getElementById('bottomSheet').classList.add('hidden');
+  activeCategoryKey = null;
+}
+
+function handleSheetItemClick(item){
+  closeBottomSheet();
+  if(item.action === 'sos'){
+    triggerSosGuard();
+  } else if(item.action === 'switch_tab'){
+    switchTab(item.tab);
+  } else if(item.action === 'blood_requests'){
+    openBloodRequests();
+  } else if(item.action === 'vent_chat'){
+    ensureUserAuthenticated(() => openChatRoom('vent_messages', '💬 ห้องปรับทุกข์ชุมชน', 'พิมพ์ข้อความปรับทุกข์...'));
+  } else if(item.action === 'lawyer_chat'){
+    ensureUserAuthenticated(() => openChatRoom('lawyer_messages', '⚖️ ปรึกษาทนายความอาสา', 'พิมพ์ข้อความปรึกษาทนาย...'));
+  } else if(activeCategoryKey === 'car' || activeCategoryKey === 'work') {
+    openTechReviews(item);
+  } else {
+    if(item.tel){
+      window.location.href = 'tel:' + item.tel;
+    } else if(item.action === 'info'){
+      alert(item.msg);
+    }
+  }
+}
+
+let roomUnsub = null;
+let currentChatCollection = 'vent_messages';
+
+function openChatRoom(collectionName = 'vent_messages', roomTitle = '💬 ห้องปรับทุกข์ชุมชน', inputPlaceholder = 'พิมพ์ข้อความปรับทุกข์...'){
+  currentChatCollection = collectionName;
+  document.getElementById('chatRoomTitle').textContent = roomTitle;
+  document.getElementById('roomInput').placeholder = inputPlaceholder;
+  document.getElementById('chatRoomOverlay').classList.remove('hidden');
+  document.getElementById('roomInput').focus();
+  
+  if(roomUnsub) {
+    roomUnsub();
+    roomUnsub = null;
+  }
+  
+  // Set local unread count to 0 immediately on opening
+  unreadCounts[currentChatCollection] = 0;
+  lastReadTimestamps[currentChatCollection] = Date.now();
+  localStorage.setItem('lastRead_' + currentChatCollection, lastReadTimestamps[currentChatCollection].toString());
+  updateBadgesUI();
+  
+  const q = query(collection(db, currentChatCollection), orderBy('createdAt', 'asc'), limit(50));
+  roomUnsub = onSnapshot(q, (snapshot) => {
+    const msgsEl = document.getElementById('roomMsgs');
+    msgsEl.innerHTML = '';
+    let latestTimestamp = Date.now();
+    
+    snapshot.forEach((doc) => {
+      const d = doc.data();
+      const isMine = d.authorUid === currentUser?.uid;
+      
+      const bubble = document.createElement('div');
+      bubble.className = `msg-bubble ${isMine ? 'user' : 'ai'}`;
+      
+      if (isMine) {
+        bubble.style.background = 'var(--green)';
+        bubble.style.alignSelf = 'flex-end';
+        bubble.style.borderBottomRightRadius = '2px';
+        bubble.style.color = '#fff';
+      } else {
+        bubble.style.background = '#fff';
+        bubble.style.alignSelf = 'flex-start';
+        bubble.style.borderBottomLeftRadius = '2px';
+        bubble.style.color = 'var(--ink)';
+      }
+      
+      const timeStr = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'}) : '';
+      
+      bubble.innerHTML = `
+        <div style="font-size:10px; font-weight:800; color:${isMine ? 'rgba(255,255,255,0.85)' : 'var(--muted)'}; margin-bottom:2px">
+          ${d.displayName}
+        </div>
+        <div>${d.text}</div>
+        <div style="font-size:8px; text-align:right; color:${isMine ? 'rgba(255,255,255,0.7)' : 'var(--muted)'}; margin-top:2px">
+          ${timeStr}
+        </div>
+      `;
+      msgsEl.appendChild(bubble);
+      
+      if (d.createdAt) {
+        const msgTime = d.createdAt.seconds * 1000;
+        if (msgTime > latestTimestamp || latestTimestamp === Date.now()) {
+          latestTimestamp = msgTime;
+        }
+      }
+    });
+    
+    // Mark as read up to the latest message we just rendered
+    lastReadTimestamps[currentChatCollection] = latestTimestamp;
+    localStorage.setItem('lastRead_' + currentChatCollection, latestTimestamp.toString());
+    unreadCounts[currentChatCollection] = 0;
+    updateBadgesUI();
+    
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  });
+}
+
+function closeChatRoom(){
+  document.getElementById('chatRoomOverlay').classList.add('hidden');
+  if(roomUnsub) {
+    roomUnsub();
+    roomUnsub = null;
+  }
+  // Clear any unread notifications when closing
+  if (currentChatCollection) {
+    lastReadTimestamps[currentChatCollection] = Date.now();
+    localStorage.setItem('lastRead_' + currentChatCollection, lastReadTimestamps[currentChatCollection].toString());
+    unreadCounts[currentChatCollection] = 0;
+    updateBadgesUI();
+  }
+}
+
+function handleRoomKeyPress(e){
+  if(e.key === 'Enter') sendRoomMessage();
+}
+
+async function sendRoomMessage(){
+  const input = document.getElementById('roomInput');
+  const text = input.value.trim();
+  if(!text) return;
+  
+  const isAnon = document.getElementById('anonToggle').checked;
+  const displayName = isAnon ? "ผู้ใช้ไม่ระบุตัวตน" : (userProfile?.nickname || userProfile?.displayName || currentUser?.displayName || "ผู้ใช้");
+  
+  try {
+    await addDoc(collection(db, currentChatCollection), {
+      authorUid: currentUser?.uid || 'anon',
+      uid: isAnon ? 'anon' : (currentUser?.uid || 'anon'),
+      displayName: displayName,
+      text: text,
+      createdAt: serverTimestamp()
+    });
+    input.value = '';
+  } catch (e) {
+    console.error(e);
+    alert('ส่งข้อความไม่สำเร็จ: ' + e.message);
+  }
+}
+
+// Background functions for badges
+function listenUnreadCounts() {
+  ['vent_messages', 'lawyer_messages'].forEach(room => {
+    const q = query(collection(db, room), orderBy('createdAt', 'desc'), limit(50));
+    onSnapshot(q, (snapshot) => {
+      let count = 0;
+      const lastRead = lastReadTimestamps[room];
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        if (d.createdAt) {
+          const msgTime = d.createdAt.seconds * 1000;
+          // Only count other users' messages
+          if (msgTime > lastRead && d.authorUid !== currentUser?.uid) {
+            count++;
+          }
+        }
+      });
+      unreadCounts[room] = count;
+      updateBadgesUI();
+    });
+  });
+}
+
+function updateBadgesUI() {
+  const totalUnread = (unreadCounts['vent_messages'] || 0) + (unreadCounts['lawyer_messages'] || 0);
+  const cardBadge = document.getElementById('communityCardBadge');
+  if (cardBadge) {
+    if (totalUnread > 0) {
+      cardBadge.textContent = totalUnread;
+      cardBadge.classList.remove('hidden');
+    } else {
+      cardBadge.classList.add('hidden');
+    }
+  }
+  
+  // If a bottom sheet is currently open, refresh it so the sub-menu items show updated counts in real-time
+  if (activeCategoryKey) {
+    const sheetEl = document.getElementById('bottomSheet');
+    if (sheetEl && !sheetEl.classList.contains('hidden')) {
+      renderBottomSheetContent(activeCategoryKey);
+    }
+  }
+}
+
+let adminSosUnsub = null;
+let adminContactsUnsub = null;
+let adminUsersUnsub = null;
+
+function switchAdminTab(tabName) {
+  const sosTab = document.getElementById('adminTabSos');
+  const contactsTab = document.getElementById('adminTabContacts');
+  const announceTab = document.getElementById('adminTabAnnounce');
+  const usersTab = document.getElementById('adminTabUsers');
+  const sosView = document.getElementById('adminSosView');
+  const contactsView = document.getElementById('adminContactsView');
+  const announceView = document.getElementById('adminAnnounceView');
+  const usersView = document.getElementById('adminUsersView');
+  
+  sosTab.style.color = 'var(--muted)';
+  sosTab.style.borderBottomColor = 'transparent';
+  contactsTab.style.color = 'var(--muted)';
+  contactsTab.style.borderBottomColor = 'transparent';
+  announceTab.style.color = 'var(--muted)';
+  announceTab.style.borderBottomColor = 'transparent';
+  if (usersTab) {
+    usersTab.style.color = 'var(--muted)';
+    usersTab.style.borderBottomColor = 'transparent';
+  }
+  
+  sosView.classList.add('hidden');
+  contactsView.classList.add('hidden');
+  announceView.classList.add('hidden');
+  if (usersView) usersView.classList.add('hidden');
+  
+  if (adminUsersUnsub) {
+    adminUsersUnsub();
+    adminUsersUnsub = null;
+  }
+  
+  if (tabName === 'sos') {
+    sosTab.style.color = 'var(--green)';
+    sosTab.style.borderBottomColor = 'var(--green)';
+    sosView.classList.remove('hidden');
+  } else if (tabName === 'contacts') {
+    contactsTab.style.color = 'var(--green)';
+    contactsTab.style.borderBottomColor = 'var(--green)';
+    contactsView.classList.remove('hidden');
+  } else if (tabName === 'announce') {
+    announceTab.style.color = 'var(--green)';
+    announceTab.style.borderBottomColor = 'var(--green)';
+    announceView.classList.remove('hidden');
+  } else if (tabName === 'users') {
+    if (usersTab && usersView) {
+      usersTab.style.color = 'var(--green)';
+      usersTab.style.borderBottomColor = 'var(--green)';
+      usersView.classList.remove('hidden');
+      loadAdminUsers();
+    }
+  }
+}
+
+function loadAdminUsers() {
+  if (adminUsersUnsub) {
+    adminUsersUnsub();
+    adminUsersUnsub = null;
+  }
+  
+  const qUsers = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+  adminUsersUnsub = onSnapshot(qUsers, (snapshot) => {
+    const listEl = document.getElementById('adminUsersList');
+    const countEl = document.getElementById('adminUsersCount');
+    if (!listEl || !countEl) return;
+    
+    listEl.innerHTML = '';
+    
+    if (snapshot.empty) {
+      listEl.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted); font-size:14px">📭 ไม่พบรายชื่อสมาชิกในระบบ</div>';
+      countEl.textContent = 'ทั้งหมด: 0 คน';
+      return;
+    }
+    
+    countEl.textContent = `ทั้งหมด: ${snapshot.size} คน`;
+    
+    snapshot.forEach((docSnap) => {
+      const d = docSnap.data();
+      const card = document.createElement('div');
+      card.style.background = '#fff';
+      card.style.borderRadius = '14px';
+      card.style.padding = '16px';
+      card.style.boxShadow = 'var(--shadow)';
+      card.style.display = 'flex';
+      card.style.flexDirection = 'column';
+      card.style.gap = '8px';
+      
+      const regDate = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleString('th-TH') : 'ไม่ระบุ';
+      const avatarUrl = d.photoURL || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%239aa2bd"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>';
+      
+      card.innerHTML = `
+        <div style="display:flex; align-items:center; gap:12px">
+          <img src="${avatarUrl}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;%239aa2bd&quot;><path d=&quot;M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z&quot;/></svg>'">
+          <div>
+            <div style="font-size:14px; font-weight:800; color:var(--ink)">
+              ${d.realName || d.displayName || 'ไม่ระบุชื่อ'} 
+              ${d.nickname ? `<span style="font-weight:600; color:var(--muted)">(${d.nickname})</span>` : ''}
+            </div>
+            <div style="font-size:11px; color:var(--muted)">ID: ${d.uid}</div>
+          </div>
+        </div>
+        
+        <div style="height:1px; background:var(--line); margin:4px 0"></div>
+        
+        <div style="font-size:12px; display:flex; flex-direction:column; gap:4px">
+          <div>📱 <b>เบอร์ติดต่อ:</b> <a href="tel:${d.phone}" style="color:var(--green-d); font-weight:700; text-decoration:none">${d.phone || '-'}</a></div>
+          <div>🚨 <b>ญาติฉุกเฉิน:</b> ${d.emergencyName || '-'} (โทร: <a href="tel:${d.emergencyPhone}" style="color:var(--green-d); font-weight:700; text-decoration:none">${d.emergencyPhone || '-'}</a>)</div>
+          <div>📅 <b>สมัครสมาชิกเมื่อ:</b> <span style="color:var(--muted); font-weight:600">${regDate}</span></div>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+  }, (e) => {
+    console.error('Error loading admin users:', e);
+    const listEl = document.getElementById('adminUsersList');
+    if (listEl) {
+      listEl.innerHTML = '<div style="text-align:center; padding:20px; color:var(--red); font-weight:700;">⚠️ โหลดข้อมูลล้มเหลว กรุณาลองใหม่อีกครั้ง</div>';
+    }
+  });
+}
+
+function showActualAdminPanel() {
+  document.getElementById('adminOverlay').classList.remove('hidden');
+  switchAdminTab('sos');
+  
+  // 1. Listen to SOS Incidents
+  if (adminSosUnsub) {
+    adminSosUnsub();
+    adminSosUnsub = null;
+  }
+  const qSos = query(collection(db, 'sos_requests'), orderBy('createdAt', 'desc'), limit(30));
+  adminSosUnsub = onSnapshot(qSos, (snapshot) => {
+    const listEl = document.getElementById('adminSosList');
+    listEl.innerHTML = '';
+    
+    if (snapshot.empty) {
+      listEl.innerHTML = '<div style="text-align:center; padding:40px; color:var(--muted); font-size:14px">📭 ไม่พบประวัติการแจ้งเหตุฉุกเฉิน</div>';
+      return;
+    }
+    
+    snapshot.forEach((docSnap) => {
+      const d = docSnap.data();
+      const docId = docSnap.id;
+      
+      const card = document.createElement('div');
+      card.style.background = '#fff';
+      card.style.borderRadius = '14px';
+      card.style.padding = '16px';
+      card.style.boxShadow = 'var(--shadow)';
+      card.style.borderLeft = '5px solid ' + getStatusColor(d.status);
+      card.style.display = 'flex';
+      card.style.flexDirection = 'column';
+      card.style.gap = '10px';
+      
+      const timeStr = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleString('th-TH', {
+        dateStyle: 'short',
+        timeStyle: 'short'
+      }) : '';
+      
+      // Render attachments if they exist
+      let attachmentsHtml = '';
+      if (d.photos && d.photos.length > 0) {
+        attachmentsHtml += `
+          <div style="margin-top:8px;">
+            <b>📸 รูปภาพเหตุการณ์:</b>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:4px;">
+        `;
+        d.photos.forEach((photoBase64) => {
+          attachmentsHtml += `<img src="${photoBase64}" style="width:70px; height:70px; border-radius:8px; object-fit:cover; border:1px solid var(--line); cursor:pointer;" onclick="openAdminPhotoView('${photoBase64}')">`;
+        });
+        attachmentsHtml += '</div></div>';
+      }
+      if (d.voices && d.voices.length > 0) {
+        attachmentsHtml += `
+          <div style="margin-top:8px;">
+            <b>🎤 เสียงบันทึกเหตุการณ์:</b>
+            <div style="display:flex; flex-direction:column; gap:6px; margin-top:4px;">
+        `;
+        d.voices.forEach((voiceBase64) => {
+          attachmentsHtml += `
+            <div style="display:flex; align-items:center; gap:8px;">
+              <audio src="${voiceBase64}" controls style="height:32px; max-width:100%;"></audio>
+            </div>
+          `;
+        });
+        attachmentsHtml += '</div></div>';
+      }
+      
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <span style="font-weight:900; font-size:15px; color:var(--ink)">🚨 ${d.code || 'SOS-Request'}</span>
+          <span style="font-size:11px; font-weight:800; padding:4px 8px; border-radius:8px; background:${getStatusBgColor(d.status)}; color:${getStatusTextColor(d.status)}">
+            ${getStatusLabel(d.status)}
+          </span>
+        </div>
+        
+        <div style="font-size:13px; color:var(--ink); display:flex; flex-direction:column; gap:4px">
+          <div><b>👤 ชื่อผู้แจ้ง (ชื่อเล่น):</b> ${d.displayName || 'ไม่ระบุ'} (${d.realName || 'ไม่ระบุชื่อจริง'})</div>
+          <div><b>📞 เบอร์โทรศัพท์:</b> <a href="tel:${d.phone}" style="color:var(--blue); font-weight:700">${d.phone || '-'}</a></div>
+          <div><b>🚨 ติดต่อฉุกเฉิน/ญาติ:</b> ${d.emergencyName || 'ไม่ระบุ'} (<a href="tel:${d.emergencyPhone}" style="color:var(--blue); font-weight:700">${d.emergencyPhone || '-'}</a>)</div>
+          <div><b>📍 พิกัด:</b> ${d.lat}, ${d.lng}</div>
+          <div><b>🕒 เวลาแจ้ง:</b> ${timeStr}</div>
+          ${d.helperInfo ? `<div><b>💬 ข้อมูลเจ้าหน้าที่:</b> ${d.helperInfo}</div>` : ''}
+          ${attachmentsHtml}
+        </div>
+        
+        <div style="display:flex; gap:8px; margin-top:4px">
+          <a href="tel:${d.phone}" style="flex:1; text-align:center; background:var(--blue-l); color:var(--blue); border-radius:10px; padding:10px; font-size:13px; font-weight:800; text-decoration:none">📞 โทรหา</a>
+          <a href="https://www.google.com/maps/search/?api=1&query=${d.lat},${d.lng}" target="_blank" style="flex:1; text-align:center; background:var(--green-l); color:var(--green-d); border-radius:10px; padding:10px; font-size:13px; font-weight:800; text-decoration:none">📍 ดูแผนที่</a>
+        </div>
+        
+        <div style="border-top:1px solid var(--line); padding-top:10px; display:flex; flex-direction:column; gap:6px">
+          <span style="font-size:11px; font-weight:700; color:var(--muted)">อัปเดตสถานะการช่วยเหลือ:</span>
+          <div style="display:flex; gap:6px; flex-wrap:wrap">
+            <button onclick="updateSosStatus('${docId}', 'accepted')" style="flex:1; border:none; border-radius:8px; padding:8px 4px; font-size:11px; font-weight:800; cursor:pointer; background:#eaf0ff; color:#2540c8">รับเรื่อง</button>
+            <button onclick="updateSosStatus('${docId}', 'enroute')" style="flex:1; border:none; border-radius:8px; padding:8px 4px; font-size:11px; font-weight:800; cursor:pointer; background:#ffe0d2; color:#c32e1c">กำลังไป</button>
+            <button onclick="updateSosStatus('${docId}', 'arrived')" style="flex:1; border:none; border-radius:8px; padding:8px 4px; font-size:11px; font-weight:800; cursor:pointer; background:#e8f7f0; color:#1f9e6e">ถึงจุดเกิดเหตุ</button>
+            <button onclick="updateSosStatus('${docId}', 'done')" style="flex:1; border:none; border-radius:8px; padding:8px 4px; font-size:11px; font-weight:800; cursor:pointer; background:#f4f5f8; color:var(--muted)">เสร็จสิ้น</button>
+          </div>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+  });
+  
+  // 2. Listen to Custom Contacts
+  if (adminContactsUnsub) {
+    adminContactsUnsub();
+    adminContactsUnsub = null;
+  }
+  const qContacts = query(collection(db, 'contacts'), orderBy('createdAt', 'desc'));
+  adminContactsUnsub = onSnapshot(qContacts, (snapshot) => {
+    const listEl = document.getElementById('adminContactsList');
+    listEl.innerHTML = '';
+    
+    if (snapshot.empty) {
+      listEl.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted); font-size:13px">📭 ยังไม่มีช่างหรืออู่ซ่อมรถเพิ่มในระบบ</div>';
+      return;
+    }
+    
+    snapshot.forEach(docSnap => {
+      const d = docSnap.data();
+      const docId = docSnap.id;
+      
+      const itemEl = document.createElement('div');
+      itemEl.style.background = '#fff';
+      itemEl.style.borderRadius = '12px';
+      itemEl.style.padding = '12px 14px';
+      itemEl.style.boxShadow = 'var(--shadow)';
+      itemEl.style.display = 'flex';
+      itemEl.style.justifyContent = 'space-between';
+      itemEl.style.alignItems = 'center';
+      
+      const catLabelMap = {
+        car: '🚗 รถเสีย',
+        work: '🔧 ช่วยงาน',
+        sos: '🚨 ฉุกเฉิน',
+        community: '❤️ ชุมชน',
+        donation: '🩸 บริจาค',
+        pets: '🐶 สัตว์เลี้ยง',
+        travel: '🏞️ ท่องเที่ยว',
+        news: '📢 ข่าวสาร'
+      };
+      
+      itemEl.innerHTML = `
+        <div style="text-align:left; max-width:75%">
+          <span style="font-size:9px; font-weight:800; background:var(--green-l); color:var(--green-d); border-radius:6px; padding:2px 6px; display:inline-block; margin-bottom:4px">
+            ${catLabelMap[d.category] || d.category}
+          </span>
+          <div style="font-size:13px; font-weight:800; color:var(--ink)">${d.text}</div>
+          ${d.phone ? `<div style="font-size:12px; color:var(--muted); font-weight:600; margin-top:2px">📞 เบอร์โทร: ${d.phone}</div>` : ''}
+          ${d.msg ? `<div style="font-size:11px; color:var(--muted); margin-top:2px; font-style:italic">💬 คำแนะนำ: ${d.msg}</div>` : ''}
+        </div>
+        <button onclick="deleteCustomContact('${docId}')" style="background:var(--red-l); color:var(--red-d); border:none; border-radius:8px; padding:8px 12px; font-size:11px; font-weight:800; cursor:pointer">🗑️ ลบ</button>
+      `;
+      listEl.appendChild(itemEl);
+    });
+  });
+}
+
+function closeAdminPanel() {
+  document.getElementById('adminOverlay').classList.add('hidden');
+  if (adminSosUnsub) {
+    adminSosUnsub();
+    adminSosUnsub = null;
+  }
+  if (adminContactsUnsub) {
+    adminContactsUnsub();
+    adminContactsUnsub = null;
+  }
+  if (adminUsersUnsub) {
+    adminUsersUnsub();
+    adminUsersUnsub = null;
+  }
+}
+
+async function addCustomContact() {
+  const cat = document.getElementById('addContactCat').value;
+  const text = document.getElementById('addContactText').value.trim();
+  const phone = document.getElementById('addContactPhone').value.trim().replace(/\D/g, '');
+  const msg = document.getElementById('addContactMsg').value.trim();
+  
+  if (!text) {
+    alert('กรุณากรอกชื่อเรียก/หัวข้อที่จะแสดงผล');
+    return;
+  }
+  
+  try {
+    await addDoc(collection(db, 'contacts'), {
+      category: cat,
+      text: text,
+      phone: phone || '',
+      msg: msg || '',
+      createdAt: serverTimestamp()
+    });
+    
+    // Clear inputs
+    document.getElementById('addContactText').value = '';
+    document.getElementById('addContactPhone').value = '';
+    document.getElementById('addContactMsg').value = '';
+    
+    alert('บันทึกข้อมูลเรียบร้อยแล้ว!');
+  } catch (e) {
+    console.error(e);
+    alert('บันทึกไม่สำเร็จ: ' + e.message);
+  }
+}
+
+async function deleteCustomContact(docId) {
+  if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลติดต่อนี้ออกจากระบบแอปพลิเคชัน?')) return;
+  
+  try {
+    await deleteDoc(doc(db, 'contacts', docId));
+  } catch (e) {
+    console.error(e);
+    alert('ลบข้อมูลไม่สำเร็จ: ' + e.message);
+  }
+}
+
+// Technician profile reviews states
+let currentTechContact = null;
+let currentTechId = '';
+let selectedReviewRating = 0;
+let techReviewsUnsub = null;
+
+function openTechReviews(item) {
+  currentTechContact = item;
+  currentTechId = item.text.trim().replace(/\s+/g, '_');
+  
+  document.getElementById('techName').textContent = item.text;
+  document.getElementById('techDesc').textContent = item.msg || 'มีปุ่มเบอร์ติดต่อช่างเพื่อพูดคุยประสานงานเกี่ยวกับการบริการ';
+  
+  const phoneNum = item.tel || item.phone || '';
+  const callBtn = document.getElementById('techCallBtn');
+  if (phoneNum) {
+    callBtn.href = 'tel:' + phoneNum;
+    callBtn.style.display = 'block';
+  } else {
+    callBtn.style.display = 'none';
+  }
+  
+  setReviewRating(0);
+  document.getElementById('reviewComment').value = '';
+  
+  // Reset average indicators
+  document.getElementById('techAvgRating').textContent = '0.0';
+  document.getElementById('techAvgStars').textContent = '☆☆☆☆☆';
+  document.getElementById('techReviewCount').textContent = '(0 รีวิว)';
+  
+  if (techReviewsUnsub) {
+    techReviewsUnsub();
+    techReviewsUnsub = null;
+  }
+  
+  // Real-time listen to reviews for this tech
+  const q = query(collection(db, 'reviews'), where('contactId', '==', currentTechId), orderBy('createdAt', 'desc'));
+  techReviewsUnsub = onSnapshot(q, (snapshot) => {
+    const listEl = document.getElementById('techReviewsList');
+    listEl.innerHTML = '';
+    
+    let totalRating = 0;
+    let count = 0;
+    
+    snapshot.forEach(docSnap => {
+      const d = docSnap.data();
+      count++;
+      totalRating += d.rating;
+      
+      const reviewCard = document.createElement('div');
+      reviewCard.style.background = '#fff';
+      reviewCard.style.borderRadius = '12px';
+      reviewCard.style.padding = '12px';
+      reviewCard.style.boxShadow = 'var(--shadow)';
+      reviewCard.style.display = 'flex';
+      reviewCard.style.flexDirection = 'column';
+      reviewCard.style.gap = '4px';
+      reviewCard.style.textAlign = 'left';
+      
+      const timeStr = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleDateString('th-TH', {dateStyle:'short'}) : '';
+      const starsStr = '★'.repeat(d.rating) + '☆'.repeat(5 - d.rating);
+      
+      reviewCard.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <span style="font-weight:800; font-size:12px; color:var(--ink)">👤 ${d.displayName}</span>
+          <span style="font-size:10px; color:var(--muted)">${timeStr}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:4px">
+          <span style="color:#f2c94c; font-size:14px">${starsStr}</span>
+        </div>
+        <div style="font-size:13px; color:var(--ink); line-height:1.4">${d.comment}</div>
+      `;
+      listEl.appendChild(reviewCard);
+    });
+    
+    // Calculate and update Average Rating
+    if (count > 0) {
+      const avg = (totalRating / count).toFixed(1);
+      const avgInt = Math.round(parseFloat(avg));
+      const avgStarsStr = '★'.repeat(avgInt) + '☆'.repeat(5 - avgInt);
+      
+      document.getElementById('techAvgRating').textContent = avg;
+      document.getElementById('techAvgStars').textContent = avgStarsStr;
+      document.getElementById('techReviewCount').textContent = `(${count} รีวิว)`;
+    } else {
+      listEl.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted); font-size:13px">ยังไม่มีรีวิวสำหรับช่างคนนี้</div>';
+    }
+  });
+  
+  document.getElementById('techReviewOverlay').classList.remove('hidden');
+}
+
+function closeTechReviews() {
+  document.getElementById('techReviewOverlay').classList.add('hidden');
+  if (techReviewsUnsub) {
+    techReviewsUnsub();
+    techReviewsUnsub = null;
+  }
+}
+
+function setReviewRating(rating) {
+  selectedReviewRating = rating;
+  const starsContainer = document.getElementById('interactiveStars');
+  const stars = starsContainer.children;
+  for (let i = 0; i < 5; i++) {
+    if (i < rating) {
+      stars[i].innerHTML = '★';
+      stars[i].style.color = '#f2c94c';
+    } else {
+      stars[i].innerHTML = '☆';
+      stars[i].style.color = '#ccc';
+    }
+  }
+}
+
+async function submitTechReview() {
+  ensureUserAuthenticated(async () => {
+    const comment = document.getElementById('reviewComment').value.trim();
+    const rating = selectedReviewRating;
+    
+    if (rating === 0) {
+      alert('กรุณาเลือกคะแนนดาว (1-5 ดาว) ก่อนส่งรีวิว');
+      return;
+    }
+    
+    if (!comment) {
+      alert('กรุณากรอกข้อความแสดงความคิดเห็น');
+      return;
+    }
+    
+    const displayName = userProfile?.nickname || userProfile?.displayName || currentUser?.displayName || 'ผู้ใช้';
+    
+    try {
+      await addDoc(collection(db, 'reviews'), {
+        contactId: currentTechId,
+        authorUid: currentUser?.uid || 'anon',
+        displayName: displayName,
+        rating: rating,
+        comment: comment,
+        createdAt: serverTimestamp()
+      });
+      
+      document.getElementById('reviewComment').value = '';
+      setReviewRating(0);
+      alert('ส่งข้อมูลรีวิวสำเร็จ ขอบคุณสำหรับคะแนนรีวิวครับ!');
+      
+      // Reload reviews list
+      loadTechReviews(currentTechId);
+    } catch (e) {
+      console.error(e);
+      alert('ส่งรีวิวไม่สำเร็จ: ' + e.message);
+    }
+  });
+}
+
+async function updateSosStatus(docId, newStatus) {
+  const statusTexts = {
+    accepted: 'รับเรื่องแล้ว เจ้าหน้าที่กำลังจัดกำลังพล',
+    enroute: 'เจ้าหน้าที่/รถพยาบาลกำลังเดินทางไปยังพิกัดของคุณ',
+    arrived: 'เจ้าหน้าที่ถึงจุดเกิดเหตุเรียบร้อยแล้ว',
+    done: 'เสร็จสิ้นการช่วยเหลือเรียบร้อย'
+  };
+  
+  try {
+    const helperInfo = prompt('ระบุข้อมูลเพิ่มเติม (เช่น ชื่อเจ้าหน้าที่ หรือรายละเอียดผู้ติดต่อกลับ):') || '';
+    
+    await setDoc(doc(db, 'sos_requests', docId), {
+      status: newStatus,
+      statusText: statusTexts[newStatus] || 'อัปเดตแล้ว',
+      helperInfo: helperInfo,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    
+  } catch (e) {
+    console.error(e);
+    alert('อัปเดตไม่สำเร็จ: ' + e.message);
+  }
+}
+
+function getStatusColor(status) {
+  const colors = { pending: '#e8412c', accepted: '#2540c8', enroute: '#f2994a', arrived: '#1f9e6e', done: '#6b7384' };
+  return colors[status] || '#6b7384';
+}
+function getStatusBgColor(status) {
+  const colors = { pending: 'var(--red-l)', accepted: 'var(--blue-l)', enroute: '#ffe0d2', arrived: 'var(--green-l)', done: 'var(--bg)' };
+  return colors[status] || 'var(--bg)';
+}
+function getStatusTextColor(status) {
+  const colors = { pending: 'var(--red-d)', accepted: 'var(--blue)', enroute: '#c32e1c', arrived: 'var(--green-d)', done: 'var(--muted)' };
+  return colors[status] || 'var(--muted)';
+}
+function getStatusLabel(status) {
+  const labels = { pending: '⏳ รอรับเรื่อง', accepted: '📞 รับเรื่องแล้ว', enroute: '🚑 กำลังเดินทาง', arrived: '📍 ถึงจุดเกิดเหตุ', done: '✅ เสร็จสิ้น' };
+  return labels[status] || status;
+}
+
+function toggleAnonMode(){
+  document.getElementById('roomInput').focus();
+}
+
+async function handleLogout(){
+  await signOut(auth);
+  currentUser = null; userProfile = null;
+}
+
+/* ============================================================
+   GEOLOCATION
+   ============================================================ */
+let userCoord = {lat:14.0227, lng:99.5327, accurate:false, label:'อ.เมืองกาญจนบุรี'};
+let geoWatcher = null;
+
+function fetchLocation(){
+  if(!navigator.geolocation){ 
+    document.getElementById('locLabel').textContent='ตำแหน่ง: '+userCoord.label; 
+    return; 
+  }
+  
+  if (geoWatcher) {
+    navigator.geolocation.clearWatch(geoWatcher);
+    geoWatcher = null;
+  }
+  
+  geoWatcher = navigator.geolocation.watchPosition(
+    p=>{
+      userCoord.lat=+p.coords.latitude.toFixed(6);
+      userCoord.lng=+p.coords.longitude.toFixed(6);
+      userCoord.accurate=true;
+      
+      const locText = userCoord.lat+', '+userCoord.lng+' (GPS)';
+      document.getElementById('locLabel').textContent = locText;
+      
+      const mapLabel = document.getElementById('mapLocLabel');
+      if (mapLabel) {
+        mapLabel.textContent = locText;
+      }
+      
+      if (leafletMap) {
+        updateLeafletMap();
+      }
+    },
+    (err)=>{ 
+      console.warn('Geolocation watch error:', err);
+      if (!userCoord.accurate) {
+        const fallbackText = userCoord.label+' (โดยประมาณ)';
+        document.getElementById('locLabel').textContent = fallbackText;
+        const mapLabel = document.getElementById('mapLocLabel');
+        if (mapLabel) {
+          mapLabel.textContent = fallbackText;
+        }
+      }
+    },
+    {enableHighAccuracy:true, timeout:15000, maximumAge:0}
+  );
+}
+
+/* ============================================================
+   LEAFLET INTERACTIVE MAP
+   ============================================================ */
+let leafletMap = null;
+let leafletMarker = null;
+
+function initLeafletMap() {
+  if (leafletMap) return;
+  
+  const mapContainer = document.getElementById('map');
+  if (!mapContainer) return;
+  
+  leafletMap = L.map('map', {
+    zoomControl: false
+  }).setView([userCoord.lat, userCoord.lng], 15);
+  
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(leafletMap);
+  
+  const customPinIcon = L.divIcon({
+    html: `<span style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); display: block; text-align: center; line-height: 1;">📍</span>`,
+    className: 'custom-pin-marker',
+    iconSize: [32, 32],
+    iconAnchor: [16, 30]
+  });
+  
+  leafletMarker = L.marker([userCoord.lat, userCoord.lng], { icon: customPinIcon }).addTo(leafletMap)
+    .bindPopup('📍 ตำแหน่งปัจจุบันของคุณ')
+    .openPopup();
+    
+  L.control.zoom({ position: 'bottomleft' }).addTo(leafletMap);
+}
+
+function updateLeafletMap() {
+  if (!leafletMap) {
+    initLeafletMap();
+    return;
+  }
+  
+  const pos = [userCoord.lat, userCoord.lng];
+  leafletMap.setView(pos, leafletMap.getZoom());
+  
+  const customPinIcon = L.divIcon({
+    html: `<span style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); display: block; text-align: center; line-height: 1;">📍</span>`,
+    className: 'custom-pin-marker',
+    iconSize: [32, 32],
+    iconAnchor: [16, 30]
+  });
+  
+  if (leafletMarker) {
+    leafletMarker.setLatLng(pos);
+  } else {
+    leafletMarker = L.marker(pos, { icon: customPinIcon }).addTo(leafletMap)
+      .bindPopup('📍 ตำแหน่งปัจจุบันของคุณ')
+      .openPopup();
+  }
+}
+
+/* ============================================================
+   SOS — HOLD 3s + COUNTDOWN 5s + SOUND
+   ============================================================ */
+const HOLD_MS=3000, CD_SEC=5, CIRC=2*Math.PI*76, CD_CIRC=2*Math.PI*68;
+let holdStart=0, holdAnim=null, cdInterval=null, cdVal=CD_SEC, currentSosId=null, sosUnsub=null;
+
+function playBeep(){
+  try{ const c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=0.3;o.start();o.stop(c.currentTime+0.15); }catch(e){}
+}
+
+function startHold(e){
+  if(e && (e.type === 'touchstart' || e.type === 'touchmove')) {
+    e.preventDefault();
+  }
+  if(holdAnim) cancelAnimationFrame(holdAnim);
+  holdStart=Date.now();
+  document.getElementById('sosBtn').classList.add('holding');
+  document.getElementById('holdText').classList.remove('hidden');
+  const ring=document.getElementById('holdRing');
+  function animate(){
+    const p=Math.min((Date.now()-holdStart)/HOLD_MS,1);
+    ring.setAttribute('stroke-dashoffset',CIRC*(1-p));
+    if(p>=1){ document.getElementById('sosBtn').classList.remove('holding'); document.getElementById('holdText').classList.add('hidden'); ring.setAttribute('stroke-dashoffset',CIRC); startCountdown(); return; }
+    holdAnim=requestAnimationFrame(animate);
+  }
+  holdAnim=requestAnimationFrame(animate);
+}
+function cancelHold(e){
+  if(e && (e.type === 'touchend' || e.type === 'touchcancel')) {
+    e.preventDefault();
+  }
+  cancelAnimationFrame(holdAnim);
+  holdAnim=null;
+  document.getElementById('sosBtn').classList.remove('holding');
+  document.getElementById('holdText').classList.add('hidden');
+  document.getElementById('holdRing').setAttribute('stroke-dashoffset',CIRC);
+}
+
+function startCountdown(){
+  cdVal=CD_SEC;
+  document.getElementById('cdOverlay').classList.remove('hidden');
+  document.getElementById('cdNum').textContent=cdVal;
+  document.getElementById('cdArc').setAttribute('stroke-dashoffset','0');
+  playBeep();
+  cdInterval=setInterval(()=>{
+    cdVal--;
+    document.getElementById('cdNum').textContent=cdVal;
+    document.getElementById('cdArc').setAttribute('stroke-dashoffset',CD_CIRC*(1-cdVal/CD_SEC));
+    if(cdVal>0) playBeep();
+    if(cdVal<=0){ clearInterval(cdInterval); document.getElementById('cdNum').textContent='⏳'; submitSOS(); }
+  },1000);
+}
+function cancelCountdown(){ clearInterval(cdInterval); document.getElementById('cdOverlay').classList.add('hidden'); }
+
+async function submitSOS(){
+  document.getElementById('cdOverlay').classList.add('hidden');
+  const code='SOS-'+Math.floor(10000+Math.random()*89999);
+  const displayName = userProfile?.nickname || userProfile?.displayName || currentUser?.displayName || 'ไม่ระบุ';
+  const phone = userProfile?.phone || '-';
+
+  try{
+    const docRef = await addDoc(collection(db,'sos_requests'),{
+      code, uid:currentUser?.uid||'anon',
+      displayName, phone,
+      realName: userProfile?.realName || '',
+      emergencyName: userProfile?.emergencyName || '',
+      emergencyPhone: userProfile?.emergencyPhone || '',
+      lat:userCoord.lat, lng:userCoord.lng, accurate:userCoord.accurate,
+      status:'pending', statusText:'กำลังรอเจ้าหน้าที่รับเรื่อง',
+      helperInfo:'', createdAt:serverTimestamp()
+    });
+    currentSosId=docRef.id;
+    document.getElementById('confCode').textContent=code;
+    document.getElementById('confCoord').textContent='📍 พิกัด: '+userCoord.lat+', '+userCoord.lng;
+    document.getElementById('confOverlay').classList.remove('hidden');
+
+    sosUnsub=onSnapshot(doc(db,'sos_requests',docRef.id),(snap)=>{
+      if(!snap.exists()) return;
+      const d=snap.data();
+      const map={pending:'⏳ กำลังรอเจ้าหน้าที่',accepted:'📞 รับเรื่องแล้ว',enroute:'🚑 กำลังเดินทาง',arrived:'📍 ถึงจุดเกิดเหตุ',done:'✅ เสร็จสิ้น'};
+      document.getElementById('confStatus').textContent=map[d.status]||d.statusText||'อัปเดตแล้ว';
+      if(d.helperInfo) document.getElementById('confInfo').textContent=d.helperInfo;
+    });
+    sendTelegramNotification({
+      code,
+      displayName,
+      phone,
+      realName: userProfile?.realName || '',
+      emergencyName: userProfile?.emergencyName || '',
+      emergencyPhone: userProfile?.emergencyPhone || '',
+      lat: userCoord.lat,
+      lng: userCoord.lng
+    });
+  }catch(e){ console.error(e); alert('บันทึกไม่สำเร็จ ลองโทร 1669'); }
+}
+function closeConfirmed(){ 
+  if(sosUnsub){sosUnsub();sosUnsub=null;} 
+  currentSosId=null; 
+  document.getElementById('confOverlay').classList.add('hidden'); 
+  // Clear attachments previews
+  const previewEl = document.getElementById('sosAttachmentsPreview');
+  if (previewEl) previewEl.innerHTML = '';
+  const statusEl = document.getElementById('sosUploadStatus');
+  if (statusEl) statusEl.textContent = '';
+  const photoInput = document.getElementById('sosPhotoInput');
+  if (photoInput) photoInput.value = '';
+}
+
+/* ============================================================
+   TELEGRAM NOTIFICATION
+   ============================================================ */
+async function sendTelegramNotification(p){
+  if(!TELEGRAM_BOT_TOKEN||!TELEGRAM_CHAT_ID){ console.log('[Telegram] Skip:',buildMsg(p)); return; }
+  try{
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: buildMsg(p),
+        parse_mode: 'HTML'
+      })
+    });
+  }catch(e){ console.error(e); }
+}
+function buildMsg(p){
+  const esc = (str) => {
+    if(!str) return '';
+    return str.toString()
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  };
+  return [
+    '🚨 <b>แจ้งเหตุฉุกเฉิน SOS</b>',
+    '<b>รหัส:</b> ' + esc(p.code),
+    '<b>ผู้แจ้ง:</b> ' + esc(p.displayName) + (p.realName ? ` (${esc(p.realName)})` : ''),
+    '<b>เบอร์โทร:</b> ' + esc(p.phone),
+    p.emergencyName ? '<b>ติดต่อฉุกเฉิน (ญาติ):</b> ' + esc(p.emergencyName) + ' (' + esc(p.emergencyPhone) + ')' : '',
+    '<b>พิกัด:</b> ' + esc(p.lat) + ', ' + esc(p.lng),
+    '<b>แผนที่:</b> <a href="https://maps.google.com/?q=' + esc(p.lat) + ',' + esc(p.lng) + '">คลิกเพื่อดูแผนที่</a>',
+    '<b>เวลา:</b> ' + esc(new Date().toLocaleString('th-TH')),
+    '',
+    '⚡ <b>กรุณาตอบรับเหตุโดยเร็ว</b>'
+  ].filter(Boolean).join('\n');
+}
+
+function toggleAIChat(){
+  const el = document.getElementById('aiChatWidget');
+  el.classList.toggle('hidden');
+  if(!el.classList.contains('hidden')){
+    document.getElementById('chatInput').focus();
+    const msgs = document.getElementById('chatMsgs');
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+}
+
+function handleChatKeyPress(e){
+  if(e.key === 'Enter') sendChatMessage();
+}
+
+function sendChatMessage(){
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text) return;
+  
+  appendMsg(text, 'user');
+  input.value = '';
+  
+  setTimeout(() => {
+    const reply = getAIResponse(text);
+    appendMsg(reply, 'ai');
+  }, 600);
+}
+
+function appendMsg(text, sender) {
+  const msgs = document.getElementById('chatMsgs');
+  const bubble = document.createElement('div');
+  bubble.className = `msg-bubble ${sender}`;
+  bubble.innerHTML = text.replace(/\n/g, '<br>');
+  msgs.appendChild(bubble);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function getAIResponse(query) {
+  const q = query.toLowerCase();
+  
+  if (q.includes('cpr') || q.includes('ปั๊มหัวใจ') || q.includes('หยุดหายใจ')) {
+    return "🚨 <b>ขั้นตอนการทำ CPR เบื้องต้น:</b>\n1. ตรวจสอบความปลอดภัยโดยรอบก่อนเข้าไปช่วยเหลือ\n2. ตรวจการตอบสนอง หากไม่ตอบสนอง/ไม่หายใจ ให้รีบโทร <b>1669</b> ทันที!\n3. วางส้นมือข้างหนึ่งกึ่งกลางหน้าอก วางมืออีกข้างประกบประสานกัน\n4. กดหน้าอกลึกประมาณ 5-6 ซม. ต่อเนื่องด้วยความเร็ว 100-120 ครั้งต่อนาที\n*หากมีเครื่อง AED แนะนำให้รีบนำมาแปะใช้งานร่วมด้วยทันทีครับ";
+  }
+  if (q.includes('เป็นลม') || q.includes('หมดสติ') || q.includes('แดด') || q.includes('ฮีทสโตรก') || q.includes('heatstroke')) {
+    return "🌞 <b>การช่วยเหลือผู้ป่วยเป็นลมแดด/หมดสติ:</b>\n1. นำเข้าที่ร่ม อากาศระบายได้ดี หรือห้องแอร์\n2. จัดให้นอนราบและยกขาสูงขึ้นเล็กน้อย\n3. คลายเสื้อผ้าเข็มขัดให้หลวม\n4. ใช้ผ้าชุบน้ำเย็นเช็ดตามตัว ซอกคอ รักแร้ เพื่อระบายความร้อน\n5. หากรู้ตัวให้จิบน้ำเย็น ห้ามกรอกน้ำเข้าปากเด็ดขาดหากไม่ได้สติ!\n*หากหมดสติและหยุดหายใจ ให้เตรียมปั๊มหัวใจ (CPR) และโทร <b>1669</b>!";
+  }
+  if (q.includes('เลือด') || q.includes('แผล') || q.includes('เลือดไหล')) {
+    return "🩸 <b>การห้ามเลือดเบื้องต้น:</b>\n1. ใช้ผ้าสะอาดกดทับบาดแผลตรง ๆ อย่างมั่นคงเป็นเวลาอย่างน้อย 5 นาที\n2. หากเลือดซึมผ่านผ้า ห้ามหยิบผ้าเดิมออก ให้วางผ้าผืนใหม่ทับซ้อนลงไปแล้วกดต่อ\n3. ถ้ายกแผลให้อยู่สูงกว่าระดับหัวใจได้จะช่วยลดการไหลของเลือดได้เร็วขึ้น\n*หากบาดแผลลึกหรือเลือดไหลพุ่งไม่หยุด ควรรีบไปพบแพทย์หรือโทร <b>1669</b> ครับ";
+  }
+  if (q.includes('งู') || q.includes('กัด') || q.includes('สัตว์มีพิษ')) {
+    return "🐍 <b>กรณีถูกงูกัด:</b>\n1. ล้างแผลด้วยน้ำสะอาดและพยายามจำลักษณะงูที่กัด\n2. ให้ผู้ป่วยเคลื่อนไหวร่างกายให้น้อยที่สุดเพื่อลดการแผ่พิษ\n3. ห้ามกรีดแผล ห้ามดูดพิษ และไม่จำเป็นต้องขันชะเนาะ (Tourniquet) เพราะอาจทำเนื้อเยื่อตาย\n4. รีบนำส่งโรงพยาบาลทันทีครับ";
+  }
+  if (q.includes('รถสตาร์ทไม่ติด') || q.includes('สตาร์ทไม่ติด') || q.includes('สตาร์ท')) {
+    return "🚗 <b>รถสตาร์ทไม่ติด วิเคราะห์เบื้องต้น:</b>\n1. ระบบแบตเตอรี่: บิดกุญแจแล้วเงียบสนิท หรือมีเสียงแชะเบา ๆ -> ลองเช็คขั้วแบตเตอรี่ หรือขอความช่วยเหลือบริการ <b>'พ่วงแบต'</b> ในแอปได้ครับ\n2. ไดสตาร์ท/ระบบเกียร์: ลองขยับตำแหน่งเกียร์ไปที่ N หรือ P แล้วสตาร์ทใหม่\n*หากต้องการช่างยนต์อาสาแนะนำให้เลือกหมวด <b>'รถเสีย & เดินทาง'</b> เพื่อติดต่อประสานงานช่างครับ";
+  }
+  if (q.includes('ความร้อน') || q.includes('หม้อน้ำ') || q.includes('เครื่องร้อน')) {
+    return "🌡️ <b>ความร้อนรถยนต์ขึ้นสูง:</b>\n1. จอดรถเข้าข้างทางในจุดที่ปลอดภัยทันที\n2. เปิดฝากระโปรงรถทิ้งไว้เพื่อระบายความร้อน ห้ามเปิดฝาหม้อน้ำตอนร้อนเด็ดขาด! (น้ำเดือดแรงดันสูงอาจพุ่งลวกตัว)\n3. รอประมาณ 20-30 นาทีให้เครื่องเย็นลง\n4. ใช้ผ้าหนาค่อย ๆ คลายเปิดฝาหม้อน้ำเพื่อตรวจระดับน้ำ หากแห้งให้ค่อย ๆ เติมน้ำสะอาดลงไปจนเต็ม";
+  }
+  if (q.includes('ยางแบน') || q.includes('ยางรั่ว') || q.includes('ปะยาง')) {
+    return "🚲 <b>ยางรถแบน/รั่วซึม:</b>\n1. หาที่จอดราบปลอดภัย เปิดไฟฉุกเฉิน ดึงเบรกมือ\n2. หากมียางอะไหล่และเครื่องมือแม่แรง สามารถทำการถอดเปลี่ยนได้\n3. หากต้องการช่างนอกสถานที่ สามารถเลือกบริการ <b>'รถเสีย & เดินทาง'</b> -> <b>'ปะยางนอกสถานที่'</b> ในแอปได้เลยครับ";
+  }
+  if (q.includes('เบอร์') || q.includes('โทร') || q.includes('ติดต่อ')) {
+    return "📞 <b>สายด่วนฉุกเฉินกู้ภัยหลัก:</b>\n- 🚑 <b>1669</b> เจ็บป่วยกู้ชีพกู้ภัย\n- 👮 <b>191</b> เหตุด่วนเหตุร้าย\n- 🚒 <b>199</b> ดับเพลิงและสาธารณภัย\n- 🏖️ <b>1155</b> ตำรวจท่องเที่ยว\n- ⚡ <b>1129</b> แจ้งไฟฟ้าขัดข้อง";
+  }
+  if (q.includes('กาญ') || q.includes('พิกัด') || q.includes('ตำแหน่ง')) {
+    return "📍 พิกัดปัจจุบันของคุณจะแสดงเด่นชัดเป็นตัวเลขละติจูด/ลองจิจูดที่แถบระบุพิกัดสีเขียวด้านบนหน้าแรก ซึ่งระบบแจ้งเหตุจะดึงพิกัดนี้แชร์ให้ศูนย์กู้ภัยช่วยเหลือกาญจนบุรีโดยอัตโนมัติเมื่อกด SOS ครับ";
+  }
+
+  return "ผมได้รับข้อคำปรึกษาของคุณแล้วครับ เรื่องนี้เกี่ยวข้องกับหมวดหมู่ใดเป็นพิเศษไหมครับ? คุณสามารถแจ้งเหตุด่วนหรือประสานอาสาสมัครช่วยเหลือเพิ่มเติมได้ง่าย ๆ โดยเลือกบริการจากเมนูทั้ง 8 หมวดหมู่ หรือกดปุ่ม SOS สีแดงเพื่อแจ้งเหตุฉุกเฉินได้ทันทีเลยครับ";
+}
+
+// ===== ANNOUNCEMENT CONTROLLERS & REAL-TIME SYNC =====
+let currentAnnouncement = null;
+
+function listenAnnouncement() {
+  onSnapshot(doc(db, 'settings', 'announcement'), (snap) => {
+    const el = document.getElementById('adminAnnouncement');
+    const txtEl = document.getElementById('announcementTextDisplay');
+    const greetingEl = document.getElementById('heroGreeting');
+    const timeEl = document.getElementById('announcementTimeDisplay');
+    
+    if (!snap.exists()) {
+      el.classList.add('hidden');
+      if (greetingEl) greetingEl.classList.remove('hidden');
+      currentAnnouncement = null;
+      return;
+    }
+    
+    const data = snap.data();
+    currentAnnouncement = data;
+    
+    // Update admin overlay fields if they exist
+    const activeChkbx = document.getElementById('announceActive');
+    const activeLbl = document.getElementById('announceActiveLabel');
+    const typeSelect = document.getElementById('announceType');
+    const textInput = document.getElementById('announceText');
+    const showTimeChkbx = document.getElementById('announceShowTime');
+    const showTimeLbl = document.getElementById('announceShowTimeLabel');
+    
+    if (activeChkbx) {
+      activeChkbx.checked = !!data.active;
+      if (activeLbl) {
+        activeLbl.textContent = data.active ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
+        activeLbl.style.color = data.active ? 'var(--green)' : 'var(--muted)';
+      }
+    }
+    if (showTimeChkbx) {
+      showTimeChkbx.checked = !!data.showTime;
+      if (showTimeLbl) {
+        showTimeLbl.textContent = data.showTime ? 'แสดงเวลา' : 'ไม่แสดง';
+        showTimeLbl.style.color = data.showTime ? 'var(--green)' : 'var(--muted)';
+      }
+    }
+    if (typeSelect) typeSelect.value = data.type || 'info';
+    if (textInput) textInput.value = data.text || '';
+    
+    // Update Dashboard UI
+    if (data.active && data.text) {
+      txtEl.textContent = data.text;
+      el.className = 'announcement-banner';
+      el.classList.add(data.type || 'info');
+      
+      const iconEl = el.querySelector('.announce-icon');
+      if (iconEl) {
+        if (data.type === 'danger') iconEl.textContent = '🚨';
+        else if (data.type === 'warning') iconEl.textContent = '⚠️';
+        else iconEl.textContent = '📢';
+      }
+      
+      // Handle timestamp display
+      if (data.showTime && data.updatedAt) {
+        if (timeEl) {
+          timeEl.textContent = '🕒 ' + formatAnnounceTime(data.updatedAt);
+          timeEl.classList.remove('hidden');
+        }
+      } else {
+        if (timeEl) timeEl.classList.add('hidden');
+      }
+      
+      if (greetingEl) greetingEl.classList.add('hidden');
+    } else {
+      el.classList.add('hidden');
+      if (greetingEl) greetingEl.classList.remove('hidden');
+    }
+  });
+}
+
+function formatAnnounceTime(timestamp) {
+  if (!timestamp) return 'เมื่อสักครู่';
+  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  
+  const options = { hour: '2-digit', minute: '2-digit' };
+  const timeStr = date.toLocaleTimeString('th-TH', options);
+  
+  const day = date.getDate();
+  const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  const monthStr = months[date.getMonth()];
+  
+  return `${day} ${monthStr} เวลา ${timeStr} น.`;
+}
+
+function toggleAnnounceLabel(chk) {
+  const lbl = document.getElementById('announceActiveLabel');
+  if (!lbl) return;
+  if (chk.checked) {
+    lbl.textContent = 'เปิดใช้งาน';
+    lbl.style.color = 'var(--green)';
+  } else {
+    lbl.textContent = 'ปิดใช้งาน';
+    lbl.style.color = 'var(--muted)';
+  }
+}
+
+function toggleShowTimeLabel(chk) {
+  const lbl = document.getElementById('announceShowTimeLabel');
+  if (!lbl) return;
+  if (chk.checked) {
+    lbl.textContent = 'แสดงเวลา';
+    lbl.style.color = 'var(--green)';
+  } else {
+    lbl.textContent = 'ไม่แสดง';
+    lbl.style.color = 'var(--muted)';
+  }
+}
+
+async function saveAnnouncement() {
+  const active = document.getElementById('announceActive').checked;
+  const type = document.getElementById('announceType').value;
+  const text = document.getElementById('announceText').value.trim();
+  const showTime = document.getElementById('announceShowTime').checked;
+  
+  if (active && !text) {
+    alert('กรุณากรอกข้อความประกาศด่วน');
+    return;
+  }
+  
+  try {
+    await setDoc(doc(db, 'settings', 'announcement'), {
+      active: active,
+      type: type,
+      text: text,
+      showTime: showTime,
+      updatedAt: serverTimestamp()
+    });
+    alert('บันทึกและอัปเดตประกาศสำเร็จแล้ว!');
+  } catch (e) {
+    console.error(e);
+    alert('บันทึกไม่สำเร็จ: ' + e.message);
+  }
+}
+
+function showAnnouncementDetail() {
+  if (!currentAnnouncement || !currentAnnouncement.text) return;
+  
+  const modal = document.getElementById('announcementModal');
+  const modalIcon = document.getElementById('announcementModalIcon');
+  const modalTitle = document.getElementById('announcementModalTitle');
+  const modalText = document.getElementById('announcementModalText');
+  
+  // Custom headers based on types
+  if (currentAnnouncement.type === 'danger') {
+    modalIcon.textContent = '🚨';
+    modalTitle.textContent = 'ประกาศด่วนที่สุด!';
+    modalTitle.style.color = '#c93525';
+  } else if (currentAnnouncement.type === 'warning') {
+    modalIcon.textContent = '⚠️';
+    modalTitle.textContent = 'แจ้งเตือนเฝ้าระวัง';
+    modalTitle.style.color = '#c97314';
+  } else {
+    modalIcon.textContent = '📢';
+    modalTitle.textContent = 'ประกาศจากแอดมิน';
+    modalTitle.style.color = '#1a7a55';
+  }
+  
+  if (currentAnnouncement.showTime && currentAnnouncement.updatedAt) {
+    const formattedTime = formatAnnounceTime(currentAnnouncement.updatedAt);
+    modalText.innerHTML = `${currentAnnouncement.text}\n\n<span style="font-size: 11px; color: var(--muted); font-weight: bold; display: block; border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; text-align: right;">🕒 เวลาเหตุการณ์: ${formattedTime}</span>`;
+  } else {
+    modalText.textContent = currentAnnouncement.text;
+  }
+  
+  modal.classList.remove('hidden');
+}
+
+function closeAnnouncementModal() {
+  document.getElementById('announcementModal').classList.add('hidden');
+}
+
+function editProfile() {
+  if (currentUser) {
+    showProfileModal(currentUser);
+  }
+}
+
+async function markAsSafe() {
+  if (!currentSosId) return;
+  const statusEl = document.getElementById('sosUploadStatus');
+  if (statusEl) statusEl.textContent = '⏳ กำลังบันทึกสถานะความปลอดภัย...';
+  
+  try {
+    const code = document.getElementById('confCode').textContent || 'SOS';
+    const displayName = userProfile?.nickname || userProfile?.displayName || currentUser?.displayName || 'ไม่ระบุ';
+    
+    // 1. Update Firestore
+    const sosDocRef = doc(db, 'sos_requests', currentSosId);
+    await updateDoc(sosDocRef, {
+      status: 'done',
+      statusText: 'ผู้แจ้งปลอดภัยแล้ว',
+      helperInfo: 'ผู้แจ้งแจ้งว่าปลอดภัยแล้ว (ยกเลิกเหตุ)'
+    });
+    
+    // 2. Send Telegram Notification
+    if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: `💚 <b>[ผู้แจ้งยืนยันความปลอดภัย]</b>\nรหัสเหตุ: <b>${code}</b>\nผู้แจ้ง: <b>${displayName}</b> (${userProfile?.realName || ''})\nสถานะ: <b>ฉันปลอดภัยแล้ว (ยกเลิกการช่วยเหลือ)</b>`,
+          parse_mode: 'HTML'
+        })
+      });
+    }
+    
+    alert('บันทึกสถานะว่าคุณปลอดภัยแล้ว ขอบคุณครับ!');
+    closeConfirmed();
+  } catch (e) {
+    console.error(e);
+    alert('บันทึกไม่สำเร็จ: ' + e.message);
+  }
+}
+
+// ===== SOS EVIDENCE/ATTACHMENTS (PHOTO & AUDIO RECORDING) =====
+let mediaRecorder = null;
+let audioChunks = [];
+let audioRecordingInterval = null;
+let audioRecordingSeconds = 0;
+let isAudioRecording = false;
+
+function captureSosPhoto() {
+  document.getElementById('sosPhotoInput').click();
+}
+
+async function handleSosPhoto(input) {
+  if (!input.files || input.files.length === 0) return;
+  const file = input.files[0];
+  const statusEl = document.getElementById('sosUploadStatus');
+  if (statusEl) statusEl.textContent = '⏳ กำลังประมวลผลรูปภาพ...';
+  
+  try {
+    // 1. Resize image to keep base64 size reasonable (max 600px width/height)
+    const compressedBase64 = await resizeImage(file, 600, 600);
+    
+    // 2. Save base64 photo to Firestore
+    if (currentSosId) {
+      const sosDocRef = doc(db, 'sos_requests', currentSosId);
+      await updateDoc(sosDocRef, {
+        photos: arrayUnion(compressedBase64)
+      });
+    }
+    
+    // 3. Show preview in UI
+    const previewEl = document.getElementById('sosAttachmentsPreview');
+    if (previewEl) {
+      const img = document.createElement('img');
+      img.src = compressedBase64;
+      img.style.width = '60px';
+      img.style.height = '60px';
+      img.style.borderRadius = '8px';
+      img.style.objectFit = 'cover';
+      img.style.border = '1px solid var(--line)';
+      previewEl.appendChild(img);
+    }
+    
+    if (statusEl) statusEl.textContent = '✅ ส่งรูปภาพสำเร็จ!';
+    
+    // 4. Send photo to Telegram bot
+    const blob = dataURLtoBlob(compressedBase64);
+    const displayName = userProfile?.nickname || userProfile?.displayName || currentUser?.displayName || 'ไม่ระบุ';
+    const code = document.getElementById('confCode').textContent || 'SOS';
+    
+    const formData = new FormData();
+    formData.append('chat_id', TELEGRAM_CHAT_ID);
+    formData.append('photo', blob, 'incident.jpg');
+    formData.append('caption', `📸 <b>[ภาพหลักฐานเพิ่มเติม]</b>\nรหัสเหตุ: <b>${code}</b>\nผู้ส่ง: <b>${displayName}</b>`);
+    formData.append('parse_mode', 'HTML');
+    
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+      method: 'POST',
+      body: formData
+    });
+  } catch (e) {
+    console.error(e);
+    if (statusEl) statusEl.textContent = '❌ ส่งไม่สำเร็จ: ' + e.message;
+  }
+}
+
+// Image Resizer Helper (Canvas based)
+function resizeImage(file, maxWidth, maxHeight) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (readerEvent) => {
+      const image = new Image();
+      image.onload = () => {
+        let width = image.width;
+        let height = image.height;
+        
+        if (width > height) {
+          if (width > maxWidth) {
+            height *= maxWidth / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width *= maxHeight / height;
+            height = maxHeight;
+          }
+        }
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(image, 0, 0, width, height);
+        
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.75); // compress to JPEG with 75% quality
+        resolve(dataUrl);
+      };
+      image.onerror = (e) => reject(new Error('โหลดรูปภาพล้มเหลว'));
+      image.src = readerEvent.target.result;
+    };
+    reader.onerror = (e) => reject(new Error('อ่านไฟล์ล้มเหลว'));
+    reader.readAsDataURL(file);
+  });
+}
+
+// DataURL to Blob helper
+function dataURLtoBlob(dataurl) {
+  const arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+  let i = n;
+  while(i--){
+    u8arr[i] = bstr.charCodeAt(i);
+  }
+  return new Blob([u8arr], {type:mime});
+}
+
+// Audio Recording Controllers
+async function toggleSosAudioRecording() {
+  const btn = document.getElementById('sosAudioBtn');
+  const statusEl = document.getElementById('sosUploadStatus');
+  
+  if (isAudioRecording) {
+    // Stop recording
+    stopSosAudioRecording();
+  } else {
+    // Start recording
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+      
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+      
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/ogg; codecs=opus' });
+        
+        // Convert to base64 for Firestore
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64Audio = reader.result;
+          
+          // Save to Firestore
+          try {
+            if (currentSosId) {
+              const sosDocRef = doc(db, 'sos_requests', currentSosId);
+              await updateDoc(sosDocRef, {
+                voices: arrayUnion(base64Audio)
+              });
+            }
+            if (statusEl) statusEl.textContent = '✅ ส่งข้อความเสียงสำเร็จ!';
+            
+            // Show preview
+            const previewEl = document.getElementById('sosAttachmentsPreview');
+            if (previewEl) {
+              const audIcon = document.createElement('span');
+              audIcon.textContent = '🎵 เสียงบันทึก';
+              audIcon.style.background = '#ffe0d2';
+              audIcon.style.color = '#c32e1c';
+              audIcon.style.fontSize = '11px';
+              audIcon.style.fontWeight = '800';
+              audIcon.style.padding = '4px 8px';
+              audIcon.style.borderRadius = '8px';
+              previewEl.appendChild(audIcon);
+            }
+          } catch (err) {
+            console.error(err);
+            if (statusEl) statusEl.textContent = '❌ ส่งเสียงไม่สำเร็จ: ' + err.message;
+          }
+          
+          // Send to Telegram
+          try {
+            const displayName = userProfile?.nickname || userProfile?.displayName || currentUser?.displayName || 'ไม่ระบุ';
+            const code = document.getElementById('confCode').textContent || 'SOS';
+            
+            const formData = new FormData();
+            formData.append('chat_id', TELEGRAM_CHAT_ID);
+            formData.append('voice', audioBlob, 'voice.ogg');
+            formData.append('caption', `🎤 <b>[เสียงหลักฐานเพิ่มเติม]</b>\nรหัสเหตุ: <b>${code}</b>\nผู้ส่ง: <b>${displayName}</b>`);
+            formData.append('parse_mode', 'HTML');
+            
+            await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendVoice`, {
+              method: 'POST',
+              body: formData
+            });
+          } catch (tErr) {
+            console.error('Telegram voice error:', tErr);
+          }
+        };
+        reader.readAsDataURL(audioBlob);
+        
+        // Stop stream tracks
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      mediaRecorder.start();
+      isAudioRecording = true;
+      audioRecordingSeconds = 0;
+      btn.style.background = '#2c3e50'; // Dark pulsing look
+      btn.textContent = '🔴 หยุดบันทึก (0s)';
+      
+      if (statusEl) statusEl.textContent = '🎙️ กำลังอัดเสียง... พูดใส่ไมค์ของคุณ';
+      
+      audioRecordingInterval = setInterval(() => {
+        audioRecordingSeconds++;
+        btn.textContent = `🔴 หยุดบันทึก (${audioRecordingSeconds}s)`;
+        
+        // Auto stop at 15 seconds limit to prevent huge file size
+        if (audioRecordingSeconds >= 15) {
+          stopSosAudioRecording();
+        }
+      }, 1000);
+      
+    } catch (e) {
+      console.error(e);
+      alert('ขออนุญาตสิทธิ์เข้าถึงไมโครโฟนไม่สำเร็จ: ' + e.message);
+    }
+  }
+}
+
+function stopSosAudioRecording() {
+  const btn = document.getElementById('sosAudioBtn');
+  if (audioRecordingInterval) {
+    clearInterval(audioRecordingInterval);
+    audioRecordingInterval = null;
+  }
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+  }
+  isAudioRecording = false;
+  btn.style.background = '#e8412c'; // Restore original red
+  btn.textContent = '🎤 อัดเสียงเหตุการณ์';
+}
+
+function openAdminPhotoView(src) {
+  const w = window.open();
+  w.document.write(`<img src="${src}" style="max-width:100%; max-height:100dvh; display:block; margin:auto;" />`);
+}
+
+/* ============================================================
+   AUTHENTICATION GUARDS & HELPERS
+   ============================================================ */
+window.pendingAuthCallback = null;
+
+function ensureUserAuthenticated(actionCallback) {
+  if (!currentUser) {
+    window.pendingAuthCallback = actionCallback;
+    document.getElementById('authGuardModal').classList.remove('hidden');
+    return;
+  }
+  
+  if (!isProfileComplete(userProfile)) {
+    window.pendingAuthCallback = actionCallback;
+    showProfileModal(currentUser);
+    return;
+  }
+  
+  if (actionCallback) actionCallback();
+}
+
+function triggerSosGuard() {
+  ensureUserAuthenticated(() => openSosOverlay());
+}
+
+function closeAuthGuard() {
+  document.getElementById('authGuardModal').classList.add('hidden');
+  window.pendingAuthCallback = null;
+}
+
+function handleGoogleLoginFromGuard() {
+  closeAuthGuard();
+  handleGoogleLogin();
+}
+
+/* ============================================================
+   ADMIN PIN VERIFICATION & HELPERS
+   ============================================================ */
+const ADMIN_PIN = "789546"; // รหัสผ่านสำหรับเข้าหน้าแอดมิน (สามารถเปลี่ยนได้ที่นี่)
+
+function openAdminPanel() {
+  document.getElementById('adminPinInput').value = '';
+  document.getElementById('adminPinErr').classList.add('hidden');
+  document.getElementById('adminPinModal').classList.remove('hidden');
+}
+
+function closeAdminPinModal() {
+  document.getElementById('adminPinModal').classList.add('hidden');
+}
+
+function submitAdminPin() {
+  const pin = document.getElementById('adminPinInput').value.trim();
+  if (pin === ADMIN_PIN) {
+    closeAdminPinModal();
+    showActualAdminPanel();
+  } else {
+    showErr('adminPinErr', '❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง');
+  }
+}
+
+/* ============================================================
+   PROFILE MODAL & TAB INLINE EDIT FUNCTIONS
+   ============================================================ */
+function closeProfileModal() {
+  document.getElementById('profileModal').classList.add('hidden');
+  document.getElementById('homeScreen').classList.remove('hidden');
+  window.pendingAuthCallback = null;
+}
+
+function enableProfileEditMode() {
+  const modeEdit = document.getElementById('profileEditMode');
+  const modeView = document.getElementById('profileViewMode');
+  if (!modeEdit || !modeView) return;
+
+  document.getElementById('profileTabRealNameInput').value = userProfile?.realName || '';
+  document.getElementById('profileTabPhoneInput').value = userProfile?.phone ? userProfile.phone.replace('+66','0') : '';
+  document.getElementById('profileTabNicknameInput').value = userProfile?.nickname || '';
+  document.getElementById('profileTabEmergencyNameInput').value = userProfile?.emergencyName || '';
+  document.getElementById('profileTabEmergencyPhoneInput').value = userProfile?.emergencyPhone ? userProfile.emergencyPhone.replace('+66','0') : '';
+
+  document.getElementById('profileTabErr').classList.add('hidden');
+  modeView.classList.add('hidden');
+  modeEdit.classList.remove('hidden');
+}
+
+function disableProfileEditMode() {
+  const modeEdit = document.getElementById('profileEditMode');
+  const modeView = document.getElementById('profileViewMode');
+  if (!modeEdit || !modeView) return;
+
+  modeEdit.classList.add('hidden');
+  modeView.classList.remove('hidden');
+}
+
+async function saveProfileFromTab() {
+  const errElId = 'profileTabErr';
+  const errEl = document.getElementById(errElId);
+  if (errEl) errEl.classList.add('hidden');
+
+  const realName = document.getElementById('profileTabRealNameInput').value.trim();
+  const phone = document.getElementById('profileTabPhoneInput').value.replace(/\D/g,'');
+  const nickname = document.getElementById('profileTabNicknameInput').value.trim();
+  const emergencyName = document.getElementById('profileTabEmergencyNameInput').value.trim();
+  const emergencyPhone = document.getElementById('profileTabEmergencyPhoneInput').value.replace(/\D/g,'');
+
+  if(!realName){
+    showErr(errElId,'กรุณากรอกชื่อจริง-นามสกุล');
+    return;
+  }
+  if(!phone || phone.length < 9 || phone.length > 10){
+    showErr(errElId,'กรุณากรอกเบอร์โทรศัพท์ผู้แจ้งให้ถูกต้อง (9-10 หลัก)');
+    return;
+  }
+  if(!emergencyName){
+    showErr(errElId,'กรุณากรอกชื่อญาติ/ผู้ติดต่อฉุกเฉิน');
+    return;
+  }
+  if(!emergencyPhone || emergencyPhone.length < 9 || emergencyPhone.length > 10){
+    showErr(errElId,'กรุณากรอกเบอร์โทรญาติให้ถูกต้อง (9-10 หลัก)');
+    return;
+  }
+
+  try {
+    await setDoc(doc(db,'users',currentUser.uid),{
+      uid: currentUser.uid,
+      displayName: currentUser.displayName || '',
+      photoURL: currentUser.photoURL || '',
+      realName: realName,
+      phone: phone,
+      nickname: nickname || '',
+      emergencyName: emergencyName,
+      emergencyPhone: emergencyPhone,
+      profileSetup: true,
+      createdAt: userProfile?.createdAt || serverTimestamp(),
+      updatedAt: serverTimestamp()
+    },{merge:true});
+
+    await loadProfile(currentUser);
+    disableProfileEditMode();
+    showHome();
+    alert('บันทึกข้อมูลโปรไฟล์เรียบร้อยแล้ว!');
+  } catch(e) {
+    showErr(errElId,'บันทึกไม่สำเร็จ: '+e.message);
+  }
+}
+
+/* ============================================================
+   URGENT BLOOD REQUESTS FUNCTIONS
+   ============================================================ */
+let bloodRequestsUnsub = null;
+
+function openBloodRequests() {
+  document.getElementById('bloodRequestsOverlay').classList.remove('hidden');
+  
+  const listEl = document.getElementById('bloodRequestsList');
+  if (listEl) listEl.innerHTML = '<div style="text-align:center; padding:20px; color:var(--muted); font-weight:700;">⏳ กำลังโหลดประกาศตามหาเลือด...</div>';
+  
+  if (bloodRequestsUnsub) {
+    bloodRequestsUnsub();
+    bloodRequestsUnsub = null;
+  }
+  
+  const q = query(
+    collection(db, 'blood_requests'),
+    where('status', '==', 'pending'),
+    orderBy('createdAt', 'desc')
+  );
+  
+  bloodRequestsUnsub = onSnapshot(q, (snapshot) => {
+    listEl.innerHTML = '';
+    
+    if (snapshot.empty) {
+      listEl.innerHTML = `
+        <div style="background:#fff; border-radius:16px; padding:32px 20px; text-align:center; box-shadow:0 4px 16px rgba(0,0,0,0.04); color:var(--muted); width: 100%;">
+          <div style="font-size:48px; margin-bottom:12px;">🩸</div>
+          <h4 style="font-size:16px; font-weight:800; color:var(--ink); margin:0 0 6px 0;">ยังไม่มีประกาศตามหาเลือดด่วน</h4>
+          <p style="font-size:13px; margin:0; line-height:1.5;">ขณะนี้ยังไม่มีคนไข้ส่งประกาศขอรับบริจาคโลหิตในพื้นที่</p>
+        </div>
+      `;
+      return;
+    }
+    
+    const ADMIN_EMAILS = ["ployrut@gmail.com", "admin@chuaylueakan.com"];
+    const userIsAdmin = (currentUser?.email && ADMIN_EMAILS.includes(currentUser.email)) || true;
+    
+    snapshot.forEach((docSnap) => {
+      const d = docSnap.data();
+      const docId = docSnap.id;
+      const timeStr = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleString('th-TH') : '-';
+      const showDeleteBtn = currentUser && (d.uid === currentUser.uid || userIsAdmin);
+      
+      const card = document.createElement('div');
+      card.className = 'blood-req-card';
+      card.style.cssText = 'background: #fff; border-radius: 16px; padding: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.05); border-left: 5px solid #c62828; position: relative; display: flex; flex-direction: column; text-align: left;';
+      
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 8px;">
+          <div style="flex: 1;">
+            <span style="font-size: 11px; font-weight: 800; background: #ffebee; color: #c62828; padding: 4px 8px; border-radius: 6px;">
+              ต้องการเลือดด่วน 🚨
+            </span>
+            <h3 style="font-size: 16px; font-weight: 800; margin: 8px 0 4px 0; color: var(--ink); line-height: 1.3;">
+              คนไข้: ${d.patientName}
+            </h3>
+            <div style="font-size: 13px; color: var(--muted); font-weight: 700; display:flex; align-items:center; gap:4px;">
+              📍 ${d.hospital}
+            </div>
+          </div>
+          <div style="text-align: center; background: #c62828; color: #fff; border-radius: 12px; padding: 6px 10px; min-width: 65px; box-shadow: 0 4px 10px rgba(198, 40, 40, 0.2); flex-shrink: 0;">
+            <div style="font-size: 10px; font-weight: 700; opacity: 0.9;">กรุ๊ป</div>
+            <div style="font-size: 20px; font-weight: 900; line-height: 1.1;">${d.bloodType}</div>
+            <div style="font-size: 9px; font-weight: 700; opacity: 0.8; margin-top: 1px;">${d.rhType || ''}</div>
+          </div>
+        </div>
+        
+        <p style="font-size: 13px; color: #3c4554; line-height: 1.5; margin: 8px 0; background: #f8f9fa; padding: 10px; border-radius: 8px; font-weight: 700; word-break: break-word; white-space: pre-wrap;">
+          📝 ${d.detail || 'ต้องการเลือดสำหรับรักษาตัว'}
+        </p>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px solid var(--line); padding-top: 10px; gap: 8px; flex-wrap: wrap;">
+          <div style="font-size: 11px; color: var(--muted); font-weight: 700;">
+            🕒 โพสต์เมื่อ: ${timeStr}
+          </div>
+          <div style="display: flex; gap: 6px; align-items: center; margin-left: auto;">
+            ${showDeleteBtn ? `<button onclick="deleteBloodRequest('${docId}')" style="background:none; border:none; color:var(--red); font-size:12px; font-weight:800; cursor:pointer; padding:6px; display:flex; align-items:center; gap:3px;">🗑️ ลบประกาศ</button>` : ''}
+            <a href="tel:${d.phone}" style="background: #1f9e6e; color: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 800; text-decoration: none; display: flex; align-items: center; gap: 4px; border: none; cursor: pointer;">
+              📞 โทรติดต่อญาติ
+            </a>
+          </div>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+  }, (e) => {
+    console.error('Error listening to blood requests:', e);
+    listEl.innerHTML = '<div style="text-align:center; padding:20px; color:var(--red); font-weight:700;">⚠️ โหลดข้อมูลล้มเหลว กรุณาลองใหม่อีกครั้ง</div>';
+  });
+}
+
+function closeBloodRequests() {
+  if (bloodRequestsUnsub) {
+    bloodRequestsUnsub();
+    bloodRequestsUnsub = null;
+  }
+  document.getElementById('bloodRequestsOverlay').classList.add('hidden');
+}
+
+function openBloodRequestForm() {
+  ensureUserAuthenticated(() => {
+    document.getElementById('bloodReqPatientName').value = '';
+    document.getElementById('bloodReqType').value = 'O';
+    document.getElementById('bloodReqRh').value = 'Rh+ (บวก)';
+    document.getElementById('bloodReqHospital').value = 'โรงพยาบาลพหลพลพยุหเสนา';
+    document.getElementById('bloodReqPhone').value = userProfile?.phone ? userProfile.phone.replace('+66','0') : '';
+    document.getElementById('bloodReqDetail').value = '';
+    
+    document.getElementById('bloodReqErr').classList.add('hidden');
+    document.getElementById('bloodRequestModal').classList.remove('hidden');
+  });
+}
+
+function closeBloodRequestForm() {
+  document.getElementById('bloodRequestModal').classList.add('hidden');
+}
+
+async function submitBloodRequest() {
+  const errEl = document.getElementById('bloodReqErr');
+  errEl.classList.add('hidden');
+  
+  const patientName = document.getElementById('bloodReqPatientName').value.trim();
+  const bloodType = document.getElementById('bloodReqType').value;
+  const rhType = document.getElementById('bloodReqRh').value;
+  const hospital = document.getElementById('bloodReqHospital').value;
+  const phone = document.getElementById('bloodReqPhone').value.replace(/\D/g,'');
+  const detail = document.getElementById('bloodReqDetail').value.trim();
+  
+  if (!patientName) {
+    showErr('bloodReqErr', 'กรุณากรอกชื่อ-นามสกุล คนไข้');
+    return;
+  }
+  if (!phone || phone.length < 9 || phone.length > 10) {
+    showErr('bloodReqErr', 'กรุณากรอกเบอร์โทรติดต่อญาติให้ถูกต้อง (9-10 หลัก)');
+    return;
+  }
+  if (!detail) {
+    showErr('bloodReqErr', 'กรุณาระบุรายละเอียดการขอรับบริจาค เช่น ใช้ในการผ่าตัดด่วน');
+    return;
+  }
+  
+  try {
+    const creatorName = userProfile?.nickname || userProfile?.displayName || currentUser?.displayName || 'ผู้ใช้';
+    
+    // 1. Save to Firestore
+    await addDoc(collection(db, 'blood_requests'), {
+      patientName,
+      bloodType,
+      rhType,
+      hospital,
+      phone,
+      detail,
+      status: 'pending',
+      uid: currentUser.uid,
+      displayName: creatorName,
+      createdAt: serverTimestamp()
+    });
+    
+    // 2. Send Telegram Notification
+    if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+      const text = [
+        '🩸 <b>[ประกาศตามหาเลือดด่วนที่สุด]</b>',
+        `<b>กรุ๊ปโลหิต:</b> ⚠️ <b>${bloodType} (${rhType})</b>`,
+        `<b>คนไข้:</b> ${patientName}`,
+        `<b>โรงพยาบาล:</b> ${hospital}`,
+        `<b>ติดต่อโทรญาติ/ผู้ประสานงาน:</b> 📞 <a href="tel:${phone}">${phone}</a>`,
+        `<b>รายละเอียด:</b> ${detail}`,
+        `<b>ผู้ส่งประกาศ:</b> ${creatorName}`,
+        `<b>เวลา:</b> ${new Date().toLocaleString('th-TH')}`,
+        '',
+        '📢 <i>ท่านใดอยู่ในพื้นที่ใกล้เคียงและสะดวกบริจาคโลหิต สามารถติดต่อญาติหรือธนาคารเลือดเพื่อแจ้งความประสงค์ได้ทันทีครับ ขอขอบพระคุณครับ</i>'
+      ].join('\n');
+      
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: text,
+          parse_mode: 'HTML'
+        })
+      });
+    }
+    
+    closeBloodRequestForm();
+    alert('ลงประกาศตามหาเลือดด่วนเรียบร้อยแล้ว และส่งข้อความแจ้งเตือนเข้ากลุ่มกู้ภัยแล้วครับ!');
+  } catch (e) {
+    console.error(e);
+    showErr('bloodReqErr', 'บันทึกไม่สำเร็จ: ' + e.message);
+  }
+}
+
+async function deleteBloodRequest(docId) {
+  if (!confirm('คุณต้องการลบประกาศตามหาเลือดนี้ใช่หรือไม่?')) return;
+  try {
+    await deleteDoc(doc(db, 'blood_requests', docId));
+    alert('ลบประกาศตามหาเลือดเรียบร้อยแล้ว');
+  } catch (e) {
+    console.error(e);
+    alert('ลบประกาศไม่สำเร็จ: ' + e.message);
+  }
+}
+
+/* ============================================================
+   EXPOSE
+   ============================================================ */
+window.handleGoogleLogin=handleGoogleLogin;
+window.saveProfile=saveProfile;
+window.handleLogout=handleLogout;
+window.startHold=startHold;
+window.cancelHold=cancelHold;
+window.cancelCountdown=cancelCountdown;
+window.captureSosPhoto=captureSosPhoto;
+window.handleSosPhoto=handleSosPhoto;
+window.toggleSosAudioRecording=toggleSosAudioRecording;
+window.openAdminPhotoView=openAdminPhotoView;
+window.closeConfirmed=closeConfirmed;
+window.editProfile=editProfile;
+window.markAsSafe=markAsSafe;
+window.switchTab=switchTab;
+window.openSosOverlay=openSosOverlay;
+window.toggleShowTimeLabel=toggleShowTimeLabel;
+window.closeSosOverlay=closeSosOverlay;
+window.openBottomSheet=openBottomSheet;
+window.closeBottomSheet=closeBottomSheet;
+window.handleSheetItemClick=handleSheetItemClick;
+window.toggleAIChat=toggleAIChat;
+window.handleChatKeyPress=handleChatKeyPress;
+window.sendChatMessage=sendChatMessage;
+window.openChatRoom=openChatRoom;
+window.closeChatRoom=closeChatRoom;
+window.handleRoomKeyPress=handleRoomKeyPress;
+window.sendRoomMessage=sendRoomMessage;
+window.toggleAnonMode=toggleAnonMode;
+window.openAdminPanel=openAdminPanel;
+window.closeAdminPanel=closeAdminPanel;
+window.updateSosStatus=updateSosStatus;
+window.switchAdminTab=switchAdminTab;
+window.addCustomContact=addCustomContact;
+window.deleteCustomContact=deleteCustomContact;
+window.openTechReviews=openTechReviews;
+window.toggleAnnounceLabel=toggleAnnounceLabel;
+window.saveAnnouncement=saveAnnouncement;
+window.showAnnouncementDetail=showAnnouncementDetail;
+window.closeAnnouncementModal=closeAnnouncementModal;
+window.closeTechReviews=closeTechReviews;
+window.setReviewRating=setReviewRating;
+window.submitTechReview=submitTechReview;
+window.toggleAIChat=toggleAIChat;
+window.handleChatKeyPress=handleChatKeyPress;
+window.sendChatMessage=sendChatMessage;
+
+window.closeProfileModal=closeProfileModal;
+window.enableProfileEditMode=enableProfileEditMode;
+window.disableProfileEditMode=disableProfileEditMode;
+window.saveProfileFromTab=saveProfileFromTab;
+window.openBloodRequests=openBloodRequests;
+window.closeBloodRequests=closeBloodRequests;
+window.openBloodRequestForm=openBloodRequestForm;
+window.closeBloodRequestForm=closeBloodRequestForm;
+window.submitBloodRequest=submitBloodRequest;
+window.deleteBloodRequest=deleteBloodRequest;
+
+window.ensureUserAuthenticated=ensureUserAuthenticated;
+window.triggerSosGuard=triggerSosGuard;
+window.closeAuthGuard=closeAuthGuard;
+window.handleGoogleLoginFromGuard=handleGoogleLoginFromGuard;
+window.submitAdminPin=submitAdminPin;
+window.closeAdminPinModal=closeAdminPinModal;
+window.showActualAdminPanel=showActualAdminPanel;
+window.loadAdminUsers=loadAdminUsers;
+window.initLeafletMap=initLeafletMap;
+window.updateLeafletMap=updateLeafletMap;
+</script>
+</body>
 </html>
