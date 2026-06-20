@@ -1596,6 +1596,7 @@ function closeBottomSheet(){
 }
 
 function handleSheetItemClick(item){
+  const categoryKey = activeCategoryKey;
   closeBottomSheet();
   if(item.action === 'sos'){
     triggerSosGuard();
@@ -1607,7 +1608,10 @@ function handleSheetItemClick(item){
     ensureUserAuthenticated(() => openChatRoom('vent_messages', '💬 ห้องปรับทุกข์ชุมชน', 'พิมพ์ข้อความปรับทุกข์...'));
   } else if(item.action === 'lawyer_chat'){
     ensureUserAuthenticated(() => openChatRoom('lawyer_messages', '⚖️ ปรึกษาทนายความอาสา', 'พิมพ์ข้อความปรึกษาทนาย...'));
-  } else if(activeCategoryKey === 'car' || activeCategoryKey === 'work') {
+  } else if(categoryKey && USER_LISTING_CATEGORIES.includes(categoryKey) && item.action === 'info') {
+    // Open the listing form with pre-filled title (e.g. "บริการรถยก / รถสไลด์")
+    openUserListingForm(categoryKey, item.text);
+  } else if(categoryKey === 'car' || categoryKey === 'work') {
     openTechReviews(item);
   } else {
     if(item.tel){
