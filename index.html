@@ -984,18 +984,18 @@ button,input{font-family:inherit}
 <!-- ===== USER LISTING FORM MODAL ===== -->
 <div id="userListingModal" class="modal-bg hidden" style="align-items: center; z-index: 62;">
   <div class="modal-box" style="border-radius: 20px; width: calc(100% - 32px); max-width: 400px; padding: 24px; margin: 16px;">
-    <h2 style="font-size:18px; font-weight:800; margin:0 0 4px; display:flex; align-items:center; gap:8px">➕ ลงประกาศบริการ</h2>
-    <p style="font-size:12px; color:var(--muted); margin-bottom:16px; line-height:1.5;">ลงข้อมูลบริการ/ร้านค้าของคุณให้คนในชุมชนเห็นและติดต่อได้</p>
+    <h2 id="userListingModalTitle" style="font-size:18px; font-weight:800; margin:0 0 4px; display:flex; align-items:center; gap:8px">➕ ลงประกาศบริการ</h2>
+    <p id="userListingModalDesc" style="font-size:12px; color:var(--muted); margin-bottom:16px; line-height:1.5;">ลงข้อมูลบริการ/ร้านค้าของคุณให้คนในชุมชนเห็นและติดต่อได้</p>
 
     <div id="userListingErr" class="err-box hidden"></div>
 
-    <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:0 0 4px;">ชื่อบริการ / ร้านค้า / ตำแหน่งงาน *</label>
+    <label id="userListingTitleLabel" style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:0 0 4px;">ชื่อบริการ / ร้านค้า / ตำแหน่งงาน *</label>
     <input id="listingTitle" type="text" placeholder="เช่น อู่ซ่อมรถลุงสม, รับจ้างตัดหญ้า" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:15px; outline:none; margin-bottom:10px;">
 
     <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:0 0 4px;">เบอร์โทรติดต่อ *</label>
     <input id="listingPhone" type="tel" inputmode="numeric" placeholder="08XXXXXXXX" maxlength="10" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:15px; outline:none; margin-bottom:10px; text-align:center; letter-spacing:2px;">
 
-    <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:0 0 4px;">รายละเอียดเพิ่มเติม (ไม่บังคับ)</label>
+    <label id="userListingDetailLabel" style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:0 0 4px;">รายละเอียดเพิ่มเติม (ไม่บังคับ)</label>
     <textarea id="listingDetail" placeholder="เช่น เปิดบริการ 24 ชม. / รับงานทั่วกาญจนบุรี / เงินเดือน 15,000 บาท" rows="3" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:14px; outline:none; resize:none; font-family:inherit; margin-bottom:14px;"></textarea>
 
     <div style="display:flex; gap:8px;">
@@ -1431,10 +1431,11 @@ const serviceSubMenus = {
   pets: {
     title: "🐶 สัตว์เลี้ยง",
     items: [
-      { text: "🔍 แจ้งสัตว์เลี้ยงสูญหาย", action: "info", msg: "แจ้งสัตว์เลี้ยงหายในพื้นที่ ส่งข้อมูลเข้าไลน์กู้ชีพเรียบร้อย..." },
-      { text: "🐾 แจ้งพบสัตว์พลัดหลง", action: "info", msg: "แจ้งสัตว์พลัดหลง ข้อมูลถูกส่งเข้าเครือข่ายช่วยหาสัตว์เลี้ยงแล้ว..." },
-      { text: "🏥 โรงพยาบาลสัตว์ 24 ชม.", action: "info", msg: "กำลังจัดแสดงพิกัดโรงพยาบาลสัตว์กู้ชีพที่ใกล้ที่สุด..." },
-      { text: "🏠 รับเลี้ยงสัตว์ไร้บ้าน", action: "info", msg: "เปิดดูเพจโครงการหาบ้านใหม่ให้สัตว์จรจัด..." }
+      { text: "🔍 แจ้งสัตว์เลี้ยงสูญหาย / ตามหาเจ้าของ", action: "info", msg: "แจ้งสัตว์เลี้ยงหายในพื้นที่ ส่งข้อมูลเข้าระบบช่วยตามหาเรียบร้อย... หากยังหาไม่พบสามารถกดลงประกาศเพิ่มเติมที่ปุ่มด้านล่างได้ครับ" },
+      { text: "🐾 แจ้งพบสัตว์พลัดหลง / สัตว์จรด่วน", action: "info", msg: "บันทึกข้อมูลแจ้งพบสัตว์พลัดหลงเรียบร้อย... หากต้องการให้คนมาช่วยรับเลี้ยงหรือมารับกลับ สามารถลงประกาศได้ครับ" },
+      { text: "🏥 คลินิกสัตว์ / โรงพยาบาลสัตว์ใกล้ตัว", action: "info", msg: "ระบบกำลังรวบรวมรายชื่อคลินิกรักษาสัตว์ที่อยู่ใกล้พิกัดของคุณ..." },
+      { text: "🍖 ร้านขายอาหารสัตว์ / อุปกรณ์เลี้ยงสัตว์", action: "info", msg: "กำลังค้นหาร้านจำหน่ายอาหารและอุปกรณ์สัตว์เลี้ยงในพื้นที่..." },
+      { text: "🏡 บริการรับฝากเลี้ยงสัตว์ / อาบน้ำตัดขน", action: "info", msg: "กำลังสแกนหาผู้ให้บริการรับฝากเลี้ยงและอาบน้ำตัดขนในกาญจนบุรี..." }
     ]
   },
   travel: {
@@ -1556,7 +1557,18 @@ function renderBottomSheetContent(categoryKey) {
     // Add "ลงประกาศ" button at the end
     const addBtn = document.createElement('button');
     addBtn.style.cssText = 'width:100%; padding:14px; background:linear-gradient(135deg, var(--green), var(--green-d)); color:#fff; border:none; border-radius:14px; font-size:15px; font-weight:800; cursor:pointer; margin-top:12px; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 16px rgba(31,158,110,0.25);';
-    addBtn.innerHTML = '➕ ลงประกาศบริการของฉัน';
+    
+    let addBtnText = '➕ ลงประกาศของฉัน';
+    if (categoryKey === 'car') {
+      addBtnText = '➕ ลงประกาศบริการซ่อม / อู่รถ / รถยก ของฉัน';
+    } else if (categoryKey === 'work') {
+      addBtnText = '➕ ลงประกาศรับงานของฉัน (ช่าง/ตัดหญ้า/ดูแล)';
+    } else if (categoryKey === 'jobs') {
+      addBtnText = '💼 ลงประกาศรับสมัครงาน / ฝากประวัติหางาน';
+    } else if (categoryKey === 'pets') {
+      addBtnText = '🐶 ลงประกาศสัตว์เลี้ยง / คลินิก / สัตว์หาย';
+    }
+    addBtn.innerHTML = addBtnText;
     addBtn.onclick = () => openUserListingForm(categoryKey);
     listEl.appendChild(addBtn);
   }
@@ -3462,6 +3474,60 @@ let currentListingCategory = null;
 function openUserListingForm(categoryKey) {
   ensureUserAuthenticated(() => {
     currentListingCategory = categoryKey;
+    
+    // Default placeholders and labels
+    let modalTitle = '➕ ลงประกาศบริการ';
+    let modalDesc = 'ลงข้อมูลบริการ/ร้านค้าของคุณให้คนในชุมชนเห็นและติดต่อได้';
+    let titleLabel = 'ชื่อบริการ / ร้านค้า / ตำแหน่งงาน *';
+    let titlePlaceholder = 'เช่น อู่ซ่อมรถลุงสม, รับจ้างตัดหญ้า';
+    let detailLabel = 'รายละเอียดเพิ่มเติม (ไม่บังคับ)';
+    let detailPlaceholder = 'เช่น เปิดบริการ 24 ชม. / รับงานทั่วกาญจนบุรี / เงินเดือน 15,000 บาท';
+    
+    if (categoryKey === 'car') {
+      modalTitle = '➕ ลงประกาศบริการ ช่าง / อู่ซ่อม / รถยก';
+      modalDesc = 'โปรโมทบริการช่วยเหลือเดินทาง/รถเสียของคุณในกาญจนบุรี ยิ่งมีข้อมูลเยอะคนในพื้นที่ยิ่งอุ่นใจครับ';
+      titleLabel = 'ชื่อบริการ / อู่ซ่อม / ช่างรถ / บริการรถยก *';
+      titlePlaceholder = 'เช่น อู่ช่างวิทย์ปะยางด่วน, รถยกสไลด์พนมทวน, ช่างกุญแจเมืองกาญจน์';
+      detailLabel = 'รายละเอียดการบริการ / อัตราค่าบริการ / พื้นที่รับงาน *';
+      detailPlaceholder = 'เช่น บริการปะยางนอกสถานที่ 24 ชั่วโมง ทั่วเขตอำเภอเมือง, พ่วงแบตเตอรี่รถยนต์เริ่มต้น 300 บาท';
+    } else if (categoryKey === 'work') {
+      modalTitle = '➕ ลงประกาศรับงาน ช่างทั่วไป / บริการตามบ้าน';
+      modalDesc = 'ลงประกาศรับงานบริการ ช่างไฟ ช่างประปา รับจ้างตัดหญ้า หรือรับดูแลผู้สูงอายุ เพื่อให้คนในชุมชนจ้างงานได้โดยตรง';
+      titleLabel = 'ช่างรับงาน / ประเภทงานที่รับ *';
+      titlePlaceholder = 'เช่น ช่างไฟฟ้าเดินสาย, คนรับจ้างตัดหญ้า/จัดสวน, บริการดูแลผู้สูงอายุ/ผู้ป่วย';
+      detailLabel = 'รายละเอียดงาน / อัตราค่าบริการเริ่มต้น / พื้นที่ให้บริการ *';
+      detailPlaceholder = 'เช่น รับล้างเครื่องปรับอากาศเริ่มต้น 500 บาท, รับดูแลผู้สูงอายุรายวัน/รายเดือน ทั่วเขตท่าม่วง';
+    } else if (categoryKey === 'jobs') {
+      modalTitle = '💼 ลงประกาศรับสมัครงาน หรือ ฝากประวัติหางาน';
+      modalDesc = 'พื้นที่สำหรับร้านค้า โรงงาน ไร่สวน โรงแรม ในกาญจนบุรี ลงประกาศรับคนทำงาน หรือคนหางานมาลงแนะนำประวัติการทำงานได้ฟรี';
+      titleLabel = 'ตำแหน่งงานที่รับสมัคร หรือ ตำแหน่งที่ต้องการทำ *';
+      titlePlaceholder = 'เช่น รับสมัครคนงานสวนยาง/ไร่สวน, สนใจงานพนักงานเสิร์ฟ/แคชเชียร์, รับสมัครช่างเชื่อมด่วน';
+      detailLabel = 'รายละเอียดงาน / อัตราค่าจ้าง / คุณสมบัติ หรือ ประสบการณ์ทำงาน *';
+      detailPlaceholder = 'เช่น รับคนงานตัดอ้อย 10 อัตรา ค่าจ้างวันละ 400 บาท มีที่พักฟรี หรือ หางานทำความสะอาดบ้าน/รีสอร์ต มีประสบการณ์ 3 ปี';
+    } else if (categoryKey === 'pets') {
+      modalTitle = '🐶 ลงประกาศเกี่ยวกับสัตว์เลี้ยง';
+      modalDesc = 'ลงโปรโมทคลินิกรักษาสัตว์ ร้านอาหารสัตว์ บริการรับฝากเลี้ยง หรือแจ้งเหตุสัตว์เลี้ยงสูญหาย/พบสัตว์พลัดหลง';
+      titleLabel = 'ชื่อร้าน/คลินิก หรือ หัวข้อประกาศสัตว์หาย/สัตว์พลัดหลง *';
+      titlePlaceholder = 'เช่น คลินิกรักษาสัตว์แสนรัก, แจ้งสุนัขหายสายพันธุ์บีเกิล, พบแมวหลงใส่ปลอกคอ';
+      detailLabel = 'รายละเอียดบริการ หรือ ข้อมูลรูปพรรณสัตว์และพิกัดที่พบ *';
+      detailPlaceholder = 'เช่น บริการรับฝากเลี้ยงสุนัข/แมว ห้องแอร์ หรือ สุนัขบีเกิลเพศเมีย หายแถวหน้าโรงเรียนกาญจนานุเคราะห์ มีสินน้ำใจให้ผู้พบเห็น';
+    }
+    
+    // Update elements dynamically
+    const titleEl = document.getElementById('userListingModalTitle');
+    const descEl = document.getElementById('userListingModalDesc');
+    const labelTitleEl = document.getElementById('userListingTitleLabel');
+    const labelDetailEl = document.getElementById('userListingDetailLabel');
+    
+    if (titleEl) titleEl.innerHTML = modalTitle;
+    if (descEl) descEl.innerHTML = modalDesc;
+    if (labelTitleEl) labelTitleEl.innerHTML = labelTitleEl.innerText.endsWith('*') ? titleLabel : titleLabel;
+    if (labelTitleEl) labelTitleEl.textContent = titleLabel;
+    if (labelDetailEl) labelDetailEl.textContent = detailLabel;
+    
+    document.getElementById('listingTitle').placeholder = titlePlaceholder;
+    document.getElementById('listingDetail').placeholder = detailPlaceholder;
+    
     document.getElementById('listingTitle').value = '';
     document.getElementById('listingPhone').value = userProfile?.phone || '';
     document.getElementById('listingDetail').value = '';
