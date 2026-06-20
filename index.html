@@ -924,6 +924,32 @@ button,input{font-family:inherit}
 </div>
 
 <!-- ===== ANNOUNCEMENT DETAIL DIALOG ===== -->
+
+<!-- ===== USER LISTING FORM MODAL ===== -->
+<div id="userListingModal" class="modal-bg hidden" style="align-items: center; z-index: 62;">
+  <div class="modal-box" style="border-radius: 20px; width: calc(100% - 32px); max-width: 400px; padding: 24px; margin: 16px;">
+    <h2 style="font-size:18px; font-weight:800; margin:0 0 4px; display:flex; align-items:center; gap:8px">➕ ลงประกาศบริการ</h2>
+    <p style="font-size:12px; color:var(--muted); margin-bottom:16px; line-height:1.5;">ลงข้อมูลบริการ/ร้านค้าของคุณให้คนในชุมชนเห็นและติดต่อได้</p>
+
+    <div id="userListingErr" class="err-box hidden"></div>
+
+    <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:0 0 4px;">ชื่อบริการ / ร้านค้า / ตำแหน่งงาน *</label>
+    <input id="listingTitle" type="text" placeholder="เช่น อู่ซ่อมรถลุงสม, รับจ้างตัดหญ้า" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:15px; outline:none; margin-bottom:10px;">
+
+    <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:0 0 4px;">เบอร์โทรติดต่อ *</label>
+    <input id="listingPhone" type="tel" inputmode="numeric" placeholder="08XXXXXXXX" maxlength="10" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:15px; outline:none; margin-bottom:10px; text-align:center; letter-spacing:2px;">
+
+    <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:0 0 4px;">รายละเอียดเพิ่มเติม (ไม่บังคับ)</label>
+    <textarea id="listingDetail" placeholder="เช่น เปิดบริการ 24 ชม. / รับงานทั่วกาญจนบุรี / เงินเดือน 15,000 บาท" rows="3" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:14px; outline:none; resize:none; font-family:inherit; margin-bottom:14px;"></textarea>
+
+    <div style="display:flex; gap:8px;">
+      <button onclick="submitUserListing()" style="flex:1; background:var(--green); color:#fff; border:none; border-radius:12px; padding:14px; font-size:15px; font-weight:800; cursor:pointer;">✅ ลงประกาศ</button>
+      <button onclick="closeUserListingForm()" style="flex:1; background:var(--line); color:var(--ink); border:none; border-radius:12px; padding:14px; font-size:15px; font-weight:800; cursor:pointer;">✕ ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ANNOUNCEMENT DETAIL DIALOG ===== -->
 <div id="announcementModal" class="modal-bg hidden" style="align-items: center; z-index: 61;">
   <div class="modal-box" style="border-radius: 20px; width: calc(100% - 32px); max-width: 380px; padding: 24px; text-align: center; margin: 16px;">
     <span id="announcementModalIcon" style="font-size: 40px; display: block; margin-bottom: 12px">📢</span>
@@ -1033,6 +1059,9 @@ listenAnnouncement();
 
 // Auto-strip non-digits from phone input to prevent formatting bugs
 document.getElementById('profilePhoneInput').addEventListener('input', (e) => {
+  e.target.value = e.target.value.replace(/\D/g, '');
+});
+document.getElementById('listingPhone').addEventListener('input', (e) => {
   e.target.value = e.target.value.replace(/\D/g, '');
 });
 
@@ -1396,6 +1425,8 @@ function openBottomSheet(categoryKey){
   document.getElementById('bottomSheet').classList.remove('hidden');
 }
 
+const USER_LISTING_CATEGORIES = ['car', 'work', 'jobs', 'pets'];
+
 function renderBottomSheetContent(categoryKey) {
   const data = serviceSubMenus[categoryKey];
   if(!data) return;
@@ -1407,7 +1438,7 @@ function renderBottomSheetContent(categoryKey) {
     renderSingleSheetItem(listEl, item);
   });
   
-  // Load custom contacts from Firestore
+  // Load custom contacts from Firestore (admin-added)
   const q = query(collection(db, 'contacts'), where('category', '==', categoryKey));
   getDocs(q).then((snapshot) => {
     snapshot.forEach(docSnap => {
@@ -1421,6 +1452,49 @@ function renderBottomSheetContent(categoryKey) {
       renderSingleSheetItem(listEl, item);
     });
   }).catch(e => console.error('Error loading custom contacts:', e));
+  
+  // Load user-submitted listings from Firestore
+  if (USER_LISTING_CATEGORIES.includes(categoryKey)) {
+    const qUser = query(collection(db, 'user_listings'), where('category', '==', categoryKey), orderBy('createdAt', 'desc'), limit(30));
+    getDocs(qUser).then((snapshot) => {
+      if (!snapshot.empty) {
+        // Section divider
+        const divider = document.createElement('div');
+        divider.style.cssText = 'font-size:12px; font-weight:800; color:var(--muted); padding:12px 0 4px; border-top:1px solid var(--line); margin-top:6px; display:flex; align-items:center; gap:6px;';
+        divider.innerHTML = '👥 ประกาศจากสมาชิก';
+        listEl.appendChild(divider);
+      }
+      
+      snapshot.forEach(docSnap => {
+        const d = docSnap.data();
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:6px;';
+        
+        const timeStr = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleDateString('th-TH', { day:'numeric', month:'short' }) : '';
+        
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-weight:800; font-size:14px; color:var(--ink);">${d.title}</span>
+            <span style="font-size:10px; color:var(--muted);">${timeStr}</span>
+          </div>
+          ${d.detail ? `<div style="font-size:12px; color:var(--muted); line-height:1.4;">${d.detail}</div>` : ''}
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+            <span style="font-size:11px; color:var(--muted);">โดย ${d.displayName || 'สมาชิก'}</span>
+            <a href="tel:${d.phone}" style="background:var(--green); color:#fff; border-radius:8px; padding:6px 14px; font-size:12px; font-weight:800; text-decoration:none; display:flex; align-items:center; gap:4px;">📞 ${d.phone}</a>
+          </div>
+          ${d.uid === currentUser?.uid ? `<button onclick="deleteUserListing('${docSnap.id}')" style="background:none; border:1px solid var(--red); color:var(--red); border-radius:8px; padding:6px; font-size:11px; font-weight:700; cursor:pointer; margin-top:2px;">🗑️ ลบประกาศของฉัน</button>` : ''}
+        `;
+        listEl.appendChild(card);
+      });
+    }).catch(e => console.error('Error loading user listings:', e));
+    
+    // Add "ลงประกาศ" button at the end
+    const addBtn = document.createElement('button');
+    addBtn.style.cssText = 'width:100%; padding:14px; background:linear-gradient(135deg, var(--green), var(--green-d)); color:#fff; border:none; border-radius:14px; font-size:15px; font-weight:800; cursor:pointer; margin-top:12px; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 16px rgba(31,158,110,0.25);';
+    addBtn.innerHTML = '➕ ลงประกาศบริการของฉัน';
+    addBtn.onclick = () => openUserListingForm(categoryKey);
+    listEl.appendChild(addBtn);
+  }
 }
 
 function renderSingleSheetItem(listEl, item) {
@@ -3316,6 +3390,82 @@ async function deleteBloodRequest(docId) {
 }
 
 /* ============================================================
+   USER LISTING (สมาชิกลงประกาศเอง)
+   ============================================================ */
+let currentListingCategory = null;
+
+function openUserListingForm(categoryKey) {
+  ensureUserAuthenticated(() => {
+    currentListingCategory = categoryKey;
+    document.getElementById('listingTitle').value = '';
+    document.getElementById('listingPhone').value = userProfile?.phone || '';
+    document.getElementById('listingDetail').value = '';
+    document.getElementById('userListingErr').classList.add('hidden');
+    document.getElementById('userListingModal').classList.remove('hidden');
+    document.getElementById('listingTitle').focus();
+  });
+}
+
+function closeUserListingForm() {
+  document.getElementById('userListingModal').classList.add('hidden');
+  currentListingCategory = null;
+}
+
+async function submitUserListing() {
+  const title = document.getElementById('listingTitle').value.trim();
+  const phone = document.getElementById('listingPhone').value.replace(/\D/g, '');
+  const detail = document.getElementById('listingDetail').value.trim();
+  
+  if (!title) {
+    showErr('userListingErr', 'กรุณากรอกชื่อบริการ / ร้านค้า / ตำแหน่งงาน');
+    return;
+  }
+  if (!phone || phone.length < 9 || phone.length > 10) {
+    showErr('userListingErr', 'กรุณากรอกเบอร์โทรให้ถูกต้อง (9-10 หลัก)');
+    return;
+  }
+  
+  const displayName = userProfile?.nickname || userProfile?.displayName || currentUser?.displayName || 'สมาชิก';
+  
+  try {
+    await addDoc(collection(db, 'user_listings'), {
+      category: currentListingCategory,
+      title: title,
+      phone: phone,
+      detail: detail,
+      uid: currentUser.uid,
+      displayName: displayName,
+      createdAt: serverTimestamp()
+    });
+    
+    closeUserListingForm();
+    alert('ลงประกาศบริการเรียบร้อยแล้วครับ! ข้อมูลจะแสดงในหมวดบริการทันที');
+    
+    // Refresh bottom sheet
+    if (activeCategoryKey) {
+      renderBottomSheetContent(activeCategoryKey);
+    }
+  } catch (e) {
+    console.error(e);
+    showErr('userListingErr', 'บันทึกไม่สำเร็จ: ' + e.message);
+  }
+}
+
+async function deleteUserListing(docId) {
+  if (!confirm('คุณต้องการลบประกาศนี้ใช่หรือไม่?')) return;
+  try {
+    await deleteDoc(doc(db, 'user_listings', docId));
+    alert('ลบประกาศเรียบร้อยแล้ว');
+    if (activeCategoryKey) {
+      renderBottomSheetContent(activeCategoryKey);
+    }
+  } catch (e) {
+    console.error(e);
+    alert('ลบไม่สำเร็จ: ' + e.message);
+  }
+}
+
+/* ============================================================
    EXPOSE
    ============================================================ */
 window.handleGoogleLogin=handleGoogleLogin;
@@ -3385,6 +3535,10 @@ window.showActualAdminPanel=showActualAdminPanel;
 window.loadAdminUsers=loadAdminUsers;
 window.initLeafletMap=initLeafletMap;
 window.updateLeafletMap=updateLeafletMap;
+window.openUserListingForm=openUserListingForm;
+window.closeUserListingForm=closeUserListingForm;
+window.submitUserListing=submitUserListing;
+window.deleteUserListing=deleteUserListing;
 </script>
 </body>
 </html>
