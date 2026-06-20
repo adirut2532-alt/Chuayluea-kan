@@ -471,6 +471,28 @@ button,input{font-family:inherit}
         <h3>ข่าวสารชุมชน</h3>
         <p>แจ้งไฟดับ, น้ำไม่ไหล, อุทกภัย</p>
       </div>
+      <div class="srv-card accent-green" onclick="openBottomSheet('jobs')">
+        <span class="icon">💼</span>
+        <h3>รับสมัครงาน & หางาน</h3>
+        <p>สมัครงาน, ประกาศรับคน, ฝึกอาชีพ</p>
+      </div>
+    </div>
+
+    <!-- ===== CONTACT ADMIN SECTION ===== -->
+    <div style="padding:0 16px 24px;">
+      <div class="section-title" style="margin:16px 0 0; padding-left:4px; border-left:4px solid var(--blue)">📞 ติดต่อแอดมิน / ลงทะเบียนบริการ</div>
+      <div style="background:#fff; border-radius:16px; padding:18px; margin-top:12px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:10px;">
+        <p style="font-size:13px; color:var(--muted); line-height:1.6; margin:0;">อู่รถ, ร้านค้า, ช่างฝีมือ หรือผู้สนใจลงข้อมูลบริการในแอป / สนใจร่วมงานจิตอาสา / ร่วมบริจาค สามารถติดต่อแอดมินได้ผ่านเพจ Facebook ด้านล่างครับ</p>
+
+        <a href="https://www.facebook.com/share/1CnRMfmbFh/?mibextid=wwXIfr" target="_blank" style="display:flex; align-items:center; gap:10px; background:var(--blue-l); border:1px solid rgba(37,64,200,0.1); border-radius:12px; padding:14px 16px; text-decoration:none; color:var(--blue); font-weight:700; font-size:15px;">
+          📘 ติดต่อแอดมินผ่าน Facebook
+        </a>
+
+        <p style="font-size:11px; color:var(--muted); text-align:center; margin:4px 0 0; line-height:1.5;">
+          💬 ส่งข้อความทาง Inbox เพจได้เลยครับ<br>
+          (กรณีฉุกเฉินกด SOS ได้ตลอด 24 ชม.)
+        </p>
+      </div>
     </div>
   </div>
 
@@ -746,6 +768,7 @@ button,input{font-family:inherit}
             <option value="pets">🐶 สัตว์เลี้ยง</option>
             <option value="travel">🏞️ ท่องเที่ยวปลอดภัย</option>
             <option value="news">📢 ข่าวสารชุมชน</option>
+            <option value="jobs">💼 รับสมัครงาน & หางาน</option>
           </select>
         </div>
         <div style="flex:1">
@@ -1347,6 +1370,18 @@ const serviceSubMenus = {
       { text: "🚧 แจ้งปิดเส้นทางการจราจร", action: "info", msg: "กำลังเปิดตรวจสอบแผนที่เส้นทางการปิดปรับปรุงในกาญจนบุรี..." },
       { text: "🌊 แจ้งเตือนอุทกภัย / น้ำท่วม / น้ำป่า", action: "info", msg: "⚠️ ระบบเฝ้าระวังสถานการณ์น้ำกาญจนบุรี กรุณาติดตามการแจ้งเตือนจากกรมอุตุนิยมวิทยาและอพยพตามคำแนะนำเจ้าหน้าที่ หากพบเหตุฉุกเฉินให้กดปุ่ม SOS ทันทีครับ" },
       { text: "📰 ข่าวสารเด่นประจำสัปดาห์", action: "switch_tab", tab: "Community" }
+    ]
+  },
+  jobs: {
+    title: "💼 รับสมัครงาน & หางาน",
+    items: [
+      { text: "📋 ประกาศรับสมัครงานในกาญจนบุรี", action: "info", msg: "กำลังโหลดรายการประกาศรับสมัครงานล่าสุดในพื้นที่กาญจนบุรี..." },
+      { text: "🔍 หางานทำ / ฝากประวัติหางาน", action: "info", msg: "ระบบบันทึกความต้องการหางานของคุณแล้ว กำลังจับคู่กับตำแหน่งที่เปิดรับ..." },
+      { text: "🏭 งานโรงงาน / อุตสาหกรรม", action: "info", msg: "กำลังค้นหาตำแหน่งงานโรงงานและอุตสาหกรรมในเขตกาญจนบุรี..." },
+      { text: "🏪 งานร้านค้า / ร้านอาหาร / บริการ", action: "info", msg: "กำลังค้นหาตำแหน่งงานร้านค้าและบริการในพื้นที่..." },
+      { text: "🌾 งานเกษตร / ไร่ / สวน", action: "info", msg: "กำลังค้นหางานภาคเกษตรและไร่สวนในกาญจนบุรี..." },
+      { text: "💻 งาน Part-time / Freelance", action: "info", msg: "กำลังค้นหางาน Part-time และ Freelance ที่เปิดรับในพื้นที่..." },
+      { text: "🎓 ฝึกอาชีพ / อบรมทักษะฟรี", action: "info", msg: "กำลังโหลดรายการหลักสูตรฝึกอาชีพและอบรมทักษะฟรีจากหน่วยงานราชการ..." }
     ]
   }
 };
