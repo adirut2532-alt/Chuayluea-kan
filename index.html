@@ -4,8 +4,64 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ช่วยเหลือกาญ">
 <meta name="theme-color" content="#1f9e6e">
 <title>ช่วยเหลือกาญ — SOS</title>
+<script>
+// PWA Manifest (inline for single-file deploy)
+const LOGO_BASE64 = "data:image/webp;base64,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";
+const manifest = {
+  name: "ช่วยเหลือกาญ",
+  short_name: "ช่วยเหลือกาญ",
+  description: "แอปช่วยเหลือฉุกเฉินชุมชนกาญจนบุรี",
+  start_url: "./",
+  display: "standalone",
+  background_color: "#f4f5f8",
+  theme_color: "#1f9e6e",
+  orientation: "portrait",
+  icons: [
+    { src: LOGO_BASE64, sizes: "200x133", type: "image/webp", purpose: "any maskable" }
+  ]
+};
+const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+const manifestURL = URL.createObjectURL(blob);
+const link = document.createElement('link');
+link.rel = 'manifest';
+link.href = manifestURL;
+document.head.appendChild(link);
+
+// Convert logo to PNG for apple-touch-icon
+const img = new Image();
+img.onload = () => {
+  const c = document.createElement('canvas');
+  c.width = 180; c.height = 180;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#1f9e6e';
+  ctx.fillRect(0, 0, 180, 180);
+  const s = Math.min(180 / img.width, 180 / img.height) * 0.85;
+  const w = img.width * s, h = img.height * s;
+  ctx.drawImage(img, (180 - w) / 2, (180 - h) / 2, w, h);
+  const pngUrl = c.toDataURL('image/png');
+  const appleIcon = document.createElement('link');
+  appleIcon.rel = 'apple-touch-icon';
+  appleIcon.href = pngUrl;
+  document.head.appendChild(appleIcon);
+  // Also set favicon
+  const favicon = document.createElement('link');
+  favicon.rel = 'icon';
+  favicon.type = 'image/png';
+  favicon.href = pngUrl;
+  document.head.appendChild(favicon);
+  // Update manifest with PNG icon
+  manifest.icons = [
+    { src: pngUrl, sizes: "180x180", type: "image/png", purpose: "any maskable" }
+  ];
+  const blob2 = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  link.href = URL.createObjectURL(blob2);
+};
+img.src = LOGO_BASE64;
+</script>
 <!-- Leaflet Map CSS & JS CDNs -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1455,17 +1511,25 @@ function renderBottomSheetContent(categoryKey) {
   
   // Load user-submitted listings from Firestore
   if (USER_LISTING_CATEGORIES.includes(categoryKey)) {
-    const qUser = query(collection(db, 'user_listings'), where('category', '==', categoryKey), orderBy('createdAt', 'desc'), limit(30));
+    const qUser = query(collection(db, 'user_listings'), where('category', '==', categoryKey), limit(30));
     getDocs(qUser).then((snapshot) => {
       if (!snapshot.empty) {
+        // Sort client-side by createdAt desc
+        const docs = [];
+        snapshot.forEach(docSnap => docs.push(docSnap));
+        docs.sort((a, b) => {
+          const ta = a.data().createdAt?.seconds || 0;
+          const tb = b.data().createdAt?.seconds || 0;
+          return tb - ta;
+        });
+        
         // Section divider
         const divider = document.createElement('div');
         divider.style.cssText = 'font-size:12px; font-weight:800; color:var(--muted); padding:12px 0 4px; border-top:1px solid var(--line); margin-top:6px; display:flex; align-items:center; gap:6px;';
         divider.innerHTML = '👥 ประกาศจากสมาชิก';
         listEl.appendChild(divider);
-      }
-      
-      snapshot.forEach(docSnap => {
+        
+        docs.forEach(docSnap => {
         const d = docSnap.data();
         const card = document.createElement('div');
         card.style.cssText = 'background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:6px;';
@@ -1486,6 +1550,7 @@ function renderBottomSheetContent(categoryKey) {
         `;
         listEl.appendChild(card);
       });
+      }
     }).catch(e => console.error('Error loading user listings:', e));
     
     // Add "ลงประกาศ" button at the end
