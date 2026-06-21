@@ -532,6 +532,12 @@ button,input{font-family:inherit}
         <h3>รับสมัครงาน & หางาน</h3>
         <p>สมัครงาน, ประกาศรับคน, ฝึกอาชีพ</p>
       </div>
+      <div class="srv-card accent-orange" onclick="openBottomSheet('share')">
+        <div id="shareCardBadge" class="card-badge hidden">0</div>
+        <span class="icon">🤝</span>
+        <h3>ชวน & แชร์</h3>
+        <p>หาเพื่อน, แชร์กิจกรรม, ชุมชน</p>
+      </div>
     </div>
 
     <!-- ===== CONTACT ADMIN SECTION ===== -->
@@ -825,6 +831,7 @@ button,input{font-family:inherit}
             <option value="travel">🏞️ ท่องเที่ยวปลอดภัย</option>
             <option value="news">📢 ข่าวสารชุมชน</option>
             <option value="jobs">💼 รับสมัครงาน & หางาน</option>
+            <option value="share">🤝 ชวน & แชร์</option>
           </select>
         </div>
         <div style="flex:1">
@@ -1091,6 +1098,9 @@ const firebaseConfig = {
 const TELEGRAM_BOT_TOKEN = "8840020497:AAEzTP3Qh6XzplLzF0LHjLHXGjXzlbKXne8";
 const TELEGRAM_CHAT_ID = "-1004428607725";
 
+// Gemini API Key config (optional separate key for Gemini if Firebase key is restricted)
+const GEMINI_API_KEY = "AQ.Ab8RN6Lf42bW4u_VxFkTjJVrODxTmlyuH8nLbmYKnOXHK4_kvA"; 
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -1099,11 +1109,27 @@ auth.languageCode = 'th';
 // Badges and unread message tracking state
 let unreadCounts = {
   vent_messages: 0,
-  lawyer_messages: 0
+  lawyer_messages: 0,
+  share_fit_messages: 0,
+  share_food_messages: 0,
+  share_merit_messages: 0,
+  share_read_messages: 0,
+  share_drink_messages: 0,
+  share_travel_messages: 0,
+  share_pets_messages: 0,
+  share_skills_messages: 0
 };
 let lastReadTimestamps = {
   vent_messages: localStorage.getItem('lastRead_vent_messages') ? parseInt(localStorage.getItem('lastRead_vent_messages')) : Date.now(),
-  lawyer_messages: localStorage.getItem('lastRead_lawyer_messages') ? parseInt(localStorage.getItem('lastRead_lawyer_messages')) : Date.now()
+  lawyer_messages: localStorage.getItem('lastRead_lawyer_messages') ? parseInt(localStorage.getItem('lastRead_lawyer_messages')) : Date.now(),
+  share_fit_messages: localStorage.getItem('lastRead_share_fit_messages') ? parseInt(localStorage.getItem('lastRead_share_fit_messages')) : Date.now(),
+  share_food_messages: localStorage.getItem('lastRead_share_food_messages') ? parseInt(localStorage.getItem('lastRead_share_food_messages')) : Date.now(),
+  share_merit_messages: localStorage.getItem('lastRead_share_merit_messages') ? parseInt(localStorage.getItem('lastRead_share_merit_messages')) : Date.now(),
+  share_read_messages: localStorage.getItem('lastRead_share_read_messages') ? parseInt(localStorage.getItem('lastRead_share_read_messages')) : Date.now(),
+  share_drink_messages: localStorage.getItem('lastRead_share_drink_messages') ? parseInt(localStorage.getItem('lastRead_share_drink_messages')) : Date.now(),
+  share_travel_messages: localStorage.getItem('lastRead_share_travel_messages') ? parseInt(localStorage.getItem('lastRead_share_travel_messages')) : Date.now(),
+  share_pets_messages: localStorage.getItem('lastRead_share_pets_messages') ? parseInt(localStorage.getItem('lastRead_share_pets_messages')) : Date.now(),
+  share_skills_messages: localStorage.getItem('lastRead_share_skills_messages') ? parseInt(localStorage.getItem('lastRead_share_skills_messages')) : Date.now()
 };
 let activeCategoryKey = null;
 
@@ -1469,6 +1495,19 @@ const serviceSubMenus = {
       { text: "💻 งาน Part-time / Freelance", action: "info", msg: "กำลังค้นหางาน Part-time และ Freelance ที่เปิดรับในพื้นที่..." },
       { text: "🎓 ฝึกอาชีพ / อบรมทักษะฟรี", action: "info", msg: "กำลังโหลดรายการหลักสูตรฝึกอาชีพและอบรมทักษะฟรีจากหน่วยงานราชการ..." }
     ]
+  },
+  share: {
+    title: "🤝 ชวน & แชร์",
+    items: [
+      { text: "🏃‍♂️ ชวนออกกำลังกาย (Fit & Firm)", action: "share_chat", room: "share_fit_messages", placeholder: "หาเพื่อนวิ่ง ชวนปั่นจักรยาน หรือตีแบดมินตัน..." },
+      { text: "🍲 ชวนกิน (กาญจน์สายกิน)", action: "share_chat", room: "share_food_messages", placeholder: "รีวิวร้านเด็ด ของดีเมืองกาญจน์ หรือชวนคาเฟ่..." },
+      { text: "🌤️ ชวนทำบุญ (สะพานบุญ)", action: "share_chat", room: "share_merit_messages", placeholder: "บอกบุญงานกฐิน ชวนไปทำความสะอาดวัด/บริจาค..." },
+      { text: "📚 ชวนอ่าน & เรียน (เติมความรู้)", action: "share_chat", room: "share_read_messages", placeholder: "แชร์หนังสือดีๆ ชวนติว หรือแลกเปลี่ยนความรู้..." },
+      { text: "🍹 ชวนดื่ม (สหายสายชิล)", action: "share_chat", room: "share_drink_messages", placeholder: "หาเพื่อนคุย นั่งฟังเพลงชิลๆ ยามค่ำคืน..." },
+      { text: "⛰️ ชวนเที่ยว & แคมป์ปิ้ง (Green กาญจน์)", action: "share_chat", room: "share_travel_messages", placeholder: "ชวนกางเต็นท์ เดินป่า ขึ้นเขา หรือล่องแพ..." },
+      { text: "🐾 ชวนคุยเรื่องสัตว์เลี้ยง (คนรักนายน้อย)", action: "share_chat", room: "share_pets_messages", placeholder: "อวดนายน้อย ปรึกษาพาน้องๆ ไปเดินเล่น..." },
+      { text: "🤝 ชวนแชร์ทักษะ/หางานท้องถิ่น (ตลาดคนกาญจน์)", action: "share_chat", room: "share_skills_messages", placeholder: "ฝากร้านงานฝีมือ หาคนช่วยงานพาร์ทไทม์..." }
+    ]
   }
 };
 
@@ -1580,9 +1619,14 @@ function renderSingleSheetItem(listEl, item) {
   
   let badgeHtml = '';
   if (item.action === 'vent_chat' && unreadCounts['vent_messages'] > 0) {
-    badgeHtml = `<span style="background:var(--red); color:#fff; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:8px; font-weight:800">${unreadCounts['vent_messages']}</span>`;
+    const displayVal = unreadCounts['vent_messages'] > 99 ? '99+' : unreadCounts['vent_messages'];
+    badgeHtml = `<span style="background:var(--red); color:#fff; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:8px; font-weight:800">${displayVal}</span>`;
   } else if (item.action === 'lawyer_chat' && unreadCounts['lawyer_messages'] > 0) {
-    badgeHtml = `<span style="background:var(--red); color:#fff; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:8px; font-weight:800">${unreadCounts['lawyer_messages']}</span>`;
+    const displayVal = unreadCounts['lawyer_messages'] > 99 ? '99+' : unreadCounts['lawyer_messages'];
+    badgeHtml = `<span style="background:var(--red); color:#fff; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:8px; font-weight:800">${displayVal}</span>`;
+  } else if (item.action === 'share_chat' && item.room && unreadCounts[item.room] > 0) {
+    const displayVal = unreadCounts[item.room] > 99 ? '99+' : unreadCounts[item.room];
+    badgeHtml = `<span style="background:var(--red); color:#fff; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:8px; font-weight:800">${displayVal}</span>`;
   }
   
   btn.innerHTML = `<span style="display:flex; align-items:center">${item.text} ${badgeHtml}</span><span class="icon-right">➔</span>`;
@@ -1608,6 +1652,8 @@ function handleSheetItemClick(item){
     ensureUserAuthenticated(() => openChatRoom('vent_messages', '💬 ห้องปรับทุกข์ชุมชน', 'พิมพ์ข้อความปรับทุกข์...'));
   } else if(item.action === 'lawyer_chat'){
     ensureUserAuthenticated(() => openChatRoom('lawyer_messages', '⚖️ ปรึกษาทนายความอาสา', 'พิมพ์ข้อความปรึกษาทนาย...'));
+  } else if(item.action === 'share_chat'){
+    ensureUserAuthenticated(() => openChatRoom(item.room, item.text, item.placeholder || 'พิมพ์ข้อความคุยกัน...'));
   } else if(categoryKey && USER_LISTING_CATEGORIES.includes(categoryKey) && item.action === 'info') {
     // Open the listing form with pre-filled title (e.g. "บริการรถยก / รถสไลด์")
     openUserListingForm(categoryKey, item.text);
@@ -1718,6 +1764,79 @@ function handleRoomKeyPress(e){
   if(e.key === 'Enter') sendRoomMessage();
 }
 
+async function moderateContent(text) {
+  const apiKey = GEMINI_API_KEY || firebaseConfig.apiKey;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  
+  const systemPrompt = `คุณคือผู้ตรวจสอบข้อความ (Content Moderator) ของฟีเจอร์ 'ชวน&แชร์' ในแอปพลิเคชันชุมชนจังหวัดกาญจนบุรี หน้าที่ของคุณคือการอ่านข้อความที่ผู้ใช้โพสต์เข้ามา แล้วตัดสินใจว่าข้อความนั้นสมควรได้รับการอนุญาตให้เผยแพร่หรือไม่ โดยยึดหลักเกณฑ์ดังนี้:
+1. บล็อก (สถานะ: reject): ข้อความที่มีคำหยาบคาย, ลิงก์เว็บพนัน, ชวนคุยเรื่องการเมืองรุนแรง, การกลั่นแกล้ง (Bully), แชร์ข่าวปลอม, หรือสแปมโฆษณาขายสินค้าที่ไม่ได้เกียวข้องกับชุมชน
+2. ผ่าน (สถานะ: approve): ข้อความพูดคุย แนะนำ ชวนทำกิจกรรมตามปกติ (ออกกำลังกาย, กิน, ทำบุญ, เรียน, ดื่ม, แคมป์ปิ้ง) มีความสุภาพ เป็นมิตร`;
+
+  const payload = {
+    contents: [
+      {
+        parts: [
+          { text: text }
+        ]
+      }
+    ],
+    systemInstruction: {
+      parts: [
+        { text: systemPrompt }
+      ]
+    },
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: "OBJECT",
+        properties: {
+          status: {
+            type: "STRING",
+            enum: ["approve", "reject"]
+          },
+          reason: {
+            type: "STRING"
+          }
+        },
+        required: ["status"]
+      }
+    }
+  };
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    let errJson = null;
+    try { errJson = JSON.parse(errText); } catch(e) {}
+    
+    if (response.status === 403) {
+      if (errJson?.error?.message?.includes("disabled")) {
+        console.error("Gemini API Error: Generative Language API is disabled. Please enable it at: https://console.developers.google.com/apis/api/generativelanguage.googleapis.com/overview?project=106101907072");
+      } else if (errJson?.error?.message?.includes("blocked") || errJson?.error?.status === "PERMISSION_DENIED") {
+        console.error("Gemini API Error: API Key restricted. If you restricted this API Key in the GCP Console, please allow the 'Generative Language API' under the key's API restrictions, or set up a separate unrestricted API key in the GEMINI_API_KEY variable in index.html.");
+      }
+    }
+    throw new Error(errJson?.error?.message || `API error: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  const candidates = data.candidates;
+  if (!candidates || candidates.length === 0) {
+    throw new Error("No candidates returned from Gemini API");
+  }
+
+  const responseText = candidates[0].content.parts[0].text;
+  const result = JSON.parse(responseText.trim());
+  return result;
+}
+
 async function sendRoomMessage(){
   const input = document.getElementById('roomInput');
   const text = input.value.trim();
@@ -1725,6 +1844,51 @@ async function sendRoomMessage(){
   
   const isAnon = document.getElementById('anonToggle').checked;
   const displayName = isAnon ? "ผู้ใช้ไม่ระบุตัวตน" : (userProfile?.nickname || userProfile?.displayName || currentUser?.displayName || "ผู้ใช้");
+  
+  // Apply content moderation for "ชวน&แชร์" rooms starting with 'share_'
+  if (currentChatCollection && currentChatCollection.startsWith('share_')) {
+    const sendBtn = document.querySelector('.chat-input-area button[onclick="sendRoomMessage()"]');
+    const originalBtnHTML = sendBtn ? sendBtn.innerHTML : '➔';
+    const originalPlaceholder = input.placeholder || 'พิมพ์ข้อความคุยกัน...';
+    
+    // Set UI loading state
+    input.disabled = true;
+    if (sendBtn) {
+      sendBtn.disabled = true;
+      sendBtn.style.opacity = '0.5';
+      sendBtn.innerHTML = '⌛';
+    }
+    input.placeholder = 'กำลังตรวจสอบข้อความด้วย AI...';
+    
+    try {
+      const moderation = await moderateContent(text);
+      if (moderation && moderation.status === 'reject') {
+        alert(`⚠️ ข้อความไม่สามารถเผยแพร่ได้เนื่องจากผิดหลักเกณฑ์ชุมชน:\n${moderation.reason || 'กรุณาใช้ข้อความที่สุภาพและเป็นมิตร'}`);
+        
+        // Restore UI input state, keep the text for editing
+        input.disabled = false;
+        if (sendBtn) {
+          sendBtn.disabled = false;
+          sendBtn.style.opacity = '1';
+          sendBtn.innerHTML = originalBtnHTML;
+        }
+        input.placeholder = originalPlaceholder;
+        input.focus();
+        return;
+      }
+    } catch (err) {
+      console.warn('Gemini Moderation skipped due to error:', err);
+    } finally {
+      // Restore UI input state
+      input.disabled = false;
+      if (sendBtn) {
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = '1';
+        sendBtn.innerHTML = originalBtnHTML;
+      }
+      input.placeholder = originalPlaceholder;
+    }
+  }
   
   try {
     await addDoc(collection(db, currentChatCollection), {
@@ -1735,6 +1899,7 @@ async function sendRoomMessage(){
       createdAt: serverTimestamp()
     });
     input.value = '';
+    input.focus();
   } catch (e) {
     console.error(e);
     alert('ส่งข้อความไม่สำเร็จ: ' + e.message);
@@ -1743,11 +1908,23 @@ async function sendRoomMessage(){
 
 // Background functions for badges
 function listenUnreadCounts() {
-  ['vent_messages', 'lawyer_messages'].forEach(room => {
+  const rooms = [
+    'vent_messages', 
+    'lawyer_messages',
+    'share_fit_messages',
+    'share_food_messages',
+    'share_merit_messages',
+    'share_read_messages',
+    'share_drink_messages',
+    'share_travel_messages',
+    'share_pets_messages',
+    'share_skills_messages'
+  ];
+  rooms.forEach(room => {
     const q = query(collection(db, room), orderBy('createdAt', 'desc'), limit(50));
     onSnapshot(q, (snapshot) => {
       let count = 0;
-      const lastRead = lastReadTimestamps[room];
+      const lastRead = lastReadTimestamps[room] || Date.now();
       snapshot.forEach(doc => {
         const d = doc.data();
         if (d.createdAt) {
@@ -1769,10 +1946,31 @@ function updateBadgesUI() {
   const cardBadge = document.getElementById('communityCardBadge');
   if (cardBadge) {
     if (totalUnread > 0) {
-      cardBadge.textContent = totalUnread;
+      cardBadge.textContent = totalUnread > 99 ? '99+' : totalUnread;
       cardBadge.classList.remove('hidden');
     } else {
       cardBadge.classList.add('hidden');
+    }
+  }
+  
+  // Calculate total unread for "ชวน&แชร์"
+  const totalShareUnread = 
+    (unreadCounts['share_fit_messages'] || 0) +
+    (unreadCounts['share_food_messages'] || 0) +
+    (unreadCounts['share_merit_messages'] || 0) +
+    (unreadCounts['share_read_messages'] || 0) +
+    (unreadCounts['share_drink_messages'] || 0) +
+    (unreadCounts['share_travel_messages'] || 0) +
+    (unreadCounts['share_pets_messages'] || 0) +
+    (unreadCounts['share_skills_messages'] || 0);
+  
+  const shareCardBadge = document.getElementById('shareCardBadge');
+  if (shareCardBadge) {
+    if (totalShareUnread > 0) {
+      shareCardBadge.textContent = totalShareUnread > 99 ? '99+' : totalShareUnread;
+      shareCardBadge.classList.remove('hidden');
+    } else {
+      shareCardBadge.classList.add('hidden');
     }
   }
   
@@ -2049,7 +2247,9 @@ function showActualAdminPanel() {
         donation: '🩸 บริจาค',
         pets: '🐶 สัตว์เลี้ยง',
         travel: '🏞️ ท่องเที่ยว',
-        news: '📢 ข่าวสาร'
+        news: '📢 ข่าวสาร',
+        jobs: '💼 รับสมัครงาน',
+        share: '🤝 ชวน & แชร์'
       };
       
       itemEl.innerHTML = `
