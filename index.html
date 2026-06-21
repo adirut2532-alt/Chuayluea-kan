@@ -1033,7 +1033,34 @@ button,input{font-family:inherit}
   
   <!-- Tab 4: Users/Members List View -->
   <div id="adminUsersView" class="hidden" style="flex:1; display:flex; flex-direction:column; min-height:0; background:#f4f5f8">
-    <div style="background:#fff; padding:12px 16px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center">
+    <!-- Admin Notifications Configuration -->
+    <div style="background:#fff; padding:16px; margin:12px 16px 4px; border-radius:16px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:12px">
+      <h3 style="font-size:14px; font-weight:800; color:var(--ink); margin:0">🔔 ตั้งค่าการแจ้งเตือน Telegram (สำหรับแอดมิน)</h3>
+      
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 0">
+        <div>
+          <div style="font-size:13px; font-weight:800; color:var(--ink)">แจ้งเตือนเมื่อสมาชิกใหม่สมัครเข้าใช้งาน</div>
+          <div style="font-size:11px; color:var(--muted)">ส่งข้อความเข้ากลุ่ม Telegram ทันทีที่มีการกรอกโปรไฟล์ครั้งแรก</div>
+        </div>
+        <label class="switch" style="position:relative; display:inline-block; width:44px; height:24px">
+          <input type="checkbox" id="notifyNewUserToggle" onchange="saveNotificationConfig()" style="opacity:0; width:0; height:0">
+          <span class="slider" style="position:absolute; cursor:pointer; inset:0; background-color:#ccc; transition:.4s; border-radius:24px"></span>
+        </label>
+      </div>
+      
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 0; border-top:1px solid #f1f2f6">
+        <div>
+          <div style="font-size:13px; font-weight:800; color:var(--ink)">แจ้งเตือนเมื่อมีคนพิมพ์แชทในห้องต่างๆ</div>
+          <div style="font-size:11px; color:var(--muted)">ส่งข้อความรายงานการแชทในห้องแชทและกลุ่มชวน&แชร์ทั้งหมด</div>
+        </div>
+        <label class="switch" style="position:relative; display:inline-block; width:44px; height:24px">
+          <input type="checkbox" id="notifyNewMessageToggle" onchange="saveNotificationConfig()" style="opacity:0; width:0; height:0">
+          <span class="slider" style="position:absolute; cursor:pointer; inset:0; background-color:#ccc; transition:.4s; border-radius:24px"></span>
+        </label>
+      </div>
+    </div>
+
+    <div style="padding:12px 16px 0; display:flex; justify-content:space-between; align-items:center">
       <span style="font-size:12px; color:var(--muted)">รายชื่อสมาชิกทั้งหมดที่ลงทะเบียนแล้ว</span>
       <span style="background:var(--green-l); color:var(--green-d); padding:4px 8px; border-radius:12px; font-size:12px; font-weight:800" id="adminUsersCount">ทั้งหมด: 0 คน</span>
     </div>
@@ -1365,6 +1392,8 @@ async function saveProfile(){
   }
 
   try{
+    const isNewUser = !userProfile || !userProfile.profileSetup;
+    
     await setDoc(doc(db,'users',currentUser.uid),{
       uid: currentUser.uid,
       displayName: currentUser.displayName || '',
@@ -1378,6 +1407,10 @@ async function saveProfile(){
       createdAt: userProfile?.createdAt || serverTimestamp(),
       updatedAt: serverTimestamp()
     },{merge:true});
+
+    if (isNewUser) {
+      checkAndSendNewUserTelegram(realName, phone, nickname);
+    }
 
     await loadProfile(currentUser);
     document.getElementById('profileModal').classList.add('hidden');
@@ -2138,6 +2171,9 @@ async function sendRoomMessage(){
     });
     input.value = '';
     input.focus();
+    
+    // Send Telegram Notification
+    checkAndSendNewMessageTelegram(currentChatCollection, displayName, text);
   } catch (e) {
     console.error(e);
     alert('ส่งข้อความไม่สำเร็จ: ' + e.message);
@@ -2345,9 +2381,113 @@ function loadAdminUsers() {
   });
 }
 
+const ROOM_NAMES = {
+  vent_messages: '💬 ห้องปรับทุกข์ชุมชน',
+  lawyer_messages: '⚖️ ปรึกษาทนายความอาสา',
+  share_fit_messages: '🏃‍♂️ ชวนออกกำลังกาย (Fit & Firm)',
+  share_food_messages: '🍲 ชวนกิน (กาญจน์สายกิน)',
+  share_merit_messages: '😇 ชวนทำบุญ (สายบุญเมืองกาญจน์)',
+  share_read_messages: '📚 ชวนเรียน (ปันความรู้/ทักษะ)',
+  share_drink_messages: '☕️ ชวนดื่ม (สายคาเฟ่/แฮงเอาต์)',
+  share_travel_messages: '⛺️ ชวนแคมป์ปิ้ง (สายลุยธรรมชาติ)',
+  share_pets_messages: '🐕 ชวนคนรักสัตว์เลี้ยง (Kanchanaburi Pets)',
+  share_skills_messages: '💼 ชวนแชร์ทักษะ/หางาน (Local Skills & Jobs)'
+};
+
+async function checkAndSendNewUserTelegram(realName, phone, nickname) {
+  try {
+    const configSnap = await getDoc(doc(db, 'admin_config', 'notifications'));
+    const config = configSnap.exists() ? configSnap.data() : { notifyNewUser: true, notifyNewMessage: true };
+    
+    if (config.notifyNewUser && TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+      const text = [
+        '👥 <b>[สมาชิกสมัครใหม่เข้าระบบ]</b>',
+        `<b>ชื่อจริง-นามสกุล:</b> ${realName}`,
+        `<b>ชื่อเล่น:</b> ${nickname || 'ไม่ระบุ'}`,
+        `<b>เบอร์โทรศัพท์:</b> 📞 <a href="tel:${phone}">${phone}</a>`,
+        `<b>เวลา:</b> ${new Date().toLocaleString('th-TH')}`
+      ].join('\n');
+      
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: text,
+          parse_mode: 'HTML'
+        })
+      });
+    }
+  } catch (err) {
+    console.error('Error sending registration Telegram notification:', err);
+  }
+}
+
+async function checkAndSendNewMessageTelegram(collectionName, senderName, textContent) {
+  try {
+    const configSnap = await getDoc(doc(db, 'admin_config', 'notifications'));
+    const config = configSnap.exists() ? configSnap.data() : { notifyNewUser: true, notifyNewMessage: true };
+    
+    if (config.notifyNewMessage && TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+      const roomTitle = ROOM_NAMES[collectionName] || 'ห้องแชททั่วไป';
+      const text = [
+        `💬 <b>[ข้อความใหม่ในห้องแชท]</b>`,
+        `<b>ห้อง:</b> ${roomTitle}`,
+        `<b>ผู้ส่ง:</b> ${senderName}`,
+        `<b>ข้อความ:</b> ${textContent}`,
+        `<b>เวลา:</b> ${new Date().toLocaleString('th-TH')}`
+      ].join('\n');
+      
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: text,
+          parse_mode: 'HTML'
+        })
+      });
+    }
+  } catch (err) {
+    console.error('Error sending message Telegram notification:', err);
+  }
+}
+
+async function saveNotificationConfig() {
+  const userToggle = document.getElementById('notifyNewUserToggle');
+  const msgToggle = document.getElementById('notifyNewMessageToggle');
+  
+  const notifyNewUser = userToggle ? userToggle.checked : true;
+  const notifyNewMessage = msgToggle ? msgToggle.checked : true;
+  
+  try {
+    await setDoc(doc(db, 'admin_config', 'notifications'), {
+      notifyNewUser: notifyNewUser,
+      notifyNewMessage: notifyNewMessage,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch (err) {
+    console.error('Error saving notification config:', err);
+    alert('บันทึกการตั้งค่าล้มเหลว: ' + err.message);
+  }
+}
+
+window.saveNotificationConfig = saveNotificationConfig;
+
 function showActualAdminPanel() {
   document.getElementById('adminOverlay').classList.remove('hidden');
   switchAdminTab('sos');
+  
+  // Load Admin Notification Configuration
+  getDoc(doc(db, 'admin_config', 'notifications')).then(snap => {
+    const config = snap.exists() ? snap.data() : { notifyNewUser: true, notifyNewMessage: true };
+    const userToggle = document.getElementById('notifyNewUserToggle');
+    const msgToggle = document.getElementById('notifyNewMessageToggle');
+    if (userToggle) userToggle.checked = !!config.notifyNewUser;
+    if (msgToggle) msgToggle.checked = !!config.notifyNewMessage;
+  }).catch(err => {
+    console.error('Error loading notification config:', err);
+  });
   
   // 1. Listen to SOS Incidents
   if (adminSosUnsub) {
@@ -3680,6 +3820,8 @@ async function saveProfileFromTab() {
   }
 
   try {
+    const isNewUser = !userProfile || !userProfile.profileSetup;
+    
     await setDoc(doc(db,'users',currentUser.uid),{
       uid: currentUser.uid,
       displayName: currentUser.displayName || '',
@@ -3693,6 +3835,10 @@ async function saveProfileFromTab() {
       createdAt: userProfile?.createdAt || serverTimestamp(),
       updatedAt: serverTimestamp()
     },{merge:true});
+
+    if (isNewUser) {
+      checkAndSendNewUserTelegram(realName, phone, nickname);
+    }
 
     await loadProfile(currentUser);
     disableProfileEditMode();
