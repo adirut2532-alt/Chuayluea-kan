@@ -306,6 +306,128 @@ button,input{font-family:inherit}
     box-shadow: 0 6px 16px rgba(0,0,0,0.12);
   }
 }
+/* EMOJI PICKER & CUTE CHAT ELEMENTS */
+.emoji-picker-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+  user-select: none;
+  outline: none;
+}
+.emoji-picker-btn:active {
+  transform: scale(0.85);
+}
+.emoji-picker-popup {
+  position: absolute;
+  bottom: 66px;
+  right: 12px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  width: 280px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: auto;
+  animation: slideUpEmoji 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+@keyframes slideUpEmoji {
+  from { transform: translateY(10px) scale(0.95); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+.emoji-item {
+  font-size: 22px;
+  cursor: pointer;
+  text-align: center;
+  padding: 4px;
+  border-radius: 8px;
+  transition: background 0.15s, transform 0.15s;
+  user-select: none;
+}
+.emoji-item:hover {
+  background: #f4f5f8;
+  transform: scale(1.15);
+}
+.emoji-item:active {
+  transform: scale(0.9);
+}
+
+/* Cute Message Bubble Layout */
+.cute-msg-row {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  margin-bottom: 4px;
+}
+.cute-msg-row.mine {
+  justify-content: flex-end;
+}
+.cute-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-right: 8px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.cute-bubble-wrap {
+  display: flex;
+  flex-direction: column;
+  max-width: 75%;
+}
+.cute-bubble-wrap.mine {
+  align-items: flex-end;
+}
+.cute-msg-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 3px;
+  margin-left: 2px;
+}
+.cute-bubble {
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: break-word;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+.cute-bubble.other {
+  background: #fff;
+  color: var(--ink);
+  border-top-left-radius: 4px;
+  border: 1px solid #f1f2f6;
+}
+.cute-bubble.mine {
+  background: linear-gradient(135deg, #ff9254, #ff6a3c);
+  color: #fff;
+  border-top-right-radius: 4px;
+  box-shadow: 0 3px 12px rgba(255,106,60,0.18);
+}
+.cute-msg-time {
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 3px;
+  margin-left: 4px;
+  margin-right: 4px;
+}
 </style>
 </head>
 <body>
@@ -732,7 +854,7 @@ button,input{font-family:inherit}
 
 <!-- ===== CHAT ROOM OVERLAY (Venting Room) ===== -->
 <div id="chatRoomOverlay" class="cd-overlay hidden" style="z-index: 56; background: var(--bg); color: var(--ink); display: flex; flex-direction: column; padding: 0; align-items: stretch; justify-content: flex-start; text-align: left">
-  <div class="hdr" style="background: linear-gradient(135deg, var(--green), var(--green-d))">
+  <div class="hdr" id="chatRoomHdr" style="background: linear-gradient(135deg, var(--green), var(--green-d))">
     <div style="display:flex; align-items:center; gap:8px">
       <button onclick="closeChatRoom()" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer">←</button>
       <span style="font-weight:800; font-size:16px" id="chatRoomTitle">💬 ห้องปรับทุกข์ชุมชน</span>
@@ -741,7 +863,7 @@ button,input{font-family:inherit}
   </div>
   
   <!-- Anonymous Mode Toggle -->
-  <div style="background:#fff; padding:10px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between">
+  <div id="anonToggleWrapper" style="background:#fff; padding:10px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between">
     <div style="display:flex; align-items:center; gap:6px">
       <span style="font-size:16px">🔒</span>
       <span style="font-size:13px; font-weight:700; color:var(--muted)">โหมดไม่ระบุตัวตน (Incognito)</span>
@@ -756,9 +878,12 @@ button,input{font-family:inherit}
     <!-- Real-time Firestore messages will go here -->
   </div>
   
-  <div class="chat-input-area" style="padding:12px; background:#fff; border-top:1px solid var(--line); display:flex; gap:8px; align-items:center">
+  <div class="chat-input-area" style="padding:12px; background:#fff; border-top:1px solid var(--line); display:flex; gap:8px; align-items:center; position:relative">
+    <button class="emoji-picker-btn" onclick="toggleEmojiPicker(event)">😊</button>
     <input type="text" id="roomInput" placeholder="พิมพ์ข้อความปรับทุกข์..." onkeypress="handleRoomKeyPress(event)" style="flex:1; border:1px solid var(--line); border-radius:20px; padding:10px 16px; font-size:14px; outline:none">
     <button onclick="sendRoomMessage()" style="background:var(--green); color:#fff; border:none; border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px">➔</button>
+    <!-- Emoji Picker Container -->
+    <div id="emojiPicker" class="emoji-picker-popup hidden"></div>
   </div>
 </div>
 
@@ -1671,12 +1796,99 @@ function handleSheetItemClick(item){
 let roomUnsub = null;
 let currentChatCollection = 'vent_messages';
 
+function getCuteAvatar(uid, displayName) {
+  const emojis = ['🐶', '🐱', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐷', '🐮', '🐸', '🐵', '🐣', '🐧', '🐦', '🦄', '🐝', '🦖'];
+  let hash = 0;
+  const key = uid || displayName || 'default';
+  for (let i = 0; i < key.length; i++) {
+    hash = key.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % emojis.length;
+  return emojis[index];
+}
+
+function toggleEmojiPicker(e) {
+  if (e) e.stopPropagation();
+  const picker = document.getElementById('emojiPicker');
+  if (!picker) return;
+  picker.classList.toggle('hidden');
+  
+  if (!picker.classList.contains('hidden') && picker.children.length === 0) {
+    const emojis = [
+      '🏃‍♂️', '🚴‍♀️', '🏸', '🍲', '🍔', '🥤', '⛺', '🐕', '💼', '😊', 
+      '❤️', '🌟', '🎉', '😂', '👍', '🙌', '✈️', '🚗', '🔧', '🎨',
+      '🍕', '🍰', '🍻', '🌸', '🐱', '🐾', '⚽', '🎯', '💡', '🔥',
+      '🌈', '✨', '☕', '🎒', '🏠', '📍', '🗺️', '📞', '💬'
+    ];
+    emojis.forEach(emoji => {
+      const el = document.createElement('div');
+      el.className = 'emoji-item';
+      el.textContent = emoji;
+      el.onclick = (event) => {
+        event.stopPropagation();
+        insertEmoji(emoji);
+      };
+      picker.appendChild(el);
+    });
+  }
+}
+
+function insertEmoji(emoji) {
+  const input = document.getElementById('roomInput');
+  if (!input) return;
+  
+  const start = input.selectionStart || 0;
+  const end = input.selectionEnd || 0;
+  const text = input.value;
+  
+  input.value = text.substring(0, start) + emoji + text.substring(end);
+  input.selectionStart = input.selectionEnd = start + emoji.length;
+  input.focus();
+}
+
+// Bind to window so they are globally accessible
+window.toggleEmojiPicker = toggleEmojiPicker;
+window.insertEmoji = insertEmoji;
+
+// Global click event to close emoji picker
+document.addEventListener('click', () => {
+  const picker = document.getElementById('emojiPicker');
+  if (picker && !picker.classList.contains('hidden')) {
+    picker.classList.add('hidden');
+  }
+});
+
 function openChatRoom(collectionName = 'vent_messages', roomTitle = '💬 ห้องปรับทุกข์ชุมชน', inputPlaceholder = 'พิมพ์ข้อความปรับทุกข์...'){
   currentChatCollection = collectionName;
   document.getElementById('chatRoomTitle').textContent = roomTitle;
   document.getElementById('roomInput').placeholder = inputPlaceholder;
   document.getElementById('chatRoomOverlay').classList.remove('hidden');
   document.getElementById('roomInput').focus();
+  
+  const isShareRoom = collectionName.startsWith('share_');
+  
+  // Set header style (cute orange gradient for share rooms)
+  const hdrEl = document.getElementById('chatRoomHdr');
+  if (hdrEl) {
+    hdrEl.style.background = isShareRoom ? 'linear-gradient(135deg, #ff8c42, #f35b04)' : 'linear-gradient(135deg, var(--green), var(--green-d))';
+  }
+  
+  // Set send button style
+  const sendBtn = document.querySelector('.chat-input-area button[onclick="sendRoomMessage()"]');
+  if (sendBtn) {
+    sendBtn.style.background = isShareRoom ? 'linear-gradient(135deg, #ff8c42, #f35b04)' : 'var(--green)';
+  }
+  
+  // Set anonymous toggle visibility
+  const anonWrapper = document.getElementById('anonToggleWrapper');
+  const anonToggle = document.getElementById('anonToggle');
+  if (isShareRoom) {
+    if (anonWrapper) anonWrapper.style.display = 'none';
+    if (anonToggle) anonToggle.checked = false;
+  } else {
+    if (anonWrapper) anonWrapper.style.display = 'flex';
+    if (anonToggle) anonToggle.checked = true;
+  }
   
   if(roomUnsub) {
     roomUnsub();
@@ -1698,34 +1910,59 @@ function openChatRoom(collectionName = 'vent_messages', roomTitle = '💬 ห้
     snapshot.forEach((doc) => {
       const d = doc.data();
       const isMine = d.authorUid === currentUser?.uid;
-      
-      const bubble = document.createElement('div');
-      bubble.className = `msg-bubble ${isMine ? 'user' : 'ai'}`;
-      
-      if (isMine) {
-        bubble.style.background = 'var(--green)';
-        bubble.style.alignSelf = 'flex-end';
-        bubble.style.borderBottomRightRadius = '2px';
-        bubble.style.color = '#fff';
-      } else {
-        bubble.style.background = '#fff';
-        bubble.style.alignSelf = 'flex-start';
-        bubble.style.borderBottomLeftRadius = '2px';
-        bubble.style.color = 'var(--ink)';
-      }
-      
       const timeStr = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'}) : '';
       
-      bubble.innerHTML = `
-        <div style="font-size:10px; font-weight:800; color:${isMine ? 'rgba(255,255,255,0.85)' : 'var(--muted)'}; margin-bottom:2px">
-          ${d.displayName}
-        </div>
-        <div>${d.text}</div>
-        <div style="font-size:8px; text-align:right; color:${isMine ? 'rgba(255,255,255,0.7)' : 'var(--muted)'}; margin-top:2px">
-          ${timeStr}
-        </div>
-      `;
-      msgsEl.appendChild(bubble);
+      if (isShareRoom) {
+        // Cute rendering with avatar
+        const row = document.createElement('div');
+        row.className = `cute-msg-row ${isMine ? 'mine' : ''}`;
+        
+        const avatarStr = getCuteAvatar(d.uid || d.authorUid, d.displayName);
+        
+        let html = '';
+        if (!isMine) {
+          html += `<div class="cute-avatar">${avatarStr}</div>`;
+        }
+        
+        html += `
+          <div class="cute-bubble-wrap ${isMine ? 'mine' : ''}">
+            <div class="cute-msg-name">${d.displayName || 'ผู้ใช้'}</div>
+            <div class="cute-bubble ${isMine ? 'mine' : 'other'}">
+              ${d.text}
+            </div>
+            <div class="cute-msg-time" style="align-self: ${isMine ? 'flex-end' : 'flex-start'}">${timeStr}</div>
+          </div>
+        `;
+        row.innerHTML = html;
+        msgsEl.appendChild(row);
+      } else {
+        // Default rendering
+        const bubble = document.createElement('div');
+        bubble.className = `msg-bubble ${isMine ? 'user' : 'ai'}`;
+        
+        if (isMine) {
+          bubble.style.background = 'var(--green)';
+          bubble.style.alignSelf = 'flex-end';
+          bubble.style.borderBottomRightRadius = '2px';
+          bubble.style.color = '#fff';
+        } else {
+          bubble.style.background = '#fff';
+          bubble.style.alignSelf = 'flex-start';
+          bubble.style.borderBottomLeftRadius = '2px';
+          bubble.style.color = 'var(--ink)';
+        }
+        
+        bubble.innerHTML = `
+          <div style="font-size:10px; font-weight:800; color:${isMine ? 'rgba(255,255,255,0.85)' : 'var(--muted)'}; margin-bottom:2px">
+            ${d.displayName}
+          </div>
+          <div>${d.text}</div>
+          <div style="font-size:8px; text-align:right; color:${isMine ? 'rgba(255,255,255,0.7)' : 'var(--muted)'}; margin-top:2px">
+            ${timeStr}
+          </div>
+        `;
+        msgsEl.appendChild(bubble);
+      }
       
       if (d.createdAt) {
         const msgTime = d.createdAt.seconds * 1000;
@@ -1842,11 +2079,12 @@ async function sendRoomMessage(){
   const text = input.value.trim();
   if(!text) return;
   
-  const isAnon = document.getElementById('anonToggle').checked;
+  const isShareRoom = currentChatCollection && currentChatCollection.startsWith('share_');
+  const isAnon = isShareRoom ? false : document.getElementById('anonToggle').checked;
   const displayName = isAnon ? "ผู้ใช้ไม่ระบุตัวตน" : (userProfile?.nickname || userProfile?.displayName || currentUser?.displayName || "ผู้ใช้");
   
   // Apply content moderation for "ชวน&แชร์" rooms starting with 'share_'
-  if (currentChatCollection && currentChatCollection.startsWith('share_')) {
+  if (isShareRoom) {
     const sendBtn = document.querySelector('.chat-input-area button[onclick="sendRoomMessage()"]');
     const originalBtnHTML = sendBtn ? sendBtn.innerHTML : '➔';
     const originalPlaceholder = input.placeholder || 'พิมพ์ข้อความคุยกัน...';
