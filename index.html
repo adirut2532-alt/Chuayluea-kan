@@ -684,6 +684,12 @@ button,input{font-family:inherit}
     <div class="loc-bar">📍 <span id="mapLocLabel">กำลังค้นหาตำแหน่ง…</span></div>
     <!-- Real Leaflet Interactive Map Container -->
     <div id="map" style="flex: 1; margin: 16px; border-radius: 20px; border: 1px solid var(--line); overflow: hidden; min-height: 300px; z-index: 1;"></div>
+    
+    <!-- Nearby Hospitals List -->
+    <div style="padding: 16px; border-top: 1px solid var(--line);">
+      <div style="font-size: 13px; font-weight: 800; color: var(--muted); margin-bottom: 12px;">🏥 โรงพยาบาลใกล้เคียง (Top 10)</div>
+      <div id="nearbyHospitalsList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+    </div>
   </div>
 
   <div id="tabCommunity" class="tab-content hidden">
@@ -1539,6 +1545,7 @@ function switchTab(tabName){
       mapLabel.textContent = document.getElementById('locLabel').textContent;
     }
     updateLeafletMap();
+    renderNearbyHospitalsList();
     setTimeout(() => {
       if (leafletMap) leafletMap.invalidateSize();
     }, 100);
@@ -2961,6 +2968,60 @@ function fetchLocation(){
 }
 
 /* ============================================================
+   NEARBY HOSPITALS DATABASE & FINDER
+   ============================================================ */
+const HOSPITALS_DB = [
+  { name: 'โรงพยาบาลทองผาภูมิ', lat: 14.751842, lng: 98.625536, phone: '034-599-601', hours: '24 ชม.' },
+  { name: 'โรงพยาบาลสินแพทย์', lat: 14.056409119145806, lng: 99.49785858200046, phone: '034-912-888', hours: '24 ชม.' },
+  { name: 'โรงพยาบาลมะการักษ์', lat: 13.908472136416766, lng: 99.76736708015268, phone: '034-542-031', hours: '24 ชม.' },
+  { name: 'โรงพยาบาลพหลพลพยุหเสนา', lat: 14.005765358356294, lng: 99.54647069549455, phone: '034-587-800', hours: '24 ชม.' },
+  { name: 'โรงพยาบาลธนกาญจน์', lat: 14.014094, lng: 99.537079, phone: '034-517-888', hours: '24 ชม.' },
+  { name: 'โรงพยาบาลสมเด็จพระสังฆราช องค์ที่ 19', lat: 14.005698342569344, lng: 99.63543744404417, phone: '034-611-033', hours: '24 ชม.' },
+  { name: 'โรงพยาบาลด่านมะขามเตี้ย', lat: 13.852991363968147, lng: 99.40898418199677, phone: '034-672-612', hours: '24 ชม.' },
+  { name: 'โรงพยาบาลบ่อพลอย', lat: 14.335268453104304, lng: 99.51460038200575, phone: '034-581-139', hours: '24 ชม.' },
+  { name: 'โรงพยาบาลไทรโยค', lat: 14.118504064801881, lng: 99.1447291820016, phone: '034-591-300', hours: '24 ชม.' },
+  { name: 'โรงพยาบาลสังขละบุรี', lat: 15.156439023989298, lng: 98.45311138610194, phone: '034-595-030', hours: '24 ชม.' }
+];
+
+function calculateDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371; // Radius of Earth in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return (R * c).toFixed(2);
+}
+
+function getNearbyHospitals(userLat, userLng, limit = 5) {
+  return HOSPITALS_DB
+    .map(h => ({
+      ...h,
+      distance: calculateDistance(userLat, userLng, h.lat, h.lng)
+    }))
+    .sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance))
+    .slice(0, limit);
+}
+
+function openMapDirections(lat, lng, name) {
+  const userLat = userCoord.lat || 13.913;
+  const userLng = userCoord.lng || 99.537;
+  
+  // Check if iOS
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  
+  if (isIOS) {
+    // Apple Maps
+    window.location.href = `maps://maps.apple.com/?saddr=${userLat},${userLng}&daddr=${lat},${lng}&dirflg=d`;
+  } else {
+    // Google Maps
+    window.open(`https://www.google.com/maps/dir/${userLat},${userLng}/${lat},${lng}/?q=${encodeURIComponent(name)}`, '_blank');
+  }
+}
+
+/* ============================================================
    LEAFLET INTERACTIVE MAP
    ============================================================ */
 let leafletMap = null;
@@ -3001,7 +3062,7 @@ function updateLeafletMap() {
   }
   
   const pos = [userCoord.lat, userCoord.lng];
-  leafletMap.setView(pos, leafletMap.getZoom());
+  leafletMap.setView(pos, 13);
   
   const customPinIcon = L.divIcon({
     html: `<span style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); display: block; text-align: center; line-height: 1;">📍</span>`,
@@ -3014,9 +3075,34 @@ function updateLeafletMap() {
     leafletMarker.setLatLng(pos);
   } else {
     leafletMarker = L.marker(pos, { icon: customPinIcon }).addTo(leafletMap)
-      .bindPopup('📍 ตำแหน่งปัจจุบันของคุณ')
-      .openPopup();
+      .bindPopup('📍 ตำแหน่งปัจจุบัน');
   }
+  
+  // Clear old hospital markers
+  leafletMap.eachLayer(layer => {
+    if (layer instanceof L.Marker && layer !== leafletMarker) {
+      leafletMap.removeLayer(layer);
+    }
+  });
+  
+  // Show nearby hospitals
+  const nearbyHospitals = getNearbyHospitals(userCoord.lat, userCoord.lng, 10);
+  nearbyHospitals.forEach((h) => {
+    const popupText = `<div style="font-size:13px;"><b>${h.name}</b><br>📞 ${h.phone}<br>⏰ ${h.hours}<br>📏 ${h.distance} กม.<br><button onclick="openMapDirections(${h.lat}, ${h.lng}, '${h.name.replace(/'/g, "\\'")}');" style="margin-top:8px; background:#1f9e6e; color:#fff; border:none; padding:8px 12px; border-radius:6px; font-weight:700; cursor:pointer; width:100%;">🗺️ นำทาง</button></div>`;
+    
+    const hospitalIcon = L.divIcon({
+      html: `<span style="font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); display: block; text-align: center; line-height: 1;">🏥</span>`,
+      className: 'hospital-marker',
+      iconSize: [24, 24],
+      iconAnchor: [12, 24]
+    });
+    
+    L.marker([h.lat, h.lng], { icon: hospitalIcon }).addTo(leafletMap)
+      .bindPopup(popupText);
+  });
+  
+  // Render hospitals list
+  renderNearbyHospitalsList();
 }
 
 /* ============================================================
@@ -4254,6 +4340,32 @@ window.showActualAdminPanel=showActualAdminPanel;
 window.loadAdminUsers=loadAdminUsers;
 window.initLeafletMap=initLeafletMap;
 window.updateLeafletMap=updateLeafletMap;
+window.openMapDirections=openMapDirections;
+
+function renderNearbyHospitalsList() {
+  const listEl = document.getElementById('nearbyHospitalsList');
+  if (!listEl) return;
+  
+  const nearby = getNearbyHospitals(userCoord.lat, userCoord.lng, 10);
+  listEl.innerHTML = '';
+  
+  nearby.forEach((h, idx) => {
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#f8f9fa; border:1px solid var(--line); border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:flex-start; gap:8px;';
+    card.innerHTML = `
+      <div style="flex:1; min-width:0;">
+        <div style="font-weight:700; font-size:13px; color:var(--ink); margin-bottom:4px;">🏥 ${h.name}</div>
+        <div style="font-size:11px; color:var(--muted); line-height:1.4;">
+          📞 ${h.phone}<br>⏰ ${h.hours}<br>📏 <b>${h.distance} กม.</b>
+        </div>
+      </div>
+      <button onclick="openMapDirections(${h.lat}, ${h.lng}, '${h.name.replace(/'/g, "\\'")}');" style="background:var(--green); color:#fff; border:none; border-radius:10px; padding:10px 14px; font-size:12px; font-weight:800; white-space:nowrap; cursor:pointer; flex-shrink:0;">🗺️ นำทาง</button>
+    `;
+    listEl.appendChild(card);
+  });
+}
+
+window.renderNearbyHospitalsList=renderNearbyHospitalsList;
 window.openUserListingForm=openUserListingForm;
 window.closeUserListingForm=closeUserListingForm;
 window.submitUserListing=submitUserListing;
