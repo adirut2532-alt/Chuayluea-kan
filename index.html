@@ -306,128 +306,6 @@ button,input{font-family:inherit}
     box-shadow: 0 6px 16px rgba(0,0,0,0.12);
   }
 }
-/* EMOJI PICKER & CUTE CHAT ELEMENTS */
-.emoji-picker-btn {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s;
-  user-select: none;
-  outline: none;
-}
-.emoji-picker-btn:active {
-  transform: scale(0.85);
-}
-.emoji-picker-popup {
-  position: absolute;
-  bottom: 66px;
-  right: 12px;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-  width: 280px;
-  padding: 12px;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-  z-index: 100;
-  max-height: 200px;
-  overflow-y: auto;
-  animation: slideUpEmoji 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-}
-@keyframes slideUpEmoji {
-  from { transform: translateY(10px) scale(0.95); opacity: 0; }
-  to { transform: translateY(0) scale(1); opacity: 1; }
-}
-.emoji-item {
-  font-size: 22px;
-  cursor: pointer;
-  text-align: center;
-  padding: 4px;
-  border-radius: 8px;
-  transition: background 0.15s, transform 0.15s;
-  user-select: none;
-}
-.emoji-item:hover {
-  background: #f4f5f8;
-  transform: scale(1.15);
-}
-.emoji-item:active {
-  transform: scale(0.9);
-}
-
-/* Cute Message Bubble Layout */
-.cute-msg-row {
-  display: flex;
-  align-items: flex-start;
-  width: 100%;
-  margin-bottom: 4px;
-}
-.cute-msg-row.mine {
-  justify-content: flex-end;
-}
-.cute-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #fff;
-  border: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  margin-right: 8px;
-  flex-shrink: 0;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-.cute-bubble-wrap {
-  display: flex;
-  flex-direction: column;
-  max-width: 75%;
-}
-.cute-bubble-wrap.mine {
-  align-items: flex-end;
-}
-.cute-msg-name {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted);
-  margin-bottom: 3px;
-  margin-left: 2px;
-}
-.cute-bubble {
-  padding: 10px 14px;
-  border-radius: 18px;
-  font-size: 13px;
-  line-height: 1.5;
-  word-break: break-word;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-}
-.cute-bubble.other {
-  background: #fff;
-  color: var(--ink);
-  border-top-left-radius: 4px;
-  border: 1px solid #f1f2f6;
-}
-.cute-bubble.mine {
-  background: linear-gradient(135deg, #ff9254, #ff6a3c);
-  color: #fff;
-  border-top-right-radius: 4px;
-  box-shadow: 0 3px 12px rgba(255,106,60,0.18);
-}
-.cute-msg-time {
-  font-size: 9px;
-  color: var(--muted);
-  margin-top: 3px;
-  margin-left: 4px;
-  margin-right: 4px;
-}
 </style>
 </head>
 <body>
@@ -654,12 +532,6 @@ button,input{font-family:inherit}
         <h3>รับสมัครงาน & หางาน</h3>
         <p>สมัครงาน, ประกาศรับคน, ฝึกอาชีพ</p>
       </div>
-      <div class="srv-card accent-orange" onclick="openBottomSheet('share')">
-        <div id="shareCardBadge" class="card-badge hidden">0</div>
-        <span class="icon">🤝</span>
-        <h3>ชวน & แชร์</h3>
-        <p>หาเพื่อน, แชร์กิจกรรม, ชุมชน</p>
-      </div>
     </div>
 
     <!-- ===== CONTACT ADMIN SECTION ===== -->
@@ -684,6 +556,12 @@ button,input{font-family:inherit}
     <div class="loc-bar">📍 <span id="mapLocLabel">กำลังค้นหาตำแหน่ง…</span></div>
     <!-- Real Leaflet Interactive Map Container -->
     <div id="map" style="flex: 1; margin: 16px; border-radius: 20px; border: 1px solid var(--line); overflow: hidden; min-height: 300px; z-index: 1;"></div>
+    
+    <!-- Nearby Hospitals List -->
+    <div style="padding: 16px; border-top: 1px solid var(--line);">
+      <div style="font-size: 13px; font-weight: 800; color: var(--muted); margin-bottom: 12px;">🏥 โรงพยาบาลใกล้เคียง (Top 10)</div>
+      <div id="nearbyHospitalsList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+    </div>
   </div>
 
   <div id="tabCommunity" class="tab-content hidden">
@@ -854,7 +732,7 @@ button,input{font-family:inherit}
 
 <!-- ===== CHAT ROOM OVERLAY (Venting Room) ===== -->
 <div id="chatRoomOverlay" class="cd-overlay hidden" style="z-index: 56; background: var(--bg); color: var(--ink); display: flex; flex-direction: column; padding: 0; align-items: stretch; justify-content: flex-start; text-align: left">
-  <div class="hdr" id="chatRoomHdr" style="background: linear-gradient(135deg, var(--green), var(--green-d))">
+  <div class="hdr" style="background: linear-gradient(135deg, var(--green), var(--green-d))">
     <div style="display:flex; align-items:center; gap:8px">
       <button onclick="closeChatRoom()" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer">←</button>
       <span style="font-weight:800; font-size:16px" id="chatRoomTitle">💬 ห้องปรับทุกข์ชุมชน</span>
@@ -863,7 +741,7 @@ button,input{font-family:inherit}
   </div>
   
   <!-- Anonymous Mode Toggle -->
-  <div id="anonToggleWrapper" style="background:#fff; padding:10px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between">
+  <div style="background:#fff; padding:10px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between">
     <div style="display:flex; align-items:center; gap:6px">
       <span style="font-size:16px">🔒</span>
       <span style="font-size:13px; font-weight:700; color:var(--muted)">โหมดไม่ระบุตัวตน (Incognito)</span>
@@ -878,12 +756,9 @@ button,input{font-family:inherit}
     <!-- Real-time Firestore messages will go here -->
   </div>
   
-  <div class="chat-input-area" style="padding:12px; background:#fff; border-top:1px solid var(--line); display:flex; gap:8px; align-items:center; position:relative">
-    <button class="emoji-picker-btn" onclick="toggleEmojiPicker(event)">😊</button>
+  <div class="chat-input-area" style="padding:12px; background:#fff; border-top:1px solid var(--line); display:flex; gap:8px; align-items:center">
     <input type="text" id="roomInput" placeholder="พิมพ์ข้อความปรับทุกข์..." onkeypress="handleRoomKeyPress(event)" style="flex:1; border:1px solid var(--line); border-radius:20px; padding:10px 16px; font-size:14px; outline:none">
     <button onclick="sendRoomMessage()" style="background:var(--green); color:#fff; border:none; border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px">➔</button>
-    <!-- Emoji Picker Container -->
-    <div id="emojiPicker" class="emoji-picker-popup hidden"></div>
   </div>
 </div>
 
@@ -956,7 +831,6 @@ button,input{font-family:inherit}
             <option value="travel">🏞️ ท่องเที่ยวปลอดภัย</option>
             <option value="news">📢 ข่าวสารชุมชน</option>
             <option value="jobs">💼 รับสมัครงาน & หางาน</option>
-            <option value="share">🤝 ชวน & แชร์</option>
           </select>
         </div>
         <div style="flex:1">
@@ -1033,34 +907,7 @@ button,input{font-family:inherit}
   
   <!-- Tab 4: Users/Members List View -->
   <div id="adminUsersView" class="hidden" style="flex:1; display:flex; flex-direction:column; min-height:0; background:#f4f5f8">
-    <!-- Admin Notifications Configuration -->
-    <div style="background:#fff; padding:16px; margin:12px 16px 4px; border-radius:16px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:12px">
-      <h3 style="font-size:14px; font-weight:800; color:var(--ink); margin:0">🔔 ตั้งค่าการแจ้งเตือน Telegram (สำหรับแอดมิน)</h3>
-      
-      <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 0">
-        <div>
-          <div style="font-size:13px; font-weight:800; color:var(--ink)">แจ้งเตือนเมื่อสมาชิกใหม่สมัครเข้าใช้งาน</div>
-          <div style="font-size:11px; color:var(--muted)">ส่งข้อความเข้ากลุ่ม Telegram ทันทีที่มีการกรอกโปรไฟล์ครั้งแรก</div>
-        </div>
-        <label class="switch" style="position:relative; display:inline-block; width:44px; height:24px">
-          <input type="checkbox" id="notifyNewUserToggle" onchange="saveNotificationConfig()" style="opacity:0; width:0; height:0">
-          <span class="slider" style="position:absolute; cursor:pointer; inset:0; background-color:#ccc; transition:.4s; border-radius:24px"></span>
-        </label>
-      </div>
-      
-      <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 0; border-top:1px solid #f1f2f6">
-        <div>
-          <div style="font-size:13px; font-weight:800; color:var(--ink)">แจ้งเตือนเมื่อมีคนพิมพ์แชทในห้องต่างๆ</div>
-          <div style="font-size:11px; color:var(--muted)">ส่งข้อความรายงานการแชทในห้องแชทและกลุ่มชวน&แชร์ทั้งหมด</div>
-        </div>
-        <label class="switch" style="position:relative; display:inline-block; width:44px; height:24px">
-          <input type="checkbox" id="notifyNewMessageToggle" onchange="saveNotificationConfig()" style="opacity:0; width:0; height:0">
-          <span class="slider" style="position:absolute; cursor:pointer; inset:0; background-color:#ccc; transition:.4s; border-radius:24px"></span>
-        </label>
-      </div>
-    </div>
-
-    <div style="padding:12px 16px 0; display:flex; justify-content:space-between; align-items:center">
+    <div style="background:#fff; padding:12px 16px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center">
       <span style="font-size:12px; color:var(--muted)">รายชื่อสมาชิกทั้งหมดที่ลงทะเบียนแล้ว</span>
       <span style="background:var(--green-l); color:var(--green-d); padding:4px 8px; border-radius:12px; font-size:12px; font-weight:800" id="adminUsersCount">ทั้งหมด: 0 คน</span>
     </div>
@@ -1143,18 +990,18 @@ button,input{font-family:inherit}
 <!-- ===== USER LISTING FORM MODAL ===== -->
 <div id="userListingModal" class="modal-bg hidden" style="align-items: center; z-index: 62;">
   <div class="modal-box" style="border-radius: 20px; width: calc(100% - 32px); max-width: 400px; padding: 24px; margin: 16px;">
-    <h2 id="userListingModalTitle" style="font-size:18px; font-weight:800; margin:0 0 4px; display:flex; align-items:center; gap:8px">➕ ลงประกาศบริการ</h2>
-    <p id="userListingModalDesc" style="font-size:12px; color:var(--muted); margin-bottom:16px; line-height:1.5;">ลงข้อมูลบริการ/ร้านค้าของคุณให้คนในชุมชนเห็นและติดต่อได้</p>
+    <h2 style="font-size:18px; font-weight:800; margin:0 0 4px; display:flex; align-items:center; gap:8px">➕ ลงประกาศบริการ</h2>
+    <p style="font-size:12px; color:var(--muted); margin-bottom:16px; line-height:1.5;">ลงข้อมูลบริการ/ร้านค้าของคุณให้คนในชุมชนเห็นและติดต่อได้</p>
 
     <div id="userListingErr" class="err-box hidden"></div>
 
-    <label id="userListingTitleLabel" style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:0 0 4px;">ชื่อบริการ / ร้านค้า / ตำแหน่งงาน *</label>
+    <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:0 0 4px;">ชื่อบริการ / ร้านค้า / ตำแหน่งงาน *</label>
     <input id="listingTitle" type="text" placeholder="เช่น อู่ซ่อมรถลุงสม, รับจ้างตัดหญ้า" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:15px; outline:none; margin-bottom:10px;">
 
     <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:0 0 4px;">เบอร์โทรติดต่อ *</label>
     <input id="listingPhone" type="tel" inputmode="numeric" placeholder="08XXXXXXXX" maxlength="10" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:15px; outline:none; margin-bottom:10px; text-align:center; letter-spacing:2px;">
 
-    <label id="userListingDetailLabel" style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:0 0 4px;">รายละเอียดเพิ่มเติม (ไม่บังคับ)</label>
+    <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); margin:0 0 4px;">รายละเอียดเพิ่มเติม (ไม่บังคับ)</label>
     <textarea id="listingDetail" placeholder="เช่น เปิดบริการ 24 ชม. / รับงานทั่วกาญจนบุรี / เงินเดือน 15,000 บาท" rows="3" style="width:100%; border:1px solid var(--line); border-radius:12px; padding:12px; font-size:14px; outline:none; resize:none; font-family:inherit; margin-bottom:14px;"></textarea>
 
     <div style="display:flex; gap:8px;">
@@ -1250,9 +1097,6 @@ const firebaseConfig = {
 const TELEGRAM_BOT_TOKEN = "8840020497:AAEzTP3Qh6XzplLzF0LHjLHXGjXzlbKXne8";
 const TELEGRAM_CHAT_ID = "-1004428607725";
 
-// Gemini API Key config (optional separate key for Gemini if Firebase key is restricted)
-const GEMINI_API_KEY = "AQ.Ab8RN6Lf42bW4u_VxFkTjJVrODxTmlyuH8nLbmYKnOXHK4_kvA"; 
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -1261,27 +1105,11 @@ auth.languageCode = 'th';
 // Badges and unread message tracking state
 let unreadCounts = {
   vent_messages: 0,
-  lawyer_messages: 0,
-  share_fit_messages: 0,
-  share_food_messages: 0,
-  share_merit_messages: 0,
-  share_read_messages: 0,
-  share_drink_messages: 0,
-  share_travel_messages: 0,
-  share_pets_messages: 0,
-  share_skills_messages: 0
+  lawyer_messages: 0
 };
 let lastReadTimestamps = {
   vent_messages: localStorage.getItem('lastRead_vent_messages') ? parseInt(localStorage.getItem('lastRead_vent_messages')) : Date.now(),
-  lawyer_messages: localStorage.getItem('lastRead_lawyer_messages') ? parseInt(localStorage.getItem('lastRead_lawyer_messages')) : Date.now(),
-  share_fit_messages: localStorage.getItem('lastRead_share_fit_messages') ? parseInt(localStorage.getItem('lastRead_share_fit_messages')) : Date.now(),
-  share_food_messages: localStorage.getItem('lastRead_share_food_messages') ? parseInt(localStorage.getItem('lastRead_share_food_messages')) : Date.now(),
-  share_merit_messages: localStorage.getItem('lastRead_share_merit_messages') ? parseInt(localStorage.getItem('lastRead_share_merit_messages')) : Date.now(),
-  share_read_messages: localStorage.getItem('lastRead_share_read_messages') ? parseInt(localStorage.getItem('lastRead_share_read_messages')) : Date.now(),
-  share_drink_messages: localStorage.getItem('lastRead_share_drink_messages') ? parseInt(localStorage.getItem('lastRead_share_drink_messages')) : Date.now(),
-  share_travel_messages: localStorage.getItem('lastRead_share_travel_messages') ? parseInt(localStorage.getItem('lastRead_share_travel_messages')) : Date.now(),
-  share_pets_messages: localStorage.getItem('lastRead_share_pets_messages') ? parseInt(localStorage.getItem('lastRead_share_pets_messages')) : Date.now(),
-  share_skills_messages: localStorage.getItem('lastRead_share_skills_messages') ? parseInt(localStorage.getItem('lastRead_share_skills_messages')) : Date.now()
+  lawyer_messages: localStorage.getItem('lastRead_lawyer_messages') ? parseInt(localStorage.getItem('lastRead_lawyer_messages')) : Date.now()
 };
 let activeCategoryKey = null;
 
@@ -1392,8 +1220,6 @@ async function saveProfile(){
   }
 
   try{
-    const isNewUser = !userProfile || !userProfile.profileSetup;
-    
     await setDoc(doc(db,'users',currentUser.uid),{
       uid: currentUser.uid,
       displayName: currentUser.displayName || '',
@@ -1407,10 +1233,6 @@ async function saveProfile(){
       createdAt: userProfile?.createdAt || serverTimestamp(),
       updatedAt: serverTimestamp()
     },{merge:true});
-
-    if (isNewUser) {
-      checkAndSendNewUserTelegram(realName, phone, nickname);
-    }
 
     await loadProfile(currentUser);
     document.getElementById('profileModal').classList.add('hidden');
@@ -1539,6 +1361,7 @@ function switchTab(tabName){
       mapLabel.textContent = document.getElementById('locLabel').textContent;
     }
     updateLeafletMap();
+    renderNearbyHospitalsList();
     setTimeout(() => {
       if (leafletMap) leafletMap.invalidateSize();
     }, 100);
@@ -1615,11 +1438,10 @@ const serviceSubMenus = {
   pets: {
     title: "🐶 สัตว์เลี้ยง",
     items: [
-      { text: "🔍 แจ้งสัตว์เลี้ยงสูญหาย / ตามหาเจ้าของ", action: "info", msg: "แจ้งสัตว์เลี้ยงหายในพื้นที่ ส่งข้อมูลเข้าระบบช่วยตามหาเรียบร้อย... หากยังหาไม่พบสามารถกดลงประกาศเพิ่มเติมที่ปุ่มด้านล่างได้ครับ" },
-      { text: "🐾 แจ้งพบสัตว์พลัดหลง / สัตว์จรด่วน", action: "info", msg: "บันทึกข้อมูลแจ้งพบสัตว์พลัดหลงเรียบร้อย... หากต้องการให้คนมาช่วยรับเลี้ยงหรือมารับกลับ สามารถลงประกาศได้ครับ" },
-      { text: "🏥 คลินิกสัตว์ / โรงพยาบาลสัตว์ใกล้ตัว", action: "info", msg: "ระบบกำลังรวบรวมรายชื่อคลินิกรักษาสัตว์ที่อยู่ใกล้พิกัดของคุณ..." },
-      { text: "🍖 ร้านขายอาหารสัตว์ / อุปกรณ์เลี้ยงสัตว์", action: "info", msg: "กำลังค้นหาร้านจำหน่ายอาหารและอุปกรณ์สัตว์เลี้ยงในพื้นที่..." },
-      { text: "🏡 บริการรับฝากเลี้ยงสัตว์ / อาบน้ำตัดขน", action: "info", msg: "กำลังสแกนหาผู้ให้บริการรับฝากเลี้ยงและอาบน้ำตัดขนในกาญจนบุรี..." }
+      { text: "🔍 แจ้งสัตว์เลี้ยงสูญหาย", action: "info", msg: "แจ้งสัตว์เลี้ยงหายในพื้นที่ ส่งข้อมูลเข้าไลน์กู้ชีพเรียบร้อย..." },
+      { text: "🐾 แจ้งพบสัตว์พลัดหลง", action: "info", msg: "แจ้งสัตว์พลัดหลง ข้อมูลถูกส่งเข้าเครือข่ายช่วยหาสัตว์เลี้ยงแล้ว..." },
+      { text: "🏥 โรงพยาบาลสัตว์ 24 ชม.", action: "info", msg: "กำลังจัดแสดงพิกัดโรงพยาบาลสัตว์กู้ชีพที่ใกล้ที่สุด..." },
+      { text: "🏠 รับเลี้ยงสัตว์ไร้บ้าน", action: "info", msg: "เปิดดูเพจโครงการหาบ้านใหม่ให้สัตว์จรจัด..." }
     ]
   },
   travel: {
@@ -1652,19 +1474,6 @@ const serviceSubMenus = {
       { text: "🌾 งานเกษตร / ไร่ / สวน", action: "info", msg: "กำลังค้นหางานภาคเกษตรและไร่สวนในกาญจนบุรี..." },
       { text: "💻 งาน Part-time / Freelance", action: "info", msg: "กำลังค้นหางาน Part-time และ Freelance ที่เปิดรับในพื้นที่..." },
       { text: "🎓 ฝึกอาชีพ / อบรมทักษะฟรี", action: "info", msg: "กำลังโหลดรายการหลักสูตรฝึกอาชีพและอบรมทักษะฟรีจากหน่วยงานราชการ..." }
-    ]
-  },
-  share: {
-    title: "🤝 ชวน & แชร์",
-    items: [
-      { text: "🏃‍♂️ ชวนออกกำลังกาย (Fit & Firm)", action: "share_chat", room: "share_fit_messages", placeholder: "หาเพื่อนวิ่ง ชวนปั่นจักรยาน หรือตีแบดมินตัน..." },
-      { text: "🍲 ชวนกิน (กาญจน์สายกิน)", action: "share_chat", room: "share_food_messages", placeholder: "รีวิวร้านเด็ด ของดีเมืองกาญจน์ หรือชวนคาเฟ่..." },
-      { text: "🌤️ ชวนทำบุญ (สะพานบุญ)", action: "share_chat", room: "share_merit_messages", placeholder: "บอกบุญงานกฐิน ชวนไปทำความสะอาดวัด/บริจาค..." },
-      { text: "📚 ชวนอ่าน & เรียน (เติมความรู้)", action: "share_chat", room: "share_read_messages", placeholder: "แชร์หนังสือดีๆ ชวนติว หรือแลกเปลี่ยนความรู้..." },
-      { text: "🍹 ชวนดื่ม (สหายสายชิล)", action: "share_chat", room: "share_drink_messages", placeholder: "หาเพื่อนคุย นั่งฟังเพลงชิลๆ ยามค่ำคืน..." },
-      { text: "⛰️ ชวนเที่ยว & แคมป์ปิ้ง (Green กาญจน์)", action: "share_chat", room: "share_travel_messages", placeholder: "ชวนกางเต็นท์ เดินป่า ขึ้นเขา หรือล่องแพ..." },
-      { text: "🐾 ชวนคุยเรื่องสัตว์เลี้ยง (คนรักนายน้อย)", action: "share_chat", room: "share_pets_messages", placeholder: "อวดนายน้อย ปรึกษาพาน้องๆ ไปเดินเล่น..." },
-      { text: "🤝 ชวนแชร์ทักษะ/หางานท้องถิ่น (ตลาดคนกาญจน์)", action: "share_chat", room: "share_skills_messages", placeholder: "ฝากร้านงานฝีมือ หาคนช่วยงานพาร์ทไทม์..." }
     ]
   }
 };
@@ -1754,18 +1563,7 @@ function renderBottomSheetContent(categoryKey) {
     // Add "ลงประกาศ" button at the end
     const addBtn = document.createElement('button');
     addBtn.style.cssText = 'width:100%; padding:14px; background:linear-gradient(135deg, var(--green), var(--green-d)); color:#fff; border:none; border-radius:14px; font-size:15px; font-weight:800; cursor:pointer; margin-top:12px; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 16px rgba(31,158,110,0.25);';
-    
-    let addBtnText = '➕ ลงประกาศของฉัน';
-    if (categoryKey === 'car') {
-      addBtnText = '➕ ลงประกาศบริการซ่อม / อู่รถ / รถยก ของฉัน';
-    } else if (categoryKey === 'work') {
-      addBtnText = '➕ ลงประกาศรับงานของฉัน (ช่าง/ตัดหญ้า/ดูแล)';
-    } else if (categoryKey === 'jobs') {
-      addBtnText = '💼 ลงประกาศรับสมัครงาน / ฝากประวัติหางาน';
-    } else if (categoryKey === 'pets') {
-      addBtnText = '🐶 ลงประกาศสัตว์เลี้ยง / คลินิก / สัตว์หาย';
-    }
-    addBtn.innerHTML = addBtnText;
+    addBtn.innerHTML = '➕ ลงประกาศบริการของฉัน';
     addBtn.onclick = () => openUserListingForm(categoryKey);
     listEl.appendChild(addBtn);
   }
@@ -1777,14 +1575,9 @@ function renderSingleSheetItem(listEl, item) {
   
   let badgeHtml = '';
   if (item.action === 'vent_chat' && unreadCounts['vent_messages'] > 0) {
-    const displayVal = unreadCounts['vent_messages'] > 99 ? '99+' : unreadCounts['vent_messages'];
-    badgeHtml = `<span style="background:var(--red); color:#fff; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:8px; font-weight:800">${displayVal}</span>`;
+    badgeHtml = `<span style="background:var(--red); color:#fff; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:8px; font-weight:800">${unreadCounts['vent_messages']}</span>`;
   } else if (item.action === 'lawyer_chat' && unreadCounts['lawyer_messages'] > 0) {
-    const displayVal = unreadCounts['lawyer_messages'] > 99 ? '99+' : unreadCounts['lawyer_messages'];
-    badgeHtml = `<span style="background:var(--red); color:#fff; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:8px; font-weight:800">${displayVal}</span>`;
-  } else if (item.action === 'share_chat' && item.room && unreadCounts[item.room] > 0) {
-    const displayVal = unreadCounts[item.room] > 99 ? '99+' : unreadCounts[item.room];
-    badgeHtml = `<span style="background:var(--red); color:#fff; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:8px; font-weight:800">${displayVal}</span>`;
+    badgeHtml = `<span style="background:var(--red); color:#fff; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:8px; font-weight:800">${unreadCounts['lawyer_messages']}</span>`;
   }
   
   btn.innerHTML = `<span style="display:flex; align-items:center">${item.text} ${badgeHtml}</span><span class="icon-right">➔</span>`;
@@ -1798,7 +1591,6 @@ function closeBottomSheet(){
 }
 
 function handleSheetItemClick(item){
-  const categoryKey = activeCategoryKey;
   closeBottomSheet();
   if(item.action === 'sos'){
     triggerSosGuard();
@@ -1810,12 +1602,7 @@ function handleSheetItemClick(item){
     ensureUserAuthenticated(() => openChatRoom('vent_messages', '💬 ห้องปรับทุกข์ชุมชน', 'พิมพ์ข้อความปรับทุกข์...'));
   } else if(item.action === 'lawyer_chat'){
     ensureUserAuthenticated(() => openChatRoom('lawyer_messages', '⚖️ ปรึกษาทนายความอาสา', 'พิมพ์ข้อความปรึกษาทนาย...'));
-  } else if(item.action === 'share_chat'){
-    ensureUserAuthenticated(() => openChatRoom(item.room, item.text, item.placeholder || 'พิมพ์ข้อความคุยกัน...'));
-  } else if(categoryKey && USER_LISTING_CATEGORIES.includes(categoryKey) && item.action === 'info') {
-    // Open the listing form with pre-filled title (e.g. "บริการรถยก / รถสไลด์")
-    openUserListingForm(categoryKey, item.text);
-  } else if(categoryKey === 'car' || categoryKey === 'work') {
+  } else if(activeCategoryKey === 'car' || activeCategoryKey === 'work') {
     openTechReviews(item);
   } else {
     if(item.tel){
@@ -1829,99 +1616,12 @@ function handleSheetItemClick(item){
 let roomUnsub = null;
 let currentChatCollection = 'vent_messages';
 
-function getCuteAvatar(uid, displayName) {
-  const emojis = ['🐶', '🐱', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐷', '🐮', '🐸', '🐵', '🐣', '🐧', '🐦', '🦄', '🐝', '🦖'];
-  let hash = 0;
-  const key = uid || displayName || 'default';
-  for (let i = 0; i < key.length; i++) {
-    hash = key.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % emojis.length;
-  return emojis[index];
-}
-
-function toggleEmojiPicker(e) {
-  if (e) e.stopPropagation();
-  const picker = document.getElementById('emojiPicker');
-  if (!picker) return;
-  picker.classList.toggle('hidden');
-  
-  if (!picker.classList.contains('hidden') && picker.children.length === 0) {
-    const emojis = [
-      '🏃‍♂️', '🚴‍♀️', '🏸', '🍲', '🍔', '🥤', '⛺', '🐕', '💼', '😊', 
-      '❤️', '🌟', '🎉', '😂', '👍', '🙌', '✈️', '🚗', '🔧', '🎨',
-      '🍕', '🍰', '🍻', '🌸', '🐱', '🐾', '⚽', '🎯', '💡', '🔥',
-      '🌈', '✨', '☕', '🎒', '🏠', '📍', '🗺️', '📞', '💬'
-    ];
-    emojis.forEach(emoji => {
-      const el = document.createElement('div');
-      el.className = 'emoji-item';
-      el.textContent = emoji;
-      el.onclick = (event) => {
-        event.stopPropagation();
-        insertEmoji(emoji);
-      };
-      picker.appendChild(el);
-    });
-  }
-}
-
-function insertEmoji(emoji) {
-  const input = document.getElementById('roomInput');
-  if (!input) return;
-  
-  const start = input.selectionStart || 0;
-  const end = input.selectionEnd || 0;
-  const text = input.value;
-  
-  input.value = text.substring(0, start) + emoji + text.substring(end);
-  input.selectionStart = input.selectionEnd = start + emoji.length;
-  input.focus();
-}
-
-// Bind to window so they are globally accessible
-window.toggleEmojiPicker = toggleEmojiPicker;
-window.insertEmoji = insertEmoji;
-
-// Global click event to close emoji picker
-document.addEventListener('click', () => {
-  const picker = document.getElementById('emojiPicker');
-  if (picker && !picker.classList.contains('hidden')) {
-    picker.classList.add('hidden');
-  }
-});
-
 function openChatRoom(collectionName = 'vent_messages', roomTitle = '💬 ห้องปรับทุกข์ชุมชน', inputPlaceholder = 'พิมพ์ข้อความปรับทุกข์...'){
   currentChatCollection = collectionName;
   document.getElementById('chatRoomTitle').textContent = roomTitle;
   document.getElementById('roomInput').placeholder = inputPlaceholder;
   document.getElementById('chatRoomOverlay').classList.remove('hidden');
   document.getElementById('roomInput').focus();
-  
-  const isShareRoom = collectionName.startsWith('share_');
-  
-  // Set header style (cute orange gradient for share rooms)
-  const hdrEl = document.getElementById('chatRoomHdr');
-  if (hdrEl) {
-    hdrEl.style.background = isShareRoom ? 'linear-gradient(135deg, #ff8c42, #f35b04)' : 'linear-gradient(135deg, var(--green), var(--green-d))';
-  }
-  
-  // Set send button style
-  const sendBtn = document.querySelector('.chat-input-area button[onclick="sendRoomMessage()"]');
-  if (sendBtn) {
-    sendBtn.style.background = isShareRoom ? 'linear-gradient(135deg, #ff8c42, #f35b04)' : 'var(--green)';
-  }
-  
-  // Set anonymous toggle visibility
-  const anonWrapper = document.getElementById('anonToggleWrapper');
-  const anonToggle = document.getElementById('anonToggle');
-  if (isShareRoom) {
-    if (anonWrapper) anonWrapper.style.display = 'none';
-    if (anonToggle) anonToggle.checked = false;
-  } else {
-    if (anonWrapper) anonWrapper.style.display = 'flex';
-    if (anonToggle) anonToggle.checked = true;
-  }
   
   if(roomUnsub) {
     roomUnsub();
@@ -1943,59 +1643,34 @@ function openChatRoom(collectionName = 'vent_messages', roomTitle = '💬 ห้
     snapshot.forEach((doc) => {
       const d = doc.data();
       const isMine = d.authorUid === currentUser?.uid;
+      
+      const bubble = document.createElement('div');
+      bubble.className = `msg-bubble ${isMine ? 'user' : 'ai'}`;
+      
+      if (isMine) {
+        bubble.style.background = 'var(--green)';
+        bubble.style.alignSelf = 'flex-end';
+        bubble.style.borderBottomRightRadius = '2px';
+        bubble.style.color = '#fff';
+      } else {
+        bubble.style.background = '#fff';
+        bubble.style.alignSelf = 'flex-start';
+        bubble.style.borderBottomLeftRadius = '2px';
+        bubble.style.color = 'var(--ink)';
+      }
+      
       const timeStr = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'}) : '';
       
-      if (isShareRoom) {
-        // Cute rendering with avatar
-        const row = document.createElement('div');
-        row.className = `cute-msg-row ${isMine ? 'mine' : ''}`;
-        
-        const avatarStr = getCuteAvatar(d.uid || d.authorUid, d.displayName);
-        
-        let html = '';
-        if (!isMine) {
-          html += `<div class="cute-avatar">${avatarStr}</div>`;
-        }
-        
-        html += `
-          <div class="cute-bubble-wrap ${isMine ? 'mine' : ''}">
-            <div class="cute-msg-name">${d.displayName || 'ผู้ใช้'}</div>
-            <div class="cute-bubble ${isMine ? 'mine' : 'other'}">
-              ${d.text}
-            </div>
-            <div class="cute-msg-time" style="align-self: ${isMine ? 'flex-end' : 'flex-start'}">${timeStr}</div>
-          </div>
-        `;
-        row.innerHTML = html;
-        msgsEl.appendChild(row);
-      } else {
-        // Default rendering
-        const bubble = document.createElement('div');
-        bubble.className = `msg-bubble ${isMine ? 'user' : 'ai'}`;
-        
-        if (isMine) {
-          bubble.style.background = 'var(--green)';
-          bubble.style.alignSelf = 'flex-end';
-          bubble.style.borderBottomRightRadius = '2px';
-          bubble.style.color = '#fff';
-        } else {
-          bubble.style.background = '#fff';
-          bubble.style.alignSelf = 'flex-start';
-          bubble.style.borderBottomLeftRadius = '2px';
-          bubble.style.color = 'var(--ink)';
-        }
-        
-        bubble.innerHTML = `
-          <div style="font-size:10px; font-weight:800; color:${isMine ? 'rgba(255,255,255,0.85)' : 'var(--muted)'}; margin-bottom:2px">
-            ${d.displayName}
-          </div>
-          <div>${d.text}</div>
-          <div style="font-size:8px; text-align:right; color:${isMine ? 'rgba(255,255,255,0.7)' : 'var(--muted)'}; margin-top:2px">
-            ${timeStr}
-          </div>
-        `;
-        msgsEl.appendChild(bubble);
-      }
+      bubble.innerHTML = `
+        <div style="font-size:10px; font-weight:800; color:${isMine ? 'rgba(255,255,255,0.85)' : 'var(--muted)'}; margin-bottom:2px">
+          ${d.displayName}
+        </div>
+        <div>${d.text}</div>
+        <div style="font-size:8px; text-align:right; color:${isMine ? 'rgba(255,255,255,0.7)' : 'var(--muted)'}; margin-top:2px">
+          ${timeStr}
+        </div>
+      `;
+      msgsEl.appendChild(bubble);
       
       if (d.createdAt) {
         const msgTime = d.createdAt.seconds * 1000;
@@ -2034,132 +1709,13 @@ function handleRoomKeyPress(e){
   if(e.key === 'Enter') sendRoomMessage();
 }
 
-async function moderateContent(text) {
-  const apiKey = GEMINI_API_KEY || firebaseConfig.apiKey;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-  
-  const systemPrompt = `คุณคือผู้ตรวจสอบข้อความ (Content Moderator) ของฟีเจอร์ 'ชวน&แชร์' ในแอปพลิเคชันชุมชนจังหวัดกาญจนบุรี หน้าที่ของคุณคือการอ่านข้อความที่ผู้ใช้โพสต์เข้ามา แล้วตัดสินใจว่าข้อความนั้นสมควรได้รับการอนุญาตให้เผยแพร่หรือไม่ โดยยึดหลักเกณฑ์ดังนี้:
-1. บล็อก (สถานะ: reject): ข้อความที่มีคำหยาบคาย, ลิงก์เว็บพนัน, ชวนคุยเรื่องการเมืองรุนแรง, การกลั่นแกล้ง (Bully), แชร์ข่าวปลอม, หรือสแปมโฆษณาขายสินค้าที่ไม่ได้เกียวข้องกับชุมชน
-2. ผ่าน (สถานะ: approve): ข้อความพูดคุย แนะนำ ชวนทำกิจกรรมตามปกติ (ออกกำลังกาย, กิน, ทำบุญ, เรียน, ดื่ม, แคมป์ปิ้ง) มีความสุภาพ เป็นมิตร`;
-
-  const payload = {
-    contents: [
-      {
-        parts: [
-          { text: text }
-        ]
-      }
-    ],
-    systemInstruction: {
-      parts: [
-        { text: systemPrompt }
-      ]
-    },
-    generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: "OBJECT",
-        properties: {
-          status: {
-            type: "STRING",
-            enum: ["approve", "reject"]
-          },
-          reason: {
-            type: "STRING"
-          }
-        },
-        required: ["status"]
-      }
-    }
-  };
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    let errJson = null;
-    try { errJson = JSON.parse(errText); } catch(e) {}
-    
-    if (response.status === 403) {
-      if (errJson?.error?.message?.includes("disabled")) {
-        console.error("Gemini API Error: Generative Language API is disabled. Please enable it at: https://console.developers.google.com/apis/api/generativelanguage.googleapis.com/overview?project=106101907072");
-      } else if (errJson?.error?.message?.includes("blocked") || errJson?.error?.status === "PERMISSION_DENIED") {
-        console.error("Gemini API Error: API Key restricted. If you restricted this API Key in the GCP Console, please allow the 'Generative Language API' under the key's API restrictions, or set up a separate unrestricted API key in the GEMINI_API_KEY variable in index.html.");
-      }
-    }
-    throw new Error(errJson?.error?.message || `API error: ${response.status} ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  const candidates = data.candidates;
-  if (!candidates || candidates.length === 0) {
-    throw new Error("No candidates returned from Gemini API");
-  }
-
-  const responseText = candidates[0].content.parts[0].text;
-  const result = JSON.parse(responseText.trim());
-  return result;
-}
-
 async function sendRoomMessage(){
   const input = document.getElementById('roomInput');
   const text = input.value.trim();
   if(!text) return;
   
-  const isShareRoom = currentChatCollection && currentChatCollection.startsWith('share_');
-  const isAnon = isShareRoom ? false : document.getElementById('anonToggle').checked;
+  const isAnon = document.getElementById('anonToggle').checked;
   const displayName = isAnon ? "ผู้ใช้ไม่ระบุตัวตน" : (userProfile?.nickname || userProfile?.displayName || currentUser?.displayName || "ผู้ใช้");
-  
-  // Apply content moderation for "ชวน&แชร์" rooms starting with 'share_'
-  if (isShareRoom) {
-    const sendBtn = document.querySelector('.chat-input-area button[onclick="sendRoomMessage()"]');
-    const originalBtnHTML = sendBtn ? sendBtn.innerHTML : '➔';
-    const originalPlaceholder = input.placeholder || 'พิมพ์ข้อความคุยกัน...';
-    
-    // Set UI loading state
-    input.disabled = true;
-    if (sendBtn) {
-      sendBtn.disabled = true;
-      sendBtn.style.opacity = '0.5';
-      sendBtn.innerHTML = '⌛';
-    }
-    input.placeholder = 'กำลังตรวจสอบข้อความด้วย AI...';
-    
-    try {
-      const moderation = await moderateContent(text);
-      if (moderation && moderation.status === 'reject') {
-        alert(`⚠️ ข้อความไม่สามารถเผยแพร่ได้เนื่องจากผิดหลักเกณฑ์ชุมชน:\n${moderation.reason || 'กรุณาใช้ข้อความที่สุภาพและเป็นมิตร'}`);
-        
-        // Restore UI input state, keep the text for editing
-        input.disabled = false;
-        if (sendBtn) {
-          sendBtn.disabled = false;
-          sendBtn.style.opacity = '1';
-          sendBtn.innerHTML = originalBtnHTML;
-        }
-        input.placeholder = originalPlaceholder;
-        input.focus();
-        return;
-      }
-    } catch (err) {
-      console.warn('Gemini Moderation skipped due to error:', err);
-    } finally {
-      // Restore UI input state
-      input.disabled = false;
-      if (sendBtn) {
-        sendBtn.disabled = false;
-        sendBtn.style.opacity = '1';
-        sendBtn.innerHTML = originalBtnHTML;
-      }
-      input.placeholder = originalPlaceholder;
-    }
-  }
   
   try {
     await addDoc(collection(db, currentChatCollection), {
@@ -2170,10 +1726,6 @@ async function sendRoomMessage(){
       createdAt: serverTimestamp()
     });
     input.value = '';
-    input.focus();
-    
-    // Send Telegram Notification
-    checkAndSendNewMessageTelegram(currentChatCollection, displayName, text);
   } catch (e) {
     console.error(e);
     alert('ส่งข้อความไม่สำเร็จ: ' + e.message);
@@ -2182,23 +1734,11 @@ async function sendRoomMessage(){
 
 // Background functions for badges
 function listenUnreadCounts() {
-  const rooms = [
-    'vent_messages', 
-    'lawyer_messages',
-    'share_fit_messages',
-    'share_food_messages',
-    'share_merit_messages',
-    'share_read_messages',
-    'share_drink_messages',
-    'share_travel_messages',
-    'share_pets_messages',
-    'share_skills_messages'
-  ];
-  rooms.forEach(room => {
+  ['vent_messages', 'lawyer_messages'].forEach(room => {
     const q = query(collection(db, room), orderBy('createdAt', 'desc'), limit(50));
     onSnapshot(q, (snapshot) => {
       let count = 0;
-      const lastRead = lastReadTimestamps[room] || Date.now();
+      const lastRead = lastReadTimestamps[room];
       snapshot.forEach(doc => {
         const d = doc.data();
         if (d.createdAt) {
@@ -2220,31 +1760,10 @@ function updateBadgesUI() {
   const cardBadge = document.getElementById('communityCardBadge');
   if (cardBadge) {
     if (totalUnread > 0) {
-      cardBadge.textContent = totalUnread > 99 ? '99+' : totalUnread;
+      cardBadge.textContent = totalUnread;
       cardBadge.classList.remove('hidden');
     } else {
       cardBadge.classList.add('hidden');
-    }
-  }
-  
-  // Calculate total unread for "ชวน&แชร์"
-  const totalShareUnread = 
-    (unreadCounts['share_fit_messages'] || 0) +
-    (unreadCounts['share_food_messages'] || 0) +
-    (unreadCounts['share_merit_messages'] || 0) +
-    (unreadCounts['share_read_messages'] || 0) +
-    (unreadCounts['share_drink_messages'] || 0) +
-    (unreadCounts['share_travel_messages'] || 0) +
-    (unreadCounts['share_pets_messages'] || 0) +
-    (unreadCounts['share_skills_messages'] || 0);
-  
-  const shareCardBadge = document.getElementById('shareCardBadge');
-  if (shareCardBadge) {
-    if (totalShareUnread > 0) {
-      shareCardBadge.textContent = totalShareUnread > 99 ? '99+' : totalShareUnread;
-      shareCardBadge.classList.remove('hidden');
-    } else {
-      shareCardBadge.classList.add('hidden');
     }
   }
   
@@ -2381,113 +1900,9 @@ function loadAdminUsers() {
   });
 }
 
-const ROOM_NAMES = {
-  vent_messages: '💬 ห้องปรับทุกข์ชุมชน',
-  lawyer_messages: '⚖️ ปรึกษาทนายความอาสา',
-  share_fit_messages: '🏃‍♂️ ชวนออกกำลังกาย (Fit & Firm)',
-  share_food_messages: '🍲 ชวนกิน (กาญจน์สายกิน)',
-  share_merit_messages: '😇 ชวนทำบุญ (สายบุญเมืองกาญจน์)',
-  share_read_messages: '📚 ชวนเรียน (ปันความรู้/ทักษะ)',
-  share_drink_messages: '☕️ ชวนดื่ม (สายคาเฟ่/แฮงเอาต์)',
-  share_travel_messages: '⛺️ ชวนแคมป์ปิ้ง (สายลุยธรรมชาติ)',
-  share_pets_messages: '🐕 ชวนคนรักสัตว์เลี้ยง (Kanchanaburi Pets)',
-  share_skills_messages: '💼 ชวนแชร์ทักษะ/หางาน (Local Skills & Jobs)'
-};
-
-async function checkAndSendNewUserTelegram(realName, phone, nickname) {
-  try {
-    const configSnap = await getDoc(doc(db, 'admin_config', 'notifications'));
-    const config = configSnap.exists() ? configSnap.data() : { notifyNewUser: true, notifyNewMessage: true };
-    
-    if (config.notifyNewUser && TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-      const text = [
-        '👥 <b>[สมาชิกสมัครใหม่เข้าระบบ]</b>',
-        `<b>ชื่อจริง-นามสกุล:</b> ${realName}`,
-        `<b>ชื่อเล่น:</b> ${nickname || 'ไม่ระบุ'}`,
-        `<b>เบอร์โทรศัพท์:</b> 📞 <a href="tel:${phone}">${phone}</a>`,
-        `<b>เวลา:</b> ${new Date().toLocaleString('th-TH')}`
-      ].join('\n');
-      
-      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
-          text: text,
-          parse_mode: 'HTML'
-        })
-      });
-    }
-  } catch (err) {
-    console.error('Error sending registration Telegram notification:', err);
-  }
-}
-
-async function checkAndSendNewMessageTelegram(collectionName, senderName, textContent) {
-  try {
-    const configSnap = await getDoc(doc(db, 'admin_config', 'notifications'));
-    const config = configSnap.exists() ? configSnap.data() : { notifyNewUser: true, notifyNewMessage: true };
-    
-    if (config.notifyNewMessage && TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-      const roomTitle = ROOM_NAMES[collectionName] || 'ห้องแชททั่วไป';
-      const text = [
-        `💬 <b>[ข้อความใหม่ในห้องแชท]</b>`,
-        `<b>ห้อง:</b> ${roomTitle}`,
-        `<b>ผู้ส่ง:</b> ${senderName}`,
-        `<b>ข้อความ:</b> ${textContent}`,
-        `<b>เวลา:</b> ${new Date().toLocaleString('th-TH')}`
-      ].join('\n');
-      
-      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
-          text: text,
-          parse_mode: 'HTML'
-        })
-      });
-    }
-  } catch (err) {
-    console.error('Error sending message Telegram notification:', err);
-  }
-}
-
-async function saveNotificationConfig() {
-  const userToggle = document.getElementById('notifyNewUserToggle');
-  const msgToggle = document.getElementById('notifyNewMessageToggle');
-  
-  const notifyNewUser = userToggle ? userToggle.checked : true;
-  const notifyNewMessage = msgToggle ? msgToggle.checked : true;
-  
-  try {
-    await setDoc(doc(db, 'admin_config', 'notifications'), {
-      notifyNewUser: notifyNewUser,
-      notifyNewMessage: notifyNewMessage,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-  } catch (err) {
-    console.error('Error saving notification config:', err);
-    alert('บันทึกการตั้งค่าล้มเหลว: ' + err.message);
-  }
-}
-
-window.saveNotificationConfig = saveNotificationConfig;
-
 function showActualAdminPanel() {
   document.getElementById('adminOverlay').classList.remove('hidden');
   switchAdminTab('sos');
-  
-  // Load Admin Notification Configuration
-  getDoc(doc(db, 'admin_config', 'notifications')).then(snap => {
-    const config = snap.exists() ? snap.data() : { notifyNewUser: true, notifyNewMessage: true };
-    const userToggle = document.getElementById('notifyNewUserToggle');
-    const msgToggle = document.getElementById('notifyNewMessageToggle');
-    if (userToggle) userToggle.checked = !!config.notifyNewUser;
-    if (msgToggle) msgToggle.checked = !!config.notifyNewMessage;
-  }).catch(err => {
-    console.error('Error loading notification config:', err);
-  });
   
   // 1. Listen to SOS Incidents
   if (adminSosUnsub) {
@@ -2625,9 +2040,7 @@ function showActualAdminPanel() {
         donation: '🩸 บริจาค',
         pets: '🐶 สัตว์เลี้ยง',
         travel: '🏞️ ท่องเที่ยว',
-        news: '📢 ข่าวสาร',
-        jobs: '💼 รับสมัครงาน',
-        share: '🤝 ชวน & แชร์'
+        news: '📢 ข่าวสาร'
       };
       
       itemEl.innerHTML = `
@@ -2961,6 +2374,60 @@ function fetchLocation(){
 }
 
 /* ============================================================
+   NEARBY HOSPITALS DATABASE & FINDER
+   ============================================================ */
+const HOSPITALS_DB = [
+  { name: 'โรงพยาบาลพหลพลพยุหเสนา (สถาบันการแพทย์)', lat: 13.9133, lng: 99.5377, phone: '034-512-118', hours: '24 ชม.' },
+  { name: 'โรงพยาบาลกาญจนบุรีเมโมเรียล', lat: 13.9246, lng: 99.5411, phone: '034-515-555', hours: '24 ชม.' },
+  { name: 'โรงพยาบาลมะการักษ์', lat: 13.9314, lng: 99.5238, phone: '034-512-000', hours: '24 ชม.' },
+  { name: 'โรงพยาบาลทองผาภูมิ', lat: 13.8957, lng: 99.5129, phone: '034-594-100', hours: '24 ชม.' },
+  { name: 'โรงพยาบาลไทรโยค', lat: 14.4136, lng: 99.1853, phone: '034-651-111', hours: '08:00-18:00' },
+  { name: 'โรงพยาบาลสมเด็จพระสังฆราช', lat: 13.8536, lng: 99.6241, phone: '034-531-090', hours: '24 ชม.' },
+  { name: 'โรงพยาบาลด่านมะขามเตี้ย', lat: 14.0341, lng: 99.3628, phone: '034-592-080', hours: '08:00-18:00' },
+  { name: 'โรงพยาบาลบ่อพลอย', lat: 14.2547, lng: 99.4829, phone: '034-581-000', hours: '08:00-18:00' },
+  { name: 'โรงพยาบาลหนองปรือ', lat: 13.7891, lng: 99.6845, phone: '034-643-090', hours: '08:00-18:00' },
+  { name: 'โรงพยาบาลสังขละบุรี', lat: 14.3546, lng: 98.9832, phone: '034-661-190', hours: '08:00-18:00' }
+];
+
+function calculateDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371; // Radius of Earth in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return (R * c).toFixed(2);
+}
+
+function getNearbyHospitals(userLat, userLng, limit = 5) {
+  return HOSPITALS_DB
+    .map(h => ({
+      ...h,
+      distance: calculateDistance(userLat, userLng, h.lat, h.lng)
+    }))
+    .sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance))
+    .slice(0, limit);
+}
+
+function openMapDirections(lat, lng, name) {
+  const userLat = userCoord.lat || 13.913;
+  const userLng = userCoord.lng || 99.537;
+  
+  // Check if iOS
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  
+  if (isIOS) {
+    // Apple Maps
+    window.location.href = `maps://maps.apple.com/?saddr=${userLat},${userLng}&daddr=${lat},${lng}&dirflg=d`;
+  } else {
+    // Google Maps
+    window.open(`https://www.google.com/maps/dir/${userLat},${userLng}/${lat},${lng}/?q=${encodeURIComponent(name)}`, '_blank');
+  }
+}
+
+/* ============================================================
    LEAFLET INTERACTIVE MAP
    ============================================================ */
 let leafletMap = null;
@@ -3001,7 +2468,7 @@ function updateLeafletMap() {
   }
   
   const pos = [userCoord.lat, userCoord.lng];
-  leafletMap.setView(pos, leafletMap.getZoom());
+  leafletMap.setView(pos, 13);
   
   const customPinIcon = L.divIcon({
     html: `<span style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); display: block; text-align: center; line-height: 1;">📍</span>`,
@@ -3014,9 +2481,31 @@ function updateLeafletMap() {
     leafletMarker.setLatLng(pos);
   } else {
     leafletMarker = L.marker(pos, { icon: customPinIcon }).addTo(leafletMap)
-      .bindPopup('📍 ตำแหน่งปัจจุบันของคุณ')
-      .openPopup();
+      .bindPopup('📍 ตำแหน่งปัจจุบัน');
   }
+  
+  // Clear old hospital markers
+  leafletMap.eachLayer(layer => {
+    if (layer instanceof L.Marker && layer !== leafletMarker) {
+      leafletMap.removeLayer(layer);
+    }
+  });
+  
+  // Show nearby hospitals
+  const nearbyHospitals = getNearbyHospitals(userCoord.lat, userCoord.lng, 10);
+  nearbyHospitals.forEach((h) => {
+    const popupText = `<div style="font-size:13px;"><b>${h.name}</b><br>📞 ${h.phone}<br>⏰ ${h.hours}<br>📏 ${h.distance} กม.<br><button onclick="openMapDirections(${h.lat}, ${h.lng}, '${h.name.replace(/'/g, "\\'")}');" style="margin-top:8px; background:#1f9e6e; color:#fff; border:none; padding:8px 12px; border-radius:6px; font-weight:700; cursor:pointer; width:100%;">🗺️ นำทาง</button></div>`;
+    
+    const hospitalIcon = L.divIcon({
+      html: `<span style="font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); display: block; text-align: center; line-height: 1;">🏥</span>`,
+      className: 'hospital-marker',
+      iconSize: [24, 24],
+      iconAnchor: [12, 24]
+    });
+    
+    L.marker([h.lat, h.lng], { icon: hospitalIcon }).addTo(leafletMap)
+      .bindPopup(popupText);
+  });
 }
 
 /* ============================================================
@@ -3820,8 +3309,6 @@ async function saveProfileFromTab() {
   }
 
   try {
-    const isNewUser = !userProfile || !userProfile.profileSetup;
-    
     await setDoc(doc(db,'users',currentUser.uid),{
       uid: currentUser.uid,
       displayName: currentUser.displayName || '',
@@ -3835,10 +3322,6 @@ async function saveProfileFromTab() {
       createdAt: userProfile?.createdAt || serverTimestamp(),
       updatedAt: serverTimestamp()
     },{merge:true});
-
-    if (isNewUser) {
-      checkAndSendNewUserTelegram(realName, phone, nickname);
-    }
 
     await loadProfile(currentUser);
     disableProfileEditMode();
@@ -4062,60 +3545,6 @@ let currentListingCategory = null;
 function openUserListingForm(categoryKey) {
   ensureUserAuthenticated(() => {
     currentListingCategory = categoryKey;
-    
-    // Default placeholders and labels
-    let modalTitle = '➕ ลงประกาศบริการ';
-    let modalDesc = 'ลงข้อมูลบริการ/ร้านค้าของคุณให้คนในชุมชนเห็นและติดต่อได้';
-    let titleLabel = 'ชื่อบริการ / ร้านค้า / ตำแหน่งงาน *';
-    let titlePlaceholder = 'เช่น อู่ซ่อมรถลุงสม, รับจ้างตัดหญ้า';
-    let detailLabel = 'รายละเอียดเพิ่มเติม (ไม่บังคับ)';
-    let detailPlaceholder = 'เช่น เปิดบริการ 24 ชม. / รับงานทั่วกาญจนบุรี / เงินเดือน 15,000 บาท';
-    
-    if (categoryKey === 'car') {
-      modalTitle = '➕ ลงประกาศบริการ ช่าง / อู่ซ่อม / รถยก';
-      modalDesc = 'โปรโมทบริการช่วยเหลือเดินทาง/รถเสียของคุณในกาญจนบุรี ยิ่งมีข้อมูลเยอะคนในพื้นที่ยิ่งอุ่นใจครับ';
-      titleLabel = 'ชื่อบริการ / อู่ซ่อม / ช่างรถ / บริการรถยก *';
-      titlePlaceholder = 'เช่น อู่ช่างวิทย์ปะยางด่วน, รถยกสไลด์พนมทวน, ช่างกุญแจเมืองกาญจน์';
-      detailLabel = 'รายละเอียดการบริการ / อัตราค่าบริการ / พื้นที่รับงาน *';
-      detailPlaceholder = 'เช่น บริการปะยางนอกสถานที่ 24 ชั่วโมง ทั่วเขตอำเภอเมือง, พ่วงแบตเตอรี่รถยนต์เริ่มต้น 300 บาท';
-    } else if (categoryKey === 'work') {
-      modalTitle = '➕ ลงประกาศรับงาน ช่างทั่วไป / บริการตามบ้าน';
-      modalDesc = 'ลงประกาศรับงานบริการ ช่างไฟ ช่างประปา รับจ้างตัดหญ้า หรือรับดูแลผู้สูงอายุ เพื่อให้คนในชุมชนจ้างงานได้โดยตรง';
-      titleLabel = 'ช่างรับงาน / ประเภทงานที่รับ *';
-      titlePlaceholder = 'เช่น ช่างไฟฟ้าเดินสาย, คนรับจ้างตัดหญ้า/จัดสวน, บริการดูแลผู้สูงอายุ/ผู้ป่วย';
-      detailLabel = 'รายละเอียดงาน / อัตราค่าบริการเริ่มต้น / พื้นที่ให้บริการ *';
-      detailPlaceholder = 'เช่น รับล้างเครื่องปรับอากาศเริ่มต้น 500 บาท, รับดูแลผู้สูงอายุรายวัน/รายเดือน ทั่วเขตท่าม่วง';
-    } else if (categoryKey === 'jobs') {
-      modalTitle = '💼 ลงประกาศรับสมัครงาน หรือ ฝากประวัติหางาน';
-      modalDesc = 'พื้นที่สำหรับร้านค้า โรงงาน ไร่สวน โรงแรม ในกาญจนบุรี ลงประกาศรับคนทำงาน หรือคนหางานมาลงแนะนำประวัติการทำงานได้ฟรี';
-      titleLabel = 'ตำแหน่งงานที่รับสมัคร หรือ ตำแหน่งที่ต้องการทำ *';
-      titlePlaceholder = 'เช่น รับสมัครคนงานสวนยาง/ไร่สวน, สนใจงานพนักงานเสิร์ฟ/แคชเชียร์, รับสมัครช่างเชื่อมด่วน';
-      detailLabel = 'รายละเอียดงาน / อัตราค่าจ้าง / คุณสมบัติ หรือ ประสบการณ์ทำงาน *';
-      detailPlaceholder = 'เช่น รับคนงานตัดอ้อย 10 อัตรา ค่าจ้างวันละ 400 บาท มีที่พักฟรี หรือ หางานทำความสะอาดบ้าน/รีสอร์ต มีประสบการณ์ 3 ปี';
-    } else if (categoryKey === 'pets') {
-      modalTitle = '🐶 ลงประกาศเกี่ยวกับสัตว์เลี้ยง';
-      modalDesc = 'ลงโปรโมทคลินิกรักษาสัตว์ ร้านอาหารสัตว์ บริการรับฝากเลี้ยง หรือแจ้งเหตุสัตว์เลี้ยงสูญหาย/พบสัตว์พลัดหลง';
-      titleLabel = 'ชื่อร้าน/คลินิก หรือ หัวข้อประกาศสัตว์หาย/สัตว์พลัดหลง *';
-      titlePlaceholder = 'เช่น คลินิกรักษาสัตว์แสนรัก, แจ้งสุนัขหายสายพันธุ์บีเกิล, พบแมวหลงใส่ปลอกคอ';
-      detailLabel = 'รายละเอียดบริการ หรือ ข้อมูลรูปพรรณสัตว์และพิกัดที่พบ *';
-      detailPlaceholder = 'เช่น บริการรับฝากเลี้ยงสุนัข/แมว ห้องแอร์ หรือ สุนัขบีเกิลเพศเมีย หายแถวหน้าโรงเรียนกาญจนานุเคราะห์ มีสินน้ำใจให้ผู้พบเห็น';
-    }
-    
-    // Update elements dynamically
-    const titleEl = document.getElementById('userListingModalTitle');
-    const descEl = document.getElementById('userListingModalDesc');
-    const labelTitleEl = document.getElementById('userListingTitleLabel');
-    const labelDetailEl = document.getElementById('userListingDetailLabel');
-    
-    if (titleEl) titleEl.innerHTML = modalTitle;
-    if (descEl) descEl.innerHTML = modalDesc;
-    if (labelTitleEl) labelTitleEl.innerHTML = labelTitleEl.innerText.endsWith('*') ? titleLabel : titleLabel;
-    if (labelTitleEl) labelTitleEl.textContent = titleLabel;
-    if (labelDetailEl) labelDetailEl.textContent = detailLabel;
-    
-    document.getElementById('listingTitle').placeholder = titlePlaceholder;
-    document.getElementById('listingDetail').placeholder = detailPlaceholder;
-    
     document.getElementById('listingTitle').value = '';
     document.getElementById('listingPhone').value = userProfile?.phone || '';
     document.getElementById('listingDetail').value = '';
@@ -4254,6 +3683,32 @@ window.showActualAdminPanel=showActualAdminPanel;
 window.loadAdminUsers=loadAdminUsers;
 window.initLeafletMap=initLeafletMap;
 window.updateLeafletMap=updateLeafletMap;
+window.openMapDirections=openMapDirections;
+
+function renderNearbyHospitalsList() {
+  const listEl = document.getElementById('nearbyHospitalsList');
+  if (!listEl) return;
+  
+  const nearby = getNearbyHospitals(userCoord.lat, userCoord.lng, 10);
+  listEl.innerHTML = '';
+  
+  nearby.forEach((h, idx) => {
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#f8f9fa; border:1px solid var(--line); border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:flex-start; gap:8px;';
+    card.innerHTML = `
+      <div style="flex:1; min-width:0;">
+        <div style="font-weight:700; font-size:13px; color:var(--ink); margin-bottom:4px;">🏥 ${h.name}</div>
+        <div style="font-size:11px; color:var(--muted); line-height:1.4;">
+          📞 ${h.phone}<br>⏰ ${h.hours}<br>📏 <b>${h.distance} กม.</b>
+        </div>
+      </div>
+      <button onclick="openMapDirections(${h.lat}, ${h.lng}, '${h.name.replace(/'/g, "\\'")}');" style="background:var(--green); color:#fff; border:none; border-radius:10px; padding:10px 14px; font-size:12px; font-weight:800; white-space:nowrap; cursor:pointer; flex-shrink:0;">🗺️ นำทาง</button>
+    `;
+    listEl.appendChild(card);
+  });
+}
+
+window.renderNearbyHospitalsList=renderNearbyHospitalsList;
 window.openUserListingForm=openUserListingForm;
 window.closeUserListingForm=closeUserListingForm;
 window.submitUserListing=submitUserListing;
