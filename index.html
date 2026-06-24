@@ -860,12 +860,21 @@ button,input{font-family:inherit}
 
 <!-- ===== CHAT ROOM OVERLAY (Venting Room) ===== -->
 <div id="chatRoomOverlay" class="cd-overlay hidden" style="z-index: 56; background: var(--bg); color: var(--ink); display: flex; flex-direction: column; padding: 0; align-items: stretch; justify-content: flex-start; text-align: left">
-  <div class="hdr" id="chatRoomHdr" style="background: linear-gradient(135deg, var(--green), var(--green-d))">
-    <div style="display:flex; align-items:center; gap:8px">
-      <button onclick="closeChatRoom()" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer">←</button>
-      <span style="font-weight:800; font-size:16px" id="chatRoomTitle">💬 ห้องปรับทุกข์ชุมชน</span>
+  <div class="hdr" id="chatRoomHdr" style="background: linear-gradient(135deg, var(--green), var(--green-d)); display:flex; justify-content:space-between; align-items:center; padding:0 12px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
+      <button onclick="closeChatRoom()" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer; flex-shrink:0;">←</button>
+      <span style="font-weight:800; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="chatRoomTitle">💬 ห้องปรับทุกข์ชุมชน</span>
     </div>
-    <button onclick="closeChatRoom()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700; cursor:pointer">ปิด</button>
+    <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+      <button onclick="showMembers()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; border-radius:8px; padding:6px 10px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap;">👥 สมาชิก</button>
+      <button onclick="closeChatRoom()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; border-radius:8px; padding:6px 10px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap;">ปิด</button>
+    </div>
+  </div>
+  
+  <!-- Search Messages -->
+  <div style="background:#fff; padding:10px 16px; border-bottom:1px solid var(--line); display:flex; gap:8px;">
+    <input type="text" id="searchInput" placeholder="🔍 ค้นหาข้อความ..." onkeyup="filterMessages(this.value)" style="flex:1; border:1px solid var(--line); border-radius:12px; padding:8px 12px; font-size:13px; outline:none;">
+    <button onclick="document.getElementById('searchInput').value=''; filterMessages('');" style="background:none; border:none; color:var(--muted); cursor:pointer; font-size:16px;">✕</button>
   </div>
   
   <!-- Anonymous Mode Toggle -->
@@ -880,12 +889,25 @@ button,input{font-family:inherit}
     </label>
   </div>
   
+  <!-- Pinned Messages -->
+  <div id="pinnedSection" style="background:#fff3cd; border-bottom:2px solid #ffc107; padding:12px 16px; display:none;">
+    <div style="font-size:12px; font-weight:800; color:#856404; margin-bottom:8px;">📌 ข้อความปักหมุด:</div>
+    <div id="pinnedList" style="display:flex; flex-direction:column; gap:6px;"></div>
+  </div>
+
   <div class="chat-msgs" id="roomMsgs" style="flex:1; background:#f4f5f8; padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:12px">
     <!-- Real-time Firestore messages will go here -->
   </div>
   
   <div class="chat-input-area" style="padding:12px; background:#fff; border-top:1px solid var(--line); display:flex; gap:8px; align-items:center; position:relative">
     <button class="emoji-picker-btn" onclick="toggleEmojiPicker(event)">😊</button>
+    <div id="replyPreview" style="display:none; background:var(--line); border-left:4px solid var(--green); padding:10px 12px; margin-bottom:10px; border-radius:8px; font-size:13px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <div style="font-weight:700; color:var(--green);">↩️ ตอบกลับ:</div>
+        <button onclick="cancelReply()" style="background:none; border:none; color:var(--muted); cursor:pointer; font-size:16px;">✕</button>
+      </div>
+      <div id="replyText" style="color:var(--muted); font-style:italic; word-break:break-word;"></div>
+    </div>
     <input type="text" id="roomInput" placeholder="พิมพ์ข้อความปรับทุกข์..." onkeypress="handleRoomKeyPress(event)" style="flex:1; border:1px solid var(--line); border-radius:20px; padding:10px 16px; font-size:14px; outline:none">
     <button onclick="sendRoomMessage()" style="background:var(--green); color:#fff; border:none; border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px">➔</button>
     <!-- Emoji Picker Container -->
@@ -1145,6 +1167,20 @@ button,input{font-family:inherit}
 </div>
 
 <!-- ===== ANNOUNCEMENT DETAIL DIALOG ===== -->
+
+<!-- ===== MEMBERS MODAL ===== -->
+<div id="membersModal" class="modal-bg hidden" style="align-items: center; z-index: 63;">
+  <div class="modal-box" style="border-radius: 20px; width: calc(100% - 32px); max-width: 400px; padding: 24px; margin: 16px; max-height: 70vh; overflow-y: auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h2 style="font-size:18px; font-weight:800; margin:0;">👥 สมาชิกห้องแชท</h2>
+      <button onclick="closeMembersModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--muted);">✕</button>
+    </div>
+    
+    <div id="membersList" style="display:flex; flex-direction:column; gap:12px;">
+      <!-- Members will be rendered here -->
+    </div>
+  </div>
+</div>
 
 <!-- ===== USER LISTING FORM MODAL ===== -->
 <div id="userListingModal" class="modal-bg hidden" style="align-items: center; z-index: 62;">
@@ -1835,6 +1871,8 @@ function handleSheetItemClick(item){
 
 let roomUnsub = null;
 let currentChatCollection = 'vent_messages';
+let currentReplyTo = null;  // เก็บ {docId, author, text}
+let roomMembers = {};  // เก็บ members ที่เข้ามา {uid: {displayName, avatar, lastSeen}}
 
 function getCuteAvatar(uid, displayName) {
   const emojis = ['🐶', '🐱', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐷', '🐮', '🐸', '🐵', '🐣', '🐧', '🐦', '🦄', '🐝', '🦖'];
@@ -1900,6 +1938,7 @@ document.addEventListener('click', () => {
 
 function openChatRoom(collectionName = 'vent_messages', roomTitle = '💬 ห้องปรับทุกข์ชุมชน', inputPlaceholder = 'พิมพ์ข้อความปรับทุกข์...'){
   currentChatCollection = collectionName;
+  roomMembers = {};  // Reset members
   document.getElementById('chatRoomTitle').textContent = roomTitle;
   document.getElementById('roomInput').placeholder = inputPlaceholder;
   document.getElementById('chatRoomOverlay').classList.remove('hidden');
@@ -1945,6 +1984,7 @@ function openChatRoom(collectionName = 'vent_messages', roomTitle = '💬 ห้
   roomUnsub = onSnapshot(q, (snapshot) => {
     const msgsEl = document.getElementById('roomMsgs');
     msgsEl.innerHTML = '';
+    loadPinnedMessages();  // Load pinned messages
     let latestTimestamp = Date.now();
     
     snapshot.forEach((doc) => {
@@ -1952,25 +1992,74 @@ function openChatRoom(collectionName = 'vent_messages', roomTitle = '💬 ห้
       const isMine = d.authorUid === currentUser?.uid;
       const timeStr = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'}) : '';
       
+      // Track members
+      const uid = d.uid || d.authorUid;
+      if (uid && uid !== 'anon') {
+        if (!roomMembers[uid]) {
+          roomMembers[uid] = {
+            displayName: d.displayName || 'ผู้ใช้',
+            avatar: getCuteAvatar(uid, d.displayName),
+            lastSeen: Date.now(),
+            readCount: 0
+          };
+        } else {
+          roomMembers[uid].lastSeen = Date.now();
+          // Count reads
+          if (d.readBy && d.readBy.includes(currentUser?.uid)) {
+            roomMembers[uid].readCount = (roomMembers[uid].readCount || 0) + 1;
+          }
+        }
+      }
+      
+      // Mark as read if not already
+      const readBy = d.readBy || [];
+      if (!readBy.includes(currentUser?.uid) && currentUser?.uid) {
+        updateDoc(doc.ref, {
+          readBy: [...readBy, currentUser.uid]
+        }).catch(e => console.error('Error marking read:', e));
+      }
+      
+      // Count reads
+      const readCount = (d.readBy || []).length;
+      const readReceipt = readCount > 0 ? `✓✓ อ่านแล้ว ${readCount} คน` : '✓';
+      
       if (isShareRoom) {
         // Cute rendering with avatar
         const row = document.createElement('div');
         row.className = `cute-msg-row ${isMine ? 'mine' : ''}`;
-        
-        const avatarStr = getCuteAvatar(d.uid || d.authorUid, d.displayName);
+        row.setAttribute('data-msg-id', doc.id);
+        row.setAttribute('data-msg-text', d.text);
         
         let html = '';
         if (!isMine) {
           html += `<div class="cute-avatar">${avatarStr}</div>`;
         }
         
+        // Quote display
+        let quoteHtml = '';
+        if (d.replyTo) {
+          quoteHtml = `
+            <div style="background:rgba(0,0,0,0.1); border-left:3px solid var(--green); padding:8px; margin-bottom:8px; border-radius:4px; font-size:12px; color:var(--muted);">
+              <div style="font-weight:700;">↩️ ตอบกลับ ${d.replyTo.author}:</div>
+              <div style="margin-top:4px; font-style:italic;">"${d.replyTo.text}"</div>
+            </div>
+          `;
+        }
+        
         html += `
           <div class="cute-bubble-wrap ${isMine ? 'mine' : ''}">
             <div class="cute-msg-name">${d.displayName || 'ผู้ใช้'}</div>
+            ${quoteHtml}
             <div class="cute-bubble ${isMine ? 'mine' : 'other'}">
               ${d.text}
             </div>
-            <div class="cute-msg-time" style="align-self: ${isMine ? 'flex-end' : 'flex-start'}">${timeStr}</div>
+            <div style="display:flex; justify-content:${isMine ? 'flex-end' : 'flex-start'}; gap:6px; margin-top:4px; align-items:center; flex-wrap:wrap;">
+              <div class="cute-msg-time">${timeStr}</div>
+              ${isMine ? `<div style="font-size:10px; color:var(--muted);">${readReceipt}</div>` : ''}
+              ${!isMine ? `<button onclick="setReply('${doc.id}', '${d.displayName}', '${d.text.replace(/'/g, "\\'")}');" style="background:none; border:none; font-size:12px; cursor:pointer; padding:0; color:var(--green);">↩️</button>` : ''}
+              ${isMine ? `<button onclick="togglePin('${doc.id}', ${d.isPinned || false});" style="background:none; border:none; font-size:12px; cursor:pointer; padding:0; color:${d.isPinned ? '#ffc107' : 'var(--muted)'};">📌</button>` : ''}
+              ${d.isPinned ? `<span style="font-size:11px; color:#ffc107; font-weight:700;">ปักหมุด</span>` : ''}
+            </div>
           </div>
         `;
         row.innerHTML = html;
@@ -2174,10 +2263,15 @@ async function sendRoomMessage(){
       uid: isAnon ? 'anon' : (currentUser?.uid || 'anon'),
       displayName: displayName,
       text: text,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
+      readBy: [currentUser?.uid || 'anon'],
+      replyTo: currentReplyTo  // เพิ่ม reply info
     });
     input.value = '';
     input.focus();
+    
+    // Clear reply
+    cancelReply();
     
     // Send Telegram Notification
     checkAndSendNewMessageTelegram(currentChatCollection, displayName, text);
@@ -4296,6 +4390,126 @@ window.handleSheetItemClick=handleSheetItemClick;
 window.toggleAIChat=toggleAIChat;
 window.handleChatKeyPress=handleChatKeyPress;
 window.sendChatMessage=sendChatMessage;
+function filterMessages(searchTerm) {
+  const msgsEl = document.getElementById('roomMsgs');
+  const msgRows = msgsEl.querySelectorAll('[data-msg-id]');
+  
+  msgRows.forEach(row => {
+    const msgText = row.getAttribute('data-msg-text').toLowerCase();
+    const matchSearch = msgText.includes(searchTerm.toLowerCase());
+    row.style.display = matchSearch ? '' : 'none';
+  });
+}
+
+async function togglePin(docId, currentPin) {
+  try {
+    await updateDoc(doc(db, currentChatCollection, docId), {
+      isPinned: !currentPin
+    });
+    loadPinnedMessages();
+  } catch (e) {
+    console.error('Error pinning message:', e);
+    alert('ไม่สามารถปักหมุดข้อความได้');
+  }
+}
+
+function loadPinnedMessages() {
+  const q = query(collection(db, currentChatCollection), where('isPinned', '==', true), limit(10));
+  getDocs(q).then((snapshot) => {
+    const pinnedList = document.getElementById('pinnedList');
+    pinnedList.innerHTML = '';
+    
+    if (snapshot.empty) {
+      document.getElementById('pinnedSection').style.display = 'none';
+      return;
+    }
+    
+    document.getElementById('pinnedSection').style.display = 'block';
+    
+    snapshot.forEach((doc) => {
+      const d = doc.data();
+      const item = document.createElement('div');
+      item.style.cssText = 'background:#fff; padding:8px; border-radius:8px; font-size:12px; border-left:3px solid #ffc107;';
+      item.innerHTML = `
+        <div style="font-weight:700; color:var(--ink);">${d.displayName}</div>
+        <div style="color:var(--muted); margin:4px 0;">${d.text}</div>
+        <button onclick="window.location.hash='#msg-${doc.id}';" style="background:none; border:none; color:var(--green); font-size:11px; cursor:pointer;">ดูข้อความ</button>
+      `;
+      pinnedList.appendChild(item);
+    });
+  });
+}
+
+window.filterMessages=filterMessages;
+window.togglePin=togglePin;
+
+function showMembers() {
+  const membersList = document.getElementById('membersList');
+  membersList.innerHTML = '';
+  
+  // Sort members by lastSeen (newest first)
+  const sortedMembers = Object.entries(roomMembers)
+    .sort(([, a], [, b]) => (b.lastSeen || 0) - (a.lastSeen || 0));
+  
+  if (sortedMembers.length === 0) {
+    membersList.innerHTML = '<div style="color:var(--muted); text-align:center; padding:20px;">ยังไม่มีสมาชิก</div>';
+    document.getElementById('membersModal').classList.remove('hidden');
+    return;
+  }
+  
+  sortedMembers.forEach(([uid, member]) => {
+    const isOnline = Date.now() - member.lastSeen < 5 * 60 * 1000; // 5 minutes
+    const lastSeenStr = getLastSeenString(member.lastSeen);
+    
+    const item = document.createElement('div');
+    item.style.cssText = 'display:flex; gap:12px; padding:12px; background:var(--line); border-radius:12px; align-items:center;';
+    item.innerHTML = `
+      <div style="font-size:32px; flex-shrink:0;">${member.avatar}</div>
+      <div style="flex:1;">
+        <div style="font-weight:700; color:var(--ink);">${member.displayName}</div>
+        <div style="font-size:12px; color:${isOnline ? '#4CAF50' : 'var(--muted)'};">
+          ${isOnline ? '🟢 ออนไลน์' : `ล่าสุด ${lastSeenStr}`}
+        </div>
+        <div style="font-size:11px; color:var(--muted); margin-top:4px;">✓✓ อ่านแล้ว ${member.readCount || 0} ข้อความ</div>
+      </div>
+    `;
+    membersList.appendChild(item);
+  });
+  
+  document.getElementById('membersModal').classList.remove('hidden');
+}
+
+function closeMembersModal() {
+  document.getElementById('membersModal').classList.add('hidden');
+}
+
+function getLastSeenString(timestamp) {
+  if (!timestamp) return 'ยาวนาน';
+  const diff = Date.now() - timestamp;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  
+  if (minutes < 1) return 'เพิ่งเข้า';
+  if (minutes < 60) return `${minutes} นาที`;
+  if (hours < 24) return `${hours} ชั่วโมง`;
+  return `${days} วัน`;
+}
+
+window.showMembers=showMembers;
+window.closeMembersModal=closeMembersModal;
+  currentReplyTo = { docId, author: authorName, text: text.substring(0, 50) + (text.length > 50 ? '...' : '') };
+  document.getElementById('replyPreview').style.display = 'block';
+  document.getElementById('replyText').textContent = `${authorName}: "${currentReplyTo.text}"`;
+  document.getElementById('roomInput').focus();
+}
+
+function cancelReply() {
+  currentReplyTo = null;
+  document.getElementById('replyPreview').style.display = 'none';
+  document.getElementById('replyText').textContent = '';
+}
+
 window.openChatRoom=openChatRoom;
 window.closeChatRoom=closeChatRoom;
 window.handleRoomKeyPress=handleRoomKeyPress;
