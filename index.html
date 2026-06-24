@@ -1939,6 +1939,9 @@ document.addEventListener('click', () => {
 function openChatRoom(collectionName = 'vent_messages', roomTitle = '💬 ห้องปรับทุกข์ชุมชน', inputPlaceholder = 'พิมพ์ข้อความปรับทุกข์...'){
   currentChatCollection = collectionName;
   roomMembers = {};  // Reset members
+  cancelReply();  // Clear reply
+  const searchEl = document.getElementById('searchInput');
+  if (searchEl) searchEl.value = '';  // Clear search
   document.getElementById('chatRoomTitle').textContent = roomTitle;
   document.getElementById('roomInput').placeholder = inputPlaceholder;
   document.getElementById('chatRoomOverlay').classList.remove('hidden');
@@ -2030,6 +2033,8 @@ function openChatRoom(collectionName = 'vent_messages', roomTitle = '💬 ห้
         row.setAttribute('data-msg-id', doc.id);
         row.setAttribute('data-msg-text', d.text);
         
+        const avatarStr = getCuteAvatar(d.uid || d.authorUid, d.displayName);
+        
         let html = '';
         if (!isMine) {
           html += `<div class="cute-avatar">${avatarStr}</div>`;
@@ -2068,6 +2073,8 @@ function openChatRoom(collectionName = 'vent_messages', roomTitle = '💬 ห้
         // Default rendering
         const bubble = document.createElement('div');
         bubble.className = `msg-bubble ${isMine ? 'user' : 'ai'}`;
+        bubble.setAttribute('data-msg-id', doc.id);
+        bubble.setAttribute('data-msg-text', d.text);
         
         if (isMine) {
           bubble.style.background = 'var(--green)';
@@ -2081,13 +2088,28 @@ function openChatRoom(collectionName = 'vent_messages', roomTitle = '💬 ห้
           bubble.style.color = 'var(--ink)';
         }
         
+        // Quote display for default rooms
+        let defQuoteHtml = '';
+        if (d.replyTo) {
+          defQuoteHtml = `
+            <div style="background:rgba(0,0,0,0.1); border-left:3px solid ${isMine ? 'rgba(255,255,255,0.5)' : 'var(--green)'}; padding:6px 8px; margin-bottom:8px; border-radius:4px; font-size:11px;">
+              <div style="font-weight:700;">↩️ ${d.replyTo.author}:</div>
+              <div style="margin-top:2px; font-style:italic;">"${d.replyTo.text}"</div>
+            </div>
+          `;
+        }
+        
         bubble.innerHTML = `
           <div style="font-size:10px; font-weight:800; color:${isMine ? 'rgba(255,255,255,0.85)' : 'var(--muted)'}; margin-bottom:2px">
             ${d.displayName}
           </div>
+          ${defQuoteHtml}
           <div>${d.text}</div>
-          <div style="font-size:8px; text-align:right; color:${isMine ? 'rgba(255,255,255,0.7)' : 'var(--muted)'}; margin-top:2px">
-            ${timeStr}
+          <div style="font-size:8px; text-align:right; color:${isMine ? 'rgba(255,255,255,0.7)' : 'var(--muted)'}; margin-top:2px; display:flex; justify-content:flex-end; align-items:center; gap:6px; flex-wrap:wrap;">
+            <span>${timeStr}</span>
+            ${isMine ? `<span>${readReceipt}</span>` : ''}
+            ${!isMine ? `<button onclick="setReply('${doc.id}', '${(d.displayName || '').replace(/'/g, "\\'")}', '${d.text.replace(/'/g, "\\'")}');" style="background:none; border:none; font-size:10px; cursor:pointer; padding:0; color:${isMine ? 'rgba(255,255,255,0.8)' : 'var(--green)'};">↩️</button>` : ''}
+            ${isMine ? `<button onclick="togglePin('${doc.id}', ${d.isPinned || false});" style="background:none; border:none; font-size:10px; cursor:pointer; padding:0; color:${d.isPinned ? '#ffc107' : (isMine ? 'rgba(255,255,255,0.5)' : 'var(--muted)')};">📌</button>` : ''}
           </div>
         `;
         msgsEl.appendChild(bubble);
@@ -4442,6 +4464,8 @@ function loadPinnedMessages() {
 
 window.filterMessages=filterMessages;
 window.togglePin=togglePin;
+window.setReply=setReply;
+window.cancelReply=cancelReply;
 
 function showMembers() {
   const membersList = document.getElementById('membersList');
@@ -4498,6 +4522,8 @@ function getLastSeenString(timestamp) {
 
 window.showMembers=showMembers;
 window.closeMembersModal=closeMembersModal;
+
+function setReply(docId, authorName, text) {
   currentReplyTo = { docId, author: authorName, text: text.substring(0, 50) + (text.length > 50 ? '...' : '') };
   document.getElementById('replyPreview').style.display = 'block';
   document.getElementById('replyText').textContent = `${authorName}: "${currentReplyTo.text}"`;
