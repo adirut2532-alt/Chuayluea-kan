@@ -1417,11 +1417,26 @@ const firebaseConfig = {
   measurementId: "G-VN0TZVB89H"
 };
 
-const TELEGRAM_BOT_TOKEN = "8840020497:AAEzTP3Qh6XzplLzF0LHjLHXGjXzlbKXne8";
-const TELEGRAM_CHAT_ID = "-1004428607725";
+/* ============================================================
+   🔒 Secure Proxy — Telegram token และ Gemini key เก็บไว้ใน Cloudflare Worker
+   ใส่ URL ของ Worker ที่นี่ (เช่น https://chuayluea-proxy.xxx.workers.dev)
+   เว้นว่าง = ปิดการแจ้งเตือน Telegram และ AI ตรวจข้อความ (แอปยังใช้งานได้ปกติ)
+   ============================================================ */
+const PROXY_URL = "";
+const TELEGRAM_ENABLED = !!PROXY_URL;
 
-// Gemini API Key config (optional separate key for Gemini if Firebase key is restricted)
-const GEMINI_API_KEY = "AQ.Ab8RN6Lf42bW4u_VxFkTjJVrODxTmlyuH8nLbmYKnOXHK4_kvA"; 
+async function proxyFetch(path, opts = {}) {
+  if (!PROXY_URL) throw new Error('PROXY_URL not set');
+  const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+  const headers = { ...(opts.headers || {}), Authorization: 'Bearer ' + token };
+  return fetch(PROXY_URL.replace(/\/$/, '') + path, { ...opts, headers });
+}
+async function tgFetch(method, opts) {
+  if (!TELEGRAM_ENABLED) { console.log('[Telegram] ข้าม (ยังไม่ได้ตั้ง PROXY_URL)'); return; }
+  return proxyFetch('/tg/' + method, opts);
+}
+
+
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -2287,8 +2302,7 @@ function handleRoomKeyPress(e){
 }
 
 async function moderateContent(text) {
-  const apiKey = GEMINI_API_KEY || firebaseConfig.apiKey;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
   
   const systemPrompt = `คุณคือผู้ตรวจสอบข้อความ (Content Moderator) ของฟีเจอร์ 'ชวน&แชร์' ในแอปพลิเคชันชุมชนจังหวัดกาญจนบุรี หน้าที่ของคุณคือการอ่านข้อความที่ผู้ใช้โพสต์เข้ามา แล้วตัดสินใจว่าข้อความนั้นสมควรได้รับการอนุญาตให้เผยแพร่หรือไม่ โดยยึดหลักเกณฑ์ดังนี้:
 1. บล็อก (สถานะ: reject): ข้อความที่มีคำหยาบคาย, ลิงก์เว็บพนัน, ชวนคุยเรื่องการเมืองรุนแรง, การกลั่นแกล้ง (Bully), แชร์ข่าวปลอม, หรือสแปมโฆษณาขายสินค้าที่ไม่ได้เกียวข้องกับชุมชน
@@ -2325,7 +2339,7 @@ async function moderateContent(text) {
     }
   };
 
-  const response = await fetch(url, {
+  const response = await proxyFetch('/gemini', {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -2656,7 +2670,7 @@ async function checkAndSendNewUserTelegram(realName, phone, nickname) {
     const configSnap = await getDoc(doc(db, 'admin_config', 'notifications'));
     const config = configSnap.exists() ? configSnap.data() : { notifyNewUser: true, notifyNewMessage: true };
     
-    if (config.notifyNewUser && TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+    if (config.notifyNewUser && TELEGRAM_ENABLED) {
       const text = [
         '👥 <b>[สมาชิกสมัครใหม่เข้าระบบ]</b>',
         `<b>ชื่อจริง-นามสกุล:</b> ${realName}`,
@@ -2665,11 +2679,10 @@ async function checkAndSendNewUserTelegram(realName, phone, nickname) {
         `<b>เวลา:</b> ${new Date().toLocaleString('th-TH')}`
       ].join('\n');
       
-      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      await tgFetch('sendMessage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
           text: text,
           parse_mode: 'HTML'
         })
@@ -2685,7 +2698,7 @@ async function checkAndSendNewMessageTelegram(collectionName, senderName, textCo
     const configSnap = await getDoc(doc(db, 'admin_config', 'notifications'));
     const config = configSnap.exists() ? configSnap.data() : { notifyNewUser: true, notifyNewMessage: true };
     
-    if (config.notifyNewMessage && TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+    if (config.notifyNewMessage && TELEGRAM_ENABLED) {
       const roomTitle = ROOM_NAMES[collectionName] || 'ห้องแชททั่วไป';
       const text = [
         `💬 <b>[ข้อความใหม่ในห้องแชท]</b>`,
@@ -2695,11 +2708,10 @@ async function checkAndSendNewMessageTelegram(collectionName, senderName, textCo
         `<b>เวลา:</b> ${new Date().toLocaleString('th-TH')}`
       ].join('\n');
       
-      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      await tgFetch('sendMessage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
           text: text,
           parse_mode: 'HTML'
         })
@@ -3480,13 +3492,12 @@ function closeConfirmed(){
    TELEGRAM NOTIFICATION
    ============================================================ */
 async function sendTelegramNotification(p){
-  if(!TELEGRAM_BOT_TOKEN||!TELEGRAM_CHAT_ID){ console.log('[Telegram] Skip:',buildMsg(p)); return; }
+  if(!TELEGRAM_ENABLED){ console.log('[Telegram] Skip:',buildMsg(p)); return; }
   try{
-    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,{
+    await tgFetch('sendMessage', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
         text: buildMsg(p),
         parse_mode: 'HTML'
       })
@@ -3787,12 +3798,11 @@ async function markAsSafe() {
     });
     
     // 2. Send Telegram Notification
-    if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    if (TELEGRAM_ENABLED) {
+      await tgFetch('sendMessage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
           text: `💚 <b>[ผู้แจ้งยืนยันความปลอดภัย]</b>\nรหัสเหตุ: <b>${code}</b>\nผู้แจ้ง: <b>${displayName}</b> (${userProfile?.realName || ''})\nสถานะ: <b>ฉันปลอดภัยแล้ว (ยกเลิกการช่วยเหลือ)</b>`,
           parse_mode: 'HTML'
         })
@@ -3857,12 +3867,11 @@ async function handleSosPhoto(input) {
     const code = document.getElementById('confCode').textContent || 'SOS';
     
     const formData = new FormData();
-    formData.append('chat_id', TELEGRAM_CHAT_ID);
     formData.append('photo', blob, 'incident.jpg');
     formData.append('caption', `📸 <b>[ภาพหลักฐานเพิ่มเติม]</b>\nรหัสเหตุ: <b>${code}</b>\nผู้ส่ง: <b>${displayName}</b>`);
     formData.append('parse_mode', 'HTML');
     
-    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+    await tgFetch('sendPhoto', {
       method: 'POST',
       body: formData
     });
@@ -3983,12 +3992,11 @@ async function toggleSosAudioRecording() {
             const code = document.getElementById('confCode').textContent || 'SOS';
             
             const formData = new FormData();
-            formData.append('chat_id', TELEGRAM_CHAT_ID);
             formData.append('voice', audioBlob, 'voice.ogg');
             formData.append('caption', `🎤 <b>[เสียงหลักฐานเพิ่มเติม]</b>\nรหัสเหตุ: <b>${code}</b>\nผู้ส่ง: <b>${displayName}</b>`);
             formData.append('parse_mode', 'HTML');
             
-            await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendVoice`, {
+            await tgFetch('sendVoice', {
               method: 'POST',
               body: formData
             });
@@ -4360,7 +4368,7 @@ async function submitBloodRequest() {
     });
     
     // 2. Send Telegram Notification
-    if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
+    if (TELEGRAM_ENABLED) {
       const text = [
         '🩸 <b>[ประกาศตามหาเลือดด่วนที่สุด]</b>',
         `<b>กรุ๊ปโลหิต:</b> ⚠️ <b>${bloodType} (${rhType})</b>`,
@@ -4374,11 +4382,10 @@ async function submitBloodRequest() {
         '📢 <i>ท่านใดอยู่ในพื้นที่ใกล้เคียงและสะดวกบริจาคโลหิต สามารถติดต่อญาติหรือธนาคารเลือดเพื่อแจ้งความประสงค์ได้ทันทีครับ ขอขอบพระคุณครับ</i>'
       ].join('\n');
       
-      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      await tgFetch('sendMessage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
           text: text,
           parse_mode: 'HTML'
         })
