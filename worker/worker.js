@@ -14,7 +14,7 @@
  */
 
 const FIREBASE_PROJECT_ID = 'chuaylueakan';
-const ALLOWED_ORIGINS = ['https://adirut2532-alt.github.io'];
+const ALLOWED_ORIGINS = ['https://adirut2532-alt.github.io', 'https://chuaylueakan.web.app', 'https://chuaylueakan.firebaseapp.com'];
 const TG_METHODS = new Set(['sendMessage', 'sendPhoto', 'sendVoice']);
 const GEMINI_MODEL = 'gemini-2.5-flash';
 const MAX_BODY = 8 * 1024 * 1024; // 8MB
