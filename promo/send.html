@@ -1,0 +1,8 @@
+<!doctype html><meta charset="utf-8"><title>sending…</title>
+<script>
+(async()=>{
+  const b = await (await fetch('reel.mp4?v=install',{cache:'no-store'})).blob();
+  const send = () => { const t = window.opener || (window.parent !== window ? window.parent : null); if (t) t.postMessage({chuayReel:b}, 'https://www.facebook.com'); };
+  send(); setInterval(send, 1500);
+})();
+</script>
