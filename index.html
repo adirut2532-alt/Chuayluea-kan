@@ -63,6 +63,8 @@ img.onload = () => {
 img.src = LOGO_BASE64;
 </script>
 <!-- Leaflet Map CSS & JS CDNs -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -428,18 +430,144 @@ button,input{font-family:inherit}
   margin-left: 4px;
   margin-right: 4px;
 }
+
+/* ================================================================
+   PREMIUM DESIGN LAYER — ทับสไตล์เดิมโดยไม่แตะโครงสร้าง
+   ================================================================ */
+:root{
+  --green:#1a9a6c;--green-d:#127453;--green-l:#e4f5ec;--green-xl:#f1faf5;
+  --red:#e4402a;--red-d:#b92f1c;--red-l:#fdeeea;
+  --blue:#2448c4;--blue-l:#e8edfc;
+  --ink:#13203a;--ink-2:#3b4a66;--muted:#6f7c93;--line:#e6eaf1;--bg:#f3f6f9;
+  --shadow:0 1px 2px rgba(19,32,58,.04),0 4px 14px rgba(19,32,58,.06);
+  --sh-2:0 2px 6px rgba(19,32,58,.06),0 14px 34px rgba(19,32,58,.10);
+  --r:18px;
+  --font-h:"Prompt",-apple-system,"Sukhumvit Set",sans-serif;
+  --font-b:"Sarabun","Noto Sans Thai",-apple-system,"Sukhumvit Set",sans-serif;
+  --sab:env(safe-area-inset-bottom,0px);
+}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font-b);font-size:15px;line-height:1.5;touch-action:manipulation}
+h1,h2,h3,h4,.ttl,.btn,.cbtn,.srv-card h3,.profile-name,.sos-main-btn,.nav-sos-btn,.cd-num,.chat-hdr h3,.cd-overlay h2,.conf-overlay h2{font-family:var(--font-h);font-weight:600!important;letter-spacing:-.005em}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* Login */
+.login-wrap{position:relative;overflow:hidden;background:linear-gradient(160deg,#eef8f3 0%,#eaf0fb 100%)}
+.login-wrap::before{content:'';position:absolute;top:-120px;left:-80px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(26,154,108,.22),transparent 65%)}
+.login-wrap::after{content:'';position:absolute;bottom:-140px;right:-100px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(36,72,196,.18),transparent 65%)}
+.login-card{position:relative;z-index:1;border-radius:26px;padding:30px 24px 26px;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);box-shadow:var(--sh-2);border:1px solid rgba(255,255,255,.7)}
+.login-card .logo-img{width:170px;max-width:65%}
+.login-card h1{font-size:24px}
+.login-feat{color:var(--ink-2);background:var(--green-xl);border-radius:14px;padding:12px 14px;line-height:2}
+.btn{font-weight:600;border-radius:14px;transition:transform .12s}
+.btn:active{transform:scale(.98)}
+.btn-google{background:#fff!important;color:#1f1f1f!important;border:1.5px solid #e0e3e8!important;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-g{background:var(--green);box-shadow:0 8px 20px rgba(26,154,108,.30)}
+.err-box{border:1px solid #f8d0c8;border-radius:12px}
+
+/* Modals / sheets */
+.modal-bg{background:rgba(13,20,40,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.modal-box{border-radius:24px 24px 0 0;box-shadow:var(--sh-2)}
+.modal-box h2{font-size:20px}
+.modal-box label{color:var(--ink-2);font-weight:600}
+.modal-box input,.modal-box select,.modal-box textarea{border:1.5px solid var(--line)!important;border-radius:14px!important;transition:border-color .15s,box-shadow .15s}
+.modal-box input:focus,.modal-box select:focus,.modal-box textarea:focus{border-color:var(--green)!important;box-shadow:0 0 0 4px rgba(26,154,108,.14)!important;outline:none}
+
+/* Header */
+.hdr{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.85);backdrop-filter:saturate(1.6) blur(14px);-webkit-backdrop-filter:saturate(1.6) blur(14px);color:var(--ink);border-bottom:1px solid rgba(19,32,58,.06);padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px}
+.hdr-l img{width:34px!important;height:34px!important;border-radius:10px!important;background:#fff;box-shadow:var(--shadow);object-fit:contain}
+.hdr-l .ttl{font-size:17px;color:var(--ink)}
+.hdr-r .usr{color:var(--muted);font-weight:500}
+.hdr-r .out{background:var(--bg);color:var(--ink-2);border:1px solid var(--line);border-radius:999px;font-weight:600}
+.loc-bar{background:transparent;color:var(--green-d);padding:12px 16px 0;font-weight:500;font-size:12.5px}
+.loc-bar span{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
+
+/* Hero */
+.hero-box{margin:12px 16px 4px;border-radius:22px;padding:22px 20px 24px;background:linear-gradient(135deg,#136f52 0%,var(--green) 55%,#2f9f88 100%)!important;color:#fff;overflow:hidden;box-shadow:0 14px 34px rgba(18,116,83,.26)}
+.hero-box::after{content:'';position:absolute;right:-30px;top:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.10);pointer-events:none}
+.hero-box::before{content:'';position:absolute;right:30px;bottom:-70px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none}
+.hero-box h2{position:relative;z-index:1;color:#fff!important;font-size:24px!important;line-height:1.3!important}
+.announcement-banner{position:relative;z-index:1;font-family:var(--font-b);font-weight:600;animation:none;border-radius:14px}
+
+/* Quick dial */
+.quick{padding:14px 16px 6px;scrollbar-width:none}
+.quick a{border-radius:999px;padding:9px 15px 9px 12px;font-weight:600;font-size:13px;box-shadow:var(--shadow);transition:transform .12s}
+.quick a:active{transform:scale(.96)}
+
+/* Section titles */
+.section-title{font-family:var(--font-h);font-weight:600!important;font-size:13px;letter-spacing:.03em;border-left:none!important;padding-left:2px!important;margin:16px 18px 0}
+
+/* Service grid */
+.srv-grid{gap:12px;padding:10px 16px 6px}
+.srv-card{--tint:var(--green);--tint-l:var(--green-l);align-items:flex-start;text-align:left;padding:18px 14px 16px;border-top:none!important;border:1px solid rgba(19,32,58,.04);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;transition:transform .14s cubic-bezier(.2,.7,.2,1),box-shadow .14s}
+.srv-card::before{content:'';position:absolute;right:-26px;top:-26px;width:84px;height:84px;border-radius:50%;background:var(--tint-l);opacity:.9}
+.srv-card::after{content:'›';position:absolute;right:14px;bottom:12px;color:var(--tint);font-size:20px;font-weight:700;opacity:.55;line-height:1}
+.srv-card:active{transform:scale(.965);box-shadow:none}
+.srv-card .icon{position:relative;display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:14px;background:var(--tint-l);font-size:24px!important;line-height:1;margin-bottom:12px!important}
+.srv-card h3{position:relative;font-size:15px;line-height:1.3}
+.srv-card p{position:relative;font-size:11.5px;color:var(--muted);font-weight:500;padding-right:14px}
+.srv-card .card-badge{z-index:2}
+.srv-card.accent-red{--tint:var(--red);--tint-l:var(--red-l)}
+.srv-card.accent-blue{--tint:var(--blue);--tint-l:var(--blue-l)}
+.srv-card.accent-orange{--tint:#d47f00;--tint-l:#fff4e0}
+.srv-card.accent-green{--tint:var(--green);--tint-l:var(--green-l)}
+.srv-card.accent-cyan{--tint:#0e8f9f;--tint-l:#e3f5f7}
+.srv-card.accent-purple{--tint:#6d4ce6;--tint-l:#efeafd}
+
+/* Lists / sheets / feed */
+.sheet-item{background:#fff;border:1px solid var(--line);color:var(--ink);border-radius:14px;font-weight:600;box-shadow:var(--shadow)}
+.sheet-item:active{background:var(--green-xl)}
+.feed-item{border-left:none;border:1px solid rgba(19,32,58,.04);border-radius:16px}
+.feed-item h4{font-size:14.5px}
+.profile-menu{border-radius:18px}
+.profile-avatar{box-shadow:var(--sh-2)}
+
+/* Bottom nav */
+.nav-bar{background:rgba(255,255,255,.9);backdrop-filter:saturate(1.6) blur(16px);-webkit-backdrop-filter:saturate(1.6) blur(16px);border-top:1px solid rgba(19,32,58,.06)}
+.nav-item{font-weight:500;font-size:10.5px}
+.nav-item.active{color:var(--green-d);font-weight:600}
+.nav-item span.icon{filter:grayscale(.25);transition:transform .15s}
+.nav-item.active span.icon{filter:none;transform:translateY(-1px)}
+.nav-sos-btn{font-family:var(--font-h);font-weight:600!important;letter-spacing:.08em;background:radial-gradient(circle at 35% 30%,#ff7a62,#e4402a 65%)!important;box-shadow:0 0 0 6px #fff,0 8px 22px rgba(228,64,42,.45)!important}
+
+/* SOS hold button */
+.sos-main-btn{font-family:var(--font-h);background:radial-gradient(circle at 35% 30%,#ff7a62,#e4402a 60%,#b92f1c)!important;box-shadow:0 0 0 12px rgba(228,64,42,.10),0 14px 40px rgba(228,64,42,.45),inset 0 -6px 14px rgba(0,0,0,.18)!important;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.sos-ring-svg{filter:drop-shadow(0 0 8px rgba(255,90,60,.45))}
+
+/* Dark overlays */
+.cd-overlay,.conf-overlay{background:radial-gradient(80% 50% at 50% 0%,#1b2650 0%,#0b1128 60%,#070b1c 100%)!important}
+.cd-ring svg{filter:drop-shadow(0 0 12px rgba(228,64,42,.55))}
+.st-box{border-color:rgba(127,224,182,.35);background:linear-gradient(180deg,rgba(26,154,108,.16),rgba(26,154,108,.06))}
+.st-box .st{color:#7fe0b6}
+.cbtn{font-family:var(--font-h);font-weight:600}
+.cbtn.red{box-shadow:0 8px 20px rgba(228,64,42,.35)}
+.cbtn.grn{box-shadow:0 8px 20px rgba(26,154,108,.35)}
+
+/* AI chat */
+.ai-fab{border-radius:18px!important;background:linear-gradient(135deg,var(--green),#0e8f9f)!important;box-shadow:0 8px 22px rgba(14,143,159,.38)!important}
+.ai-fab-label{font-family:var(--font-h);font-weight:500}
+.chat-widget{border-radius:22px;box-shadow:var(--sh-2)}
+.chat-hdr{background:linear-gradient(135deg,var(--green-d),#0e8f9f)!important}
+.msg-bubble{font-size:14px;border-radius:18px}
+.msg-bubble.user{background:var(--green)}
+.chat-send-btn{background:var(--green)}
+
+/* Toast / offline */
+.offline-bar{position:fixed;top:0;left:0;right:0;max-width:480px;margin:0 auto;z-index:200;background:var(--ink);color:#fff;font-size:12.5px;text-align:center;padding:calc(6px + env(safe-area-inset-top,0px)) 10px 6px}
+.hold-tip-early{color:var(--red);font-weight:600;font-size:13px;min-height:18px;text-align:center}
 </style>
 </head>
 <body>
 
 <!-- ===== LOGIN SCREEN (Facebook Only) ===== -->
+<div class="offline-bar hidden" id="offlineBar">📡 ออฟไลน์อยู่ — ปุ่มโทรยังใช้ได้ แต่ SOS จะส่งไม่ได้จนกว่าจะออนไลน์</div>
 <div id="loginScreen" class="login-wrap">
   <div class="login-card">
     <img class="logo-img" src="data:image/webp;base64,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" alt="ช่วยเหลือกาญ">
     <h1>ช่วยเหลือกาญ</h1>
     <p class="sub">ช่วยเร็ว · เข้าถึงง่าย · อุ่นใจทุกเวลา</p>
     <div id="loginErr" class="err-box hidden"></div>
-    <button class="btn btn-google" id="googleBtn" onclick="handleGoogleLogin()">🔴 เข้าสู่ระบบด้วย Google</button>
+    <button class="btn btn-google" id="googleBtn" onclick="handleGoogleLogin()"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg> เข้าสู่ระบบด้วย Google</button>
     <div class="login-feat">
       ✅ ไม่มีค่าใช้จ่าย<br>
       ✅ แจ้งเหตุฉุกเฉินส่งพิกัดจริง<br>
@@ -489,7 +617,7 @@ button,input{font-family:inherit}
     <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px; color: var(--ink)">ต้องเข้าสู่ระบบก่อนใช้งาน</h3>
     <p style="font-size: 13px; line-height: 1.5; color: var(--muted); margin-bottom: 20px;">กรุณาเข้าสู่ระบบด้วย Google เพื่อเริ่มใช้งานฟังก์ชันการขอความช่วยเหลือ, การพูดคุยแชทชุมชน หรือการเขียนรีวิวแสดงความคิดเห็น</p>
     
-    <button class="btn btn-google" onclick="handleGoogleLoginFromGuard()" style="width: 100%; margin: 0 0 10px 0; font-size: 16px;">🔴 เข้าสู่ระบบด้วย Google</button>
+    <button class="btn btn-google" onclick="handleGoogleLoginFromGuard()" style="width: 100%; margin: 0 0 10px 0; font-size: 16px;"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg> เข้าสู่ระบบด้วย Google</button>
     <button class="btn" onclick="closeAuthGuard()" style="width: 100%; margin: 0; background: var(--line); color: var(--ink); border: none;">✕ ยกเลิก</button>
   </div>
 </div>
@@ -745,7 +873,7 @@ button,input{font-family:inherit}
         <span style="font-size:48px; display:block; margin-bottom:12px;">👤</span>
         <h4 style="font-size:16px; font-weight:800; color:var(--ink); margin:0 0 8px 0;">คุณยังไม่ได้เข้าสู่ระบบ</h4>
         <p style="font-size:13px; color:var(--muted); line-height:1.5; margin-bottom:20px;">เข้าสู่ระบบเพื่อยืนยันตัวตน และบันทึกข้อมูลติดต่อญาติฉุกเฉินสำหรับขอความช่วยเหลือ</p>
-        <button class="btn btn-google" onclick="handleGoogleLogin()" style="margin:0;">🔴 เข้าสู่ระบบด้วย Google</button>
+        <button class="btn btn-google" onclick="handleGoogleLogin()" style="margin:0;"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg> เข้าสู่ระบบด้วย Google</button>
       </div>
 
       <!-- EDIT MODE PANEL -->
@@ -1298,6 +1426,13 @@ const GEMINI_API_KEY = "AQ.Ab8RN6Lf42bW4u_VxFkTjJVrODxTmlyuH8nLbmYKnOXHK4_kvA";
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+/* ---------- Safety helpers (กันโค้ดแปลกปลอมจากข้อความผู้ใช้) ---------- */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const jsArg = s => esc(JSON.stringify(String(s ?? '')));
+window.esc = esc;
+function updateOnline(){ const b=document.getElementById('offlineBar'); if(b) b.classList.toggle('hidden', navigator.onLine!==false); }
+window.addEventListener('online',updateOnline); window.addEventListener('offline',updateOnline); updateOnline();
 auth.languageCode = 'th';
 
 // Badges and unread message tracking state
@@ -1546,13 +1681,12 @@ function showHome(){
     document.getElementById('profileViewMode').classList.remove('hidden');
     
     // Show Admin menu option for Ployrut and testing
-    const ADMIN_EMAILS = ["ployrut@gmail.com", "admin@chuaylueakan.com"];
-    // Set to true by default for local testing, can be restricted by email in production
-    const isAdmin = true; 
-    if (isAdmin || (currentUser?.email && ADMIN_EMAILS.includes(currentUser.email))) {
-      document.getElementById('adminMenuBtn').classList.remove('hidden');
-    } else {
-      document.getElementById('adminMenuBtn').classList.add('hidden');
+    // แสดงเมนูแอดมินเฉพาะบัญชีที่อยู่ใน collection "admins"
+    document.getElementById('adminMenuBtn').classList.add('hidden');
+    if (currentUser) {
+      getDoc(doc(db,'admins',currentUser.uid)).then(s=>{
+        if (s.exists()) document.getElementById('adminMenuBtn').classList.remove('hidden');
+      }).catch(()=>{});
     }
   }
   
@@ -1779,13 +1913,13 @@ function renderBottomSheetContent(categoryKey) {
         
         card.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-weight:800; font-size:14px; color:var(--ink);">${d.title}</span>
+            <span style="font-weight:800; font-size:14px; color:var(--ink);">${esc(d.title)}</span>
             <span style="font-size:10px; color:var(--muted);">${timeStr}</span>
           </div>
-          ${d.detail ? `<div style="font-size:12px; color:var(--muted); line-height:1.4;">${d.detail}</div>` : ''}
+          ${d.detail ? `<div style="font-size:12px; color:var(--muted); line-height:1.4;">${esc(d.detail)}</div>` : ''}
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
-            <span style="font-size:11px; color:var(--muted);">โดย ${d.displayName || 'สมาชิก'}</span>
-            <a href="tel:${d.phone}" style="background:var(--green); color:#fff; border-radius:8px; padding:6px 14px; font-size:12px; font-weight:800; text-decoration:none; display:flex; align-items:center; gap:4px;">📞 ${d.phone}</a>
+            <span style="font-size:11px; color:var(--muted);">โดย ${esc(d.displayName || 'สมาชิก')}</span>
+            <a href="tel:${esc(d.phone)}" style="background:var(--green); color:#fff; border-radius:8px; padding:6px 14px; font-size:12px; font-weight:800; text-decoration:none; display:flex; align-items:center; gap:4px;">📞 ${esc(d.phone)}</a>
           </div>
           ${d.uid === currentUser?.uid ? `<button onclick="deleteUserListing('${docSnap.id}')" style="background:none; border:1px solid var(--red); color:var(--red); border-radius:8px; padding:6px; font-size:11px; font-weight:700; cursor:pointer; margin-top:2px;">🗑️ ลบประกาศของฉัน</button>` : ''}
         `;
@@ -1830,7 +1964,7 @@ function renderSingleSheetItem(listEl, item) {
     badgeHtml = `<span style="background:var(--red); color:#fff; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:8px; font-weight:800">${displayVal}</span>`;
   }
   
-  btn.innerHTML = `<span style="display:flex; align-items:center">${item.text} ${badgeHtml}</span><span class="icon-right">➔</span>`;
+  btn.innerHTML = `<span style="display:flex; align-items:center">${esc(item.text)} ${badgeHtml}</span><span class="icon-right">➔</span>`;
   btn.onclick = () => handleSheetItemClick(item);
   listEl.appendChild(btn);
 }
@@ -2045,23 +2179,23 @@ function openChatRoom(collectionName = 'vent_messages', roomTitle = '💬 ห้
         if (d.replyTo) {
           quoteHtml = `
             <div style="background:rgba(0,0,0,0.1); border-left:3px solid var(--green); padding:8px; margin-bottom:8px; border-radius:4px; font-size:12px; color:var(--muted);">
-              <div style="font-weight:700;">↩️ ตอบกลับ ${d.replyTo.author}:</div>
-              <div style="margin-top:4px; font-style:italic;">"${d.replyTo.text}"</div>
+              <div style="font-weight:700;">↩️ ตอบกลับ ${esc(d.replyTo.author)}:</div>
+              <div style="margin-top:4px; font-style:italic;">"${esc(d.replyTo.text)}"</div>
             </div>
           `;
         }
         
         html += `
           <div class="cute-bubble-wrap ${isMine ? 'mine' : ''}">
-            <div class="cute-msg-name">${d.displayName || 'ผู้ใช้'}</div>
+            <div class="cute-msg-name">${esc(d.displayName || 'ผู้ใช้')}</div>
             ${quoteHtml}
             <div class="cute-bubble ${isMine ? 'mine' : 'other'}">
-              ${d.text}
+              ${esc(d.text)}
             </div>
             <div style="display:flex; justify-content:${isMine ? 'flex-end' : 'flex-start'}; gap:6px; margin-top:4px; align-items:center; flex-wrap:wrap;">
               <div class="cute-msg-time">${timeStr}</div>
               ${isMine ? `<div style="font-size:10px; color:var(--muted);">${readReceipt}</div>` : ''}
-              ${!isMine ? `<button onclick="setReply('${doc.id}', '${d.displayName}', '${d.text.replace(/'/g, "\\'")}');" style="background:none; border:none; font-size:12px; cursor:pointer; padding:0; color:var(--green);">↩️</button>` : ''}
+              ${!isMine ? `<button onclick="setReply('${doc.id}', ${jsArg(d.displayName)}, ${jsArg(d.text)});" style="background:none; border:none; font-size:12px; cursor:pointer; padding:0; color:var(--green);">↩️</button>` : ''}
               ${isMine ? `<button onclick="togglePin('${doc.id}', ${d.isPinned || false});" style="background:none; border:none; font-size:12px; cursor:pointer; padding:0; color:${d.isPinned ? '#ffc107' : 'var(--muted)'};">📌</button>` : ''}
               ${d.isPinned ? `<span style="font-size:11px; color:#ffc107; font-weight:700;">ปักหมุด</span>` : ''}
             </div>
@@ -2093,22 +2227,22 @@ function openChatRoom(collectionName = 'vent_messages', roomTitle = '💬 ห้
         if (d.replyTo) {
           defQuoteHtml = `
             <div style="background:rgba(0,0,0,0.1); border-left:3px solid ${isMine ? 'rgba(255,255,255,0.5)' : 'var(--green)'}; padding:6px 8px; margin-bottom:8px; border-radius:4px; font-size:11px;">
-              <div style="font-weight:700;">↩️ ${d.replyTo.author}:</div>
-              <div style="margin-top:2px; font-style:italic;">"${d.replyTo.text}"</div>
+              <div style="font-weight:700;">↩️ ${esc(d.replyTo.author)}:</div>
+              <div style="margin-top:2px; font-style:italic;">"${esc(d.replyTo.text)}"</div>
             </div>
           `;
         }
         
         bubble.innerHTML = `
           <div style="font-size:10px; font-weight:800; color:${isMine ? 'rgba(255,255,255,0.85)' : 'var(--muted)'}; margin-bottom:2px">
-            ${d.displayName}
+            ${esc(d.displayName)}
           </div>
           ${defQuoteHtml}
-          <div>${d.text}</div>
+          <div>${esc(d.text)}</div>
           <div style="font-size:8px; text-align:right; color:${isMine ? 'rgba(255,255,255,0.7)' : 'var(--muted)'}; margin-top:2px; display:flex; justify-content:flex-end; align-items:center; gap:6px; flex-wrap:wrap;">
             <span>${timeStr}</span>
             ${isMine ? `<span>${readReceipt}</span>` : ''}
-            ${!isMine ? `<button onclick="setReply('${doc.id}', '${(d.displayName || '').replace(/'/g, "\\'")}', '${d.text.replace(/'/g, "\\'")}');" style="background:none; border:none; font-size:10px; cursor:pointer; padding:0; color:${isMine ? 'rgba(255,255,255,0.8)' : 'var(--green)'};">↩️</button>` : ''}
+            ${!isMine ? `<button onclick="setReply('${doc.id}', ${jsArg(d.displayName)}, ${jsArg(d.text)});" style="background:none; border:none; font-size:10px; cursor:pointer; padding:0; color:${isMine ? 'rgba(255,255,255,0.8)' : 'var(--green)'};">↩️</button>` : ''}
             ${isMine ? `<button onclick="togglePin('${doc.id}', ${d.isPinned || false});" style="background:none; border:none; font-size:10px; cursor:pointer; padding:0; color:${d.isPinned ? '#ffc107' : (isMine ? 'rgba(255,255,255,0.5)' : 'var(--muted)')};">📌</button>` : ''}
           </div>
         `;
@@ -2478,8 +2612,8 @@ function loadAdminUsers() {
           <img src="${avatarUrl}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;%239aa2bd&quot;><path d=&quot;M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z&quot;/></svg>'">
           <div>
             <div style="font-size:14px; font-weight:800; color:var(--ink)">
-              ${d.realName || d.displayName || 'ไม่ระบุชื่อ'} 
-              ${d.nickname ? `<span style="font-weight:600; color:var(--muted)">(${d.nickname})</span>` : ''}
+              ${esc(d.realName || d.displayName || 'ไม่ระบุชื่อ')} 
+              ${d.nickname ? `<span style="font-weight:600; color:var(--muted)">(${esc(d.nickname)})</span>` : ''}
             </div>
             <div style="font-size:11px; color:var(--muted)">ID: ${d.uid}</div>
           </div>
@@ -2488,8 +2622,8 @@ function loadAdminUsers() {
         <div style="height:1px; background:var(--line); margin:4px 0"></div>
         
         <div style="font-size:12px; display:flex; flex-direction:column; gap:4px">
-          <div>📱 <b>เบอร์ติดต่อ:</b> <a href="tel:${d.phone}" style="color:var(--green-d); font-weight:700; text-decoration:none">${d.phone || '-'}</a></div>
-          <div>🚨 <b>ญาติฉุกเฉิน:</b> ${d.emergencyName || '-'} (โทร: <a href="tel:${d.emergencyPhone}" style="color:var(--green-d); font-weight:700; text-decoration:none">${d.emergencyPhone || '-'}</a>)</div>
+          <div>📱 <b>เบอร์ติดต่อ:</b> <a href="tel:${esc(d.phone)}" style="color:var(--green-d); font-weight:700; text-decoration:none">${esc(d.phone || '-')}</a></div>
+          <div>🚨 <b>ญาติฉุกเฉิน:</b> ${esc(d.emergencyName || '-')} (โทร: <a href="tel:${esc(d.emergencyPhone)}" style="color:var(--green-d); font-weight:700; text-decoration:none">${esc(d.emergencyPhone || '-')}</a>)</div>
           <div>📅 <b>สมัครสมาชิกเมื่อ:</b> <span style="color:var(--muted); font-weight:600">${regDate}</span></div>
         </div>
       `;
@@ -2677,24 +2811,24 @@ function showActualAdminPanel() {
       
       card.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center">
-          <span style="font-weight:900; font-size:15px; color:var(--ink)">🚨 ${d.code || 'SOS-Request'}</span>
+          <span style="font-weight:900; font-size:15px; color:var(--ink)">🚨 ${esc(d.code || 'SOS-Request')}</span>
           <span style="font-size:11px; font-weight:800; padding:4px 8px; border-radius:8px; background:${getStatusBgColor(d.status)}; color:${getStatusTextColor(d.status)}">
             ${getStatusLabel(d.status)}
           </span>
         </div>
         
         <div style="font-size:13px; color:var(--ink); display:flex; flex-direction:column; gap:4px">
-          <div><b>👤 ชื่อผู้แจ้ง (ชื่อเล่น):</b> ${d.displayName || 'ไม่ระบุ'} (${d.realName || 'ไม่ระบุชื่อจริง'})</div>
-          <div><b>📞 เบอร์โทรศัพท์:</b> <a href="tel:${d.phone}" style="color:var(--blue); font-weight:700">${d.phone || '-'}</a></div>
-          <div><b>🚨 ติดต่อฉุกเฉิน/ญาติ:</b> ${d.emergencyName || 'ไม่ระบุ'} (<a href="tel:${d.emergencyPhone}" style="color:var(--blue); font-weight:700">${d.emergencyPhone || '-'}</a>)</div>
+          <div><b>👤 ชื่อผู้แจ้ง (ชื่อเล่น):</b> ${esc(d.displayName || 'ไม่ระบุ')} (${esc(d.realName || 'ไม่ระบุชื่อจริง')})</div>
+          <div><b>📞 เบอร์โทรศัพท์:</b> <a href="tel:${esc(d.phone)}" style="color:var(--blue); font-weight:700">${esc(d.phone || '-')}</a></div>
+          <div><b>🚨 ติดต่อฉุกเฉิน/ญาติ:</b> ${esc(d.emergencyName || 'ไม่ระบุ')} (<a href="tel:${esc(d.emergencyPhone)}" style="color:var(--blue); font-weight:700">${esc(d.emergencyPhone || '-')}</a>)</div>
           <div><b>📍 พิกัด:</b> ${d.lat}, ${d.lng}</div>
           <div><b>🕒 เวลาแจ้ง:</b> ${timeStr}</div>
-          ${d.helperInfo ? `<div><b>💬 ข้อมูลเจ้าหน้าที่:</b> ${d.helperInfo}</div>` : ''}
+          ${d.helperInfo ? `<div><b>💬 ข้อมูลเจ้าหน้าที่:</b> ${esc(d.helperInfo)}</div>` : ''}
           ${attachmentsHtml}
         </div>
         
         <div style="display:flex; gap:8px; margin-top:4px">
-          <a href="tel:${d.phone}" style="flex:1; text-align:center; background:var(--blue-l); color:var(--blue); border-radius:10px; padding:10px; font-size:13px; font-weight:800; text-decoration:none">📞 โทรหา</a>
+          <a href="tel:${esc(d.phone)}" style="flex:1; text-align:center; background:var(--blue-l); color:var(--blue); border-radius:10px; padding:10px; font-size:13px; font-weight:800; text-decoration:none">📞 โทรหา</a>
           <a href="https://www.google.com/maps/search/?api=1&query=${d.lat},${d.lng}" target="_blank" style="flex:1; text-align:center; background:var(--green-l); color:var(--green-d); border-radius:10px; padding:10px; font-size:13px; font-weight:800; text-decoration:none">📍 ดูแผนที่</a>
         </div>
         
@@ -2758,9 +2892,9 @@ function showActualAdminPanel() {
           <span style="font-size:9px; font-weight:800; background:var(--green-l); color:var(--green-d); border-radius:6px; padding:2px 6px; display:inline-block; margin-bottom:4px">
             ${catLabelMap[d.category] || d.category}
           </span>
-          <div style="font-size:13px; font-weight:800; color:var(--ink)">${d.text}</div>
-          ${d.phone ? `<div style="font-size:12px; color:var(--muted); font-weight:600; margin-top:2px">📞 เบอร์โทร: ${d.phone}</div>` : ''}
-          ${d.msg ? `<div style="font-size:11px; color:var(--muted); margin-top:2px; font-style:italic">💬 คำแนะนำ: ${d.msg}</div>` : ''}
+          <div style="font-size:13px; font-weight:800; color:var(--ink)">${esc(d.text)}</div>
+          ${d.phone ? `<div style="font-size:12px; color:var(--muted); font-weight:600; margin-top:2px">📞 เบอร์โทร: ${esc(d.phone)}</div>` : ''}
+          ${d.msg ? `<div style="font-size:11px; color:var(--muted); margin-top:2px; font-style:italic">💬 คำแนะนำ: ${esc(d.msg)}</div>` : ''}
         </div>
         <button onclick="deleteCustomContact('${docId}')" style="background:var(--red-l); color:var(--red-d); border:none; border-radius:8px; padding:8px 12px; font-size:11px; font-weight:800; cursor:pointer">🗑️ ลบ</button>
       `;
@@ -2892,13 +3026,13 @@ function openTechReviews(item) {
       
       reviewCard.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center">
-          <span style="font-weight:800; font-size:12px; color:var(--ink)">👤 ${d.displayName}</span>
+          <span style="font-weight:800; font-size:12px; color:var(--ink)">👤 ${esc(d.displayName)}</span>
           <span style="font-size:10px; color:var(--muted)">${timeStr}</span>
         </div>
         <div style="display:flex; align-items:center; gap:4px">
           <span style="color:#f2c94c; font-size:14px">${starsStr}</span>
         </div>
-        <div style="font-size:13px; color:var(--ink); line-height:1.4">${d.comment}</div>
+        <div style="font-size:13px; color:var(--ink); line-height:1.4">${esc(d.comment)}</div>
       `;
       listEl.appendChild(reviewCard);
     });
@@ -3204,7 +3338,7 @@ function updateLeafletMap() {
   // Show nearby hospitals
   const nearbyHospitals = getNearbyHospitals(userCoord.lat, userCoord.lng, 10);
   nearbyHospitals.forEach((h) => {
-    const popupText = `<div style="font-size:13px;"><b>${h.name}</b><br>📞 ${h.phone}<br>⏰ ${h.hours}<br>📏 ${h.distance} กม.<br><button onclick="openMapDirections(${h.lat}, ${h.lng}, '${h.name.replace(/'/g, "\\'")}');" style="margin-top:8px; background:#1f9e6e; color:#fff; border:none; padding:8px 12px; border-radius:6px; font-weight:700; cursor:pointer; width:100%;">🗺️ นำทาง</button></div>`;
+    const popupText = `<div style="font-size:13px;"><b>${esc(h.name)}</b><br>📞 ${esc(h.phone)}<br>⏰ ${esc(h.hours)}<br>📏 ${h.distance} กม.<br><button onclick="openMapDirections(${h.lat}, ${h.lng}, ${jsArg(h.name)});" style="margin-top:8px; background:#1f9e6e; color:#fff; border:none; padding:8px 12px; border-radius:6px; font-weight:700; cursor:pointer; width:100%;">🗺️ นำทาง</button></div>`;
     
     const hospitalIcon = L.divIcon({
       html: `<span style="font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); display: block; text-align: center; line-height: 1;">🏥</span>`,
@@ -3227,14 +3361,19 @@ function updateLeafletMap() {
 const HOLD_MS=3000, CD_SEC=5, CIRC=2*Math.PI*76, CD_CIRC=2*Math.PI*68;
 let holdStart=0, holdAnim=null, cdInterval=null, cdVal=CD_SEC, currentSosId=null, sosUnsub=null;
 
+let _actx=null;
+function unlockAudio(){ try{ _actx=_actx||new(window.AudioContext||window.webkitAudioContext)(); if(_actx.state==='suspended') _actx.resume(); }catch(e){} }
 function playBeep(){
-  try{ const c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=0.3;o.start();o.stop(c.currentTime+0.15); }catch(e){}
+  if(navigator.vibrate) navigator.vibrate(180);
+  try{ const c=_actx||(_actx=new(window.AudioContext||window.webkitAudioContext)()),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=0.3;o.start();o.stop(c.currentTime+0.15); }catch(e){}
 }
 
+let _lastTouch=0;
 function startHold(e){
-  if(e && (e.type === 'touchstart' || e.type === 'touchmove')) {
-    e.preventDefault();
-  }
+  if(e && e.type === 'touchstart'){ e.preventDefault(); _lastTouch=Date.now(); }
+  else if(e && e.type === 'mousedown' && Date.now()-_lastTouch < 800) return; // กันยิงซ้ำบน iPhone
+  if(navigator.onLine===false){ alert('ออฟไลน์อยู่ — กรุณาโทร 1669 โดยตรง'); return; }
+  unlockAudio();
   if(holdAnim) cancelAnimationFrame(holdAnim);
   holdStart=Date.now();
   document.getElementById('sosBtn').classList.add('holding');
@@ -3251,6 +3390,14 @@ function startHold(e){
 function cancelHold(e){
   if(e && (e.type === 'touchend' || e.type === 'touchcancel')) {
     e.preventDefault();
+  }
+  if(holdAnim && Date.now()-holdStart < HOLD_MS - 50){
+    const t=document.getElementById('holdText');
+    if(t){ t.classList.remove('hidden'); t.textContent='ปล่อยเร็วไป — กดค้างให้ครบ 3 วินาที'; setTimeout(()=>{t.classList.add('hidden'); t.textContent='กำลังกดค้าง… อย่าปล่อย';},1800); }
+    cancelAnimationFrame(holdAnim); holdAnim=null;
+    document.getElementById('sosBtn').classList.remove('holding');
+    document.getElementById('holdRing').setAttribute('stroke-dashoffset',CIRC);
+    return;
   }
   cancelAnimationFrame(holdAnim);
   holdAnim=null;
@@ -3604,7 +3751,7 @@ function showAnnouncementDetail() {
   
   if (currentAnnouncement.showTime && currentAnnouncement.updatedAt) {
     const formattedTime = formatAnnounceTime(currentAnnouncement.updatedAt);
-    modalText.innerHTML = `${currentAnnouncement.text}\n\n<span style="font-size: 11px; color: var(--muted); font-weight: bold; display: block; border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; text-align: right;">🕒 เวลาเหตุการณ์: ${formattedTime}</span>`;
+    modalText.innerHTML = `${esc(currentAnnouncement.text)}\n\n<span style="font-size: 11px; color: var(--muted); font-weight: bold; display: block; border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; text-align: right;">🕒 เวลาเหตุการณ์: ${formattedTime}</span>`;
   } else {
     modalText.textContent = currentAnnouncement.text;
   }
@@ -3937,27 +4084,28 @@ function handleGoogleLoginFromGuard() {
 /* ============================================================
    ADMIN PIN VERIFICATION & HELPERS
    ============================================================ */
-const ADMIN_PIN = "789546"; // รหัสผ่านสำหรับเข้าหน้าแอดมิน (สามารถเปลี่ยนได้ที่นี่)
-
-function openAdminPanel() {
-  document.getElementById('adminPinInput').value = '';
-  document.getElementById('adminPinErr').classList.add('hidden');
-  document.getElementById('adminPinModal').classList.remove('hidden');
+// สิทธิ์แอดมินตรวจจาก Firestore: collection "admins" ชื่อเอกสาร = UID (ไม่เก็บรหัสในโค้ดอีกต่อไป)
+async function openAdminPanel() {
+  const modal=document.getElementById('adminPinModal');
+  const box=modal.querySelector('.modal-box');
+  if(!currentUser){ alert('กรุณาเข้าสู่ระบบก่อน'); return; }
+  let ok=false;
+  try{ ok=(await getDoc(doc(db,'admins',currentUser.uid))).exists(); }catch(e){ console.error(e); }
+  if(ok){ showActualAdminPanel(); return; }
+  box.innerHTML = `<span style="font-size:44px;display:block;margin-bottom:10px">⛔</span>
+    <h3 style="font-size:18px;margin-bottom:8px">บัญชีนี้ยังไม่มีสิทธิ์แอดมิน</h3>
+    <p style="font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:10px">เพิ่มสิทธิ์ใน Firebase Console → Firestore → collection <b>admins</b> → Document ID ใส่รหัสด้านล่าง → Save</p>
+    <code style="display:block;background:var(--bg);border-radius:10px;padding:10px;font-size:12px;word-break:break-all;user-select:all;margin-bottom:12px">${esc(currentUser.uid)}</code>
+    <button class="btn" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(currentUser.uid)}');this.textContent='คัดลอกแล้ว ✓'" style="width:100%;margin:0 0 8px;background:var(--green-l);color:var(--green-d)">📋 คัดลอกรหัส</button>
+    <button class="btn" onclick="closeAdminPinModal()" style="width:100%;margin:0;background:var(--line);color:var(--ink)">ปิด</button>`;
+  modal.classList.remove('hidden');
 }
 
 function closeAdminPinModal() {
   document.getElementById('adminPinModal').classList.add('hidden');
 }
 
-function submitAdminPin() {
-  const pin = document.getElementById('adminPinInput').value.trim();
-  if (pin === ADMIN_PIN) {
-    closeAdminPinModal();
-    showActualAdminPanel();
-  } else {
-    showErr('adminPinErr', '❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง');
-  }
-}
+function submitAdminPin() { closeAdminPinModal(); openAdminPanel(); }
 
 /* ============================================================
    PROFILE MODAL & TAB INLINE EDIT FUNCTIONS
@@ -4107,21 +4255,21 @@ function openBloodRequests() {
               ต้องการเลือดด่วน 🚨
             </span>
             <h3 style="font-size: 16px; font-weight: 800; margin: 8px 0 4px 0; color: var(--ink); line-height: 1.3;">
-              คนไข้: ${d.patientName}
+              คนไข้: ${esc(d.patientName)}
             </h3>
             <div style="font-size: 13px; color: var(--muted); font-weight: 700; display:flex; align-items:center; gap:4px;">
-              📍 ${d.hospital}
+              📍 ${esc(d.hospital)}
             </div>
           </div>
           <div style="text-align: center; background: #c62828; color: #fff; border-radius: 12px; padding: 6px 10px; min-width: 65px; box-shadow: 0 4px 10px rgba(198, 40, 40, 0.2); flex-shrink: 0;">
             <div style="font-size: 10px; font-weight: 700; opacity: 0.9;">กรุ๊ป</div>
-            <div style="font-size: 20px; font-weight: 900; line-height: 1.1;">${d.bloodType}</div>
-            <div style="font-size: 9px; font-weight: 700; opacity: 0.8; margin-top: 1px;">${d.rhType || ''}</div>
+            <div style="font-size: 20px; font-weight: 900; line-height: 1.1;">${esc(d.bloodType)}</div>
+            <div style="font-size: 9px; font-weight: 700; opacity: 0.8; margin-top: 1px;">${esc(d.rhType || '')}</div>
           </div>
         </div>
         
         <p style="font-size: 13px; color: #3c4554; line-height: 1.5; margin: 8px 0; background: #f8f9fa; padding: 10px; border-radius: 8px; font-weight: 700; word-break: break-word; white-space: pre-wrap;">
-          📝 ${d.detail || 'ต้องการเลือดสำหรับรักษาตัว'}
+          📝 ${esc(d.detail || 'ต้องการเลือดสำหรับรักษาตัว')}
         </p>
         
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px solid var(--line); padding-top: 10px; gap: 8px; flex-wrap: wrap;">
@@ -4130,7 +4278,7 @@ function openBloodRequests() {
           </div>
           <div style="display: flex; gap: 6px; align-items: center; margin-left: auto;">
             ${showDeleteBtn ? `<button onclick="deleteBloodRequest('${docId}')" style="background:none; border:none; color:var(--red); font-size:12px; font-weight:800; cursor:pointer; padding:6px; display:flex; align-items:center; gap:3px;">🗑️ ลบประกาศ</button>` : ''}
-            <a href="tel:${d.phone}" style="background: #1f9e6e; color: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 800; text-decoration: none; display: flex; align-items: center; gap: 4px; border: none; cursor: pointer;">
+            <a href="tel:${esc(d.phone)}" style="background: #1f9e6e; color: #fff; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 800; text-decoration: none; display: flex; align-items: center; gap: 4px; border: none; cursor: pointer;">
               📞 โทรติดต่อญาติ
             </a>
           </div>
@@ -4453,8 +4601,8 @@ function loadPinnedMessages() {
       const item = document.createElement('div');
       item.style.cssText = 'background:#fff; padding:8px; border-radius:8px; font-size:12px; border-left:3px solid #ffc107;';
       item.innerHTML = `
-        <div style="font-weight:700; color:var(--ink);">${d.displayName}</div>
-        <div style="color:var(--muted); margin:4px 0;">${d.text}</div>
+        <div style="font-weight:700; color:var(--ink);">${esc(d.displayName)}</div>
+        <div style="color:var(--muted); margin:4px 0;">${esc(d.text)}</div>
         <button onclick="window.location.hash='#msg-${doc.id}';" style="background:none; border:none; color:var(--green); font-size:11px; cursor:pointer;">ดูข้อความ</button>
       `;
       pinnedList.appendChild(item);
@@ -4488,9 +4636,9 @@ function showMembers() {
     const item = document.createElement('div');
     item.style.cssText = 'display:flex; gap:12px; padding:12px; background:var(--line); border-radius:12px; align-items:center;';
     item.innerHTML = `
-      <div style="font-size:32px; flex-shrink:0;">${member.avatar}</div>
+      <div style="font-size:32px; flex-shrink:0;">${esc(member.avatar)}</div>
       <div style="flex:1;">
-        <div style="font-weight:700; color:var(--ink);">${member.displayName}</div>
+        <div style="font-weight:700; color:var(--ink);">${esc(member.displayName)}</div>
         <div style="font-size:12px; color:${isOnline ? '#4CAF50' : 'var(--muted)'};">
           ${isOnline ? '🟢 ออนไลน์' : `ล่าสุด ${lastSeenStr}`}
         </div>
@@ -4526,7 +4674,7 @@ window.closeMembersModal=closeMembersModal;
 function setReply(docId, authorName, text) {
   currentReplyTo = { docId, author: authorName, text: text.substring(0, 50) + (text.length > 50 ? '...' : '') };
   document.getElementById('replyPreview').style.display = 'block';
-  document.getElementById('replyText').textContent = `${authorName}: "${currentReplyTo.text}"`;
+  document.getElementById('replyText').textContent = `${authorName}: "${esc(currentReplyTo.text)}"`;
   document.getElementById('roomInput').focus();
 }
 
@@ -4594,12 +4742,12 @@ function renderNearbyHospitalsList() {
     card.style.cssText = 'background:#f8f9fa; border:1px solid var(--line); border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:flex-start; gap:8px;';
     card.innerHTML = `
       <div style="flex:1; min-width:0;">
-        <div style="font-weight:700; font-size:13px; color:var(--ink); margin-bottom:4px;">🏥 ${h.name}</div>
+        <div style="font-weight:700; font-size:13px; color:var(--ink); margin-bottom:4px;">🏥 ${esc(h.name)}</div>
         <div style="font-size:11px; color:var(--muted); line-height:1.4;">
-          📞 ${h.phone}<br>⏰ ${h.hours}<br>📏 <b>${h.distance} กม.</b>
+          📞 ${esc(h.phone)}<br>⏰ ${esc(h.hours)}<br>📏 <b>${h.distance} กม.</b>
         </div>
       </div>
-      <button onclick="openMapDirections(${h.lat}, ${h.lng}, '${h.name.replace(/'/g, "\\'")}');" style="background:var(--green); color:#fff; border:none; border-radius:10px; padding:10px 14px; font-size:12px; font-weight:800; white-space:nowrap; cursor:pointer; flex-shrink:0;">🗺️ นำทาง</button>
+      <button onclick="openMapDirections(${h.lat}, ${h.lng}, ${jsArg(h.name)});" style="background:var(--green); color:#fff; border:none; border-radius:10px; padding:10px 14px; font-size:12px; font-weight:800; white-space:nowrap; cursor:pointer; flex-shrink:0;">🗺️ นำทาง</button>
     `;
     listEl.appendChild(card);
   });
