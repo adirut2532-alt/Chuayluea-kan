@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><title>sending…</title>
+<p style="font:16px sans-serif;padding:20px">กำลังส่งไฟล์คลิป…</p>
+<script>
+(async()=>{
+  const b = await (await fetch('reel.mp4',{cache:'no-store'})).blob();
+  const send = () => { if (window.opener) window.opener.postMessage({chuayReel:b}, 'https://www.facebook.com'); };
+  send(); setInterval(send, 1500);
+  document.querySelector('p').textContent = 'ส่งไฟล์แล้ว (' + b.size + ' bytes) ปิดหน้านี้ได้';
+})();
+</script>
