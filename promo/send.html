@@ -1,8 +1,0 @@
-<!doctype html><meta charset="utf-8"><script>
-const OK=['https://www.facebook.com','https://business.facebook.com'];
-const ref=document.referrer?new URL(document.referrer).origin:'';
-const target=OK.includes(ref)?ref:null;
-const f=new URLSearchParams(location.search).get('f')||'';
-if(target&&/^[a-z0-9_]+\.mp4$/.test(f)) fetch(f).then(r=>r.blob()).then(b=>parent.postMessage({kind:'video',name:f,blob:b},target));
-if(target&&f==='caps') fetch('caps.json').then(r=>r.json()).then(j=>parent.postMessage({kind:'caps',caps:j},target));
-</script>
