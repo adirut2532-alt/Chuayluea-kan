@@ -4243,8 +4243,7 @@ function openBloodRequests() {
       return;
     }
     
-    const ADMIN_EMAILS = ["ployrut@gmail.com", "admin@chuaylueakan.com"];
-    const userIsAdmin = (currentUser?.email && ADMIN_EMAILS.includes(currentUser.email)) || true;
+    const userIsAdmin = !document.getElementById('adminMenuBtn').classList.contains('hidden');
     
     snapshot.forEach((docSnap) => {
       const d = docSnap.data();
